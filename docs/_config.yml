@@ -1,0 +1,7 @@
+theme: jekyll-theme-cayman
+title: "Bulk Data Client"
+
+include:
+    - "_*_.html"
+    - "_*_.*.html"
+    - "_lib_.html"
