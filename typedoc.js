@@ -24,7 +24,7 @@ module.exports = {
 
     // If set, TypeDoc will remove the output directory before writing output.
     // --cleanOutputDir
-    cleanOutputDir: true,
+    cleanOutputDir: false,
 
     // Path to a custom CSS file to for the theme to import.
     // --customCss
