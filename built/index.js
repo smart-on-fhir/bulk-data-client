@@ -22,7 +22,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Types = exports.Reporters = void 0;
+exports.Types = exports.Streams = exports.Reporters = void 0;
 __exportStar(require("./lib"), exports);
 exports.Reporters = __importStar(require("./reporters"));
+exports.Streams = __importStar(require("./streams"));
 exports.Types = __importStar(require(".."));

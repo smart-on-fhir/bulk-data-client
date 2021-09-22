@@ -1,7 +1,7 @@
 import { OptionsOfUnknownResponseBody, Response } from "got/dist/source";
 import { extname } from "path";
 import { Readable, Transform }  from "stream"
-import PDF from "./PDF"
+import PDF from "../lib/PDF"
 import { URL } from "url"
 import jose from "node-jose"
 

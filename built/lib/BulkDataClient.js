@@ -34,13 +34,31 @@ const code_1 = require("@hapi/code");
 const stream_1 = require("stream");
 const request_1 = __importDefault(require("./request"));
 const FileDownload_1 = __importDefault(require("./FileDownload"));
-const ParseNDJSON_1 = __importDefault(require("./ParseNDJSON"));
-const StringifyNDJSON_1 = __importDefault(require("./StringifyNDJSON"));
-const DocumentReferenceHandler_1 = __importDefault(require("./DocumentReferenceHandler"));
+const ParseNDJSON_1 = __importDefault(require("../streams/ParseNDJSON"));
+const StringifyNDJSON_1 = __importDefault(require("../streams/StringifyNDJSON"));
+const DocumentReferenceHandler_1 = __importDefault(require("../streams/DocumentReferenceHandler"));
 const utils_1 = require("./utils");
 events_1.EventEmitter.defaultMaxListeners = 30;
 const pipeline = (0, util_1.promisify)(stream_1.Stream.pipeline);
 const debug = (0, util_1.debuglog)("app-request");
+/**
+ * This class provides all the methods needed for making Bulk Data exports and
+ * downloading data fom bulk data capable FHIR server.
+ *
+ * **Example:**
+ * ```ts
+ * const client = new Client({ ...options })
+ *
+ * // Start an export and get the status location
+ * const statusEndpoint = await client.kickOff()
+ *
+ * // Wait for the export and get the manifest
+ * const manifest = await client.waitForExport(statusEndpoint)
+ *
+ * // Download everything in the manifest
+ * const downloads = await client.downloadFiles(manifest)
+ * ```
+ */
 class BulkDataClient extends events_1.EventEmitter {
     /**
      * Nothing special is done here - just remember the options and create
@@ -64,6 +82,21 @@ class BulkDataClient extends events_1.EventEmitter {
             this.emit("abort");
         });
     }
+    /**
+     * Abort any current asynchronous task. This may include:
+     * - pending HTTP requests
+     * - wait timers
+     * - streams and stream pipelines
+     */
+    abort() {
+        this.abortController.abort();
+    }
+    /**
+     * Used internally to make requests that will automatically authorize if
+     * needed and that can be aborted using [this.abort()]
+     * @param options Any request options
+     * @param label Used to render an error message if the request is aborted
+     */
     async request(options, label = "request") {
         const _options = {
             ...this.options.requests,
@@ -254,7 +287,7 @@ class BulkDataClient extends events_1.EventEmitter {
         };
         return checkStatus();
     }
-    async downloadFiles(manifest) {
+    async downloadAllFiles(manifest) {
         return new Promise((resolve, reject) => {
             // Count how many files we have gotten for each ResourceType. This
             // is needed if the forceStandardFileNames option is true
@@ -413,22 +446,19 @@ class BulkDataClient extends events_1.EventEmitter {
         });
         await this.writeToDestination(fileName, processPipeline, subFolder);
         onComplete();
-        // if (fileType !== "attachment") {
-        //     /**
-        //      * Convert to stream of JSON objects
-        //      * @type {*}
-        //      */
-        //     pipeline = decompress.pipe(new NdJsonStream());
-        //     pipeline.on("data", () => this.setState("objects", this.state.objects + 1));
-        //     // Handle DocumentReference with absolute URLs
-        //     pipeline = pipeline.pipe(new DocumentReferenceHandler({
-        //         dir,
-        //         gzip : !!decompress,
-        //         accessToken: this.options.accessToken,
-        //         onAttachment: this.options.onAttachment
-        //     }));
-        // }
     }
+    /**
+     * Given a readable stream as input sends the data to the destination. The
+     * actual actions taken are different depending on the destination:
+     * - For file system destination the files are written to the given location
+     * - For S3 destinations the files are uploaded to S3
+     * - For HTTP destinations the files are posted to the given URL
+     * - If the destination is "" or "none" no action is taken (files are discarded)
+     * @param fileName The desired fileName at destination
+     * @param inputStream The input readable stream
+     * @param subFolder
+     * @returns
+     */
     writeToDestination(fileName, inputStream, subFolder = "") {
         const destination = String(this.options.destination || "none").trim();
         // No destination ------------------------------------------------------
@@ -481,6 +511,14 @@ class BulkDataClient extends events_1.EventEmitter {
         }
         return pipeline(inputStream, fs_1.default.createWriteStream((0, path_1.join)(path, fileName)));
     }
+    /**
+     * Given an URL query as URLSearchParams object, appends all the
+     * user-defined Bulk Data Export kick-off parameters from CLI or from config
+     * files and returns the query object
+     * @param params URLSearchParams object to augment
+     * @returns The same URLSearchParams object, possibly augmented with new
+     * parameters
+     */
     buildKickOffQuery(params) {
         if (this.options._outputFormat) {
             params.append("_outputFormat", this.options._outputFormat);
@@ -502,9 +540,6 @@ class BulkDataClient extends events_1.EventEmitter {
             params.append("_typeFilter", this.options._typeFilter);
         }
         return params;
-    }
-    abort() {
-        this.abortController.abort();
     }
 }
 exports.default = BulkDataClient;

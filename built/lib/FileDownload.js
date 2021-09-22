@@ -4,10 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const util_1 = __importDefault(require("util"));
-const zlib_1 = __importDefault(require("zlib"));
-const stream_1 = require("stream");
 const events_1 = __importDefault(require("events"));
 const request_1 = __importDefault(require("./request"));
+const utils_1 = require("./utils");
 const debug = util_1.default.debuglog("app-request");
 class FileDownload extends events_1.default {
     constructor(url) {
@@ -63,46 +62,9 @@ class FileDownload extends events_1.default {
                 if (res.statusCode >= 400) {
                     return reject(new Error(`${this.url} -> ${res.statusCode}: ${res.statusMessage}\n${res.body || ""}`));
                 }
-                // let transforms = []
                 // Un-compress the response if needed --------------------------
-                let decompress;
-                switch (res.headers["content-encoding"]) {
-                    case "gzip":
-                        decompress = zlib_1.default.createGunzip();
-                        decompress.on("error", e => {
-                            e.message = `Error un-compressing "gzip" response: ${e.message}`;
-                            reject(e);
-                        });
-                        res.pipe(decompress);
-                        break;
-                    case "deflate":
-                        decompress = zlib_1.default.createInflate();
-                        decompress.on("error", e => {
-                            e.message = `Error un-compressing "deflate" response: ${e.message}`;
-                            reject(e);
-                        });
-                        res.pipe(decompress);
-                        break;
-                    case "br": {
-                        decompress = zlib_1.default.createBrotliDecompress();
-                        decompress.on("error", e => {
-                            e.message = `Error un-compressing "br" response: ${e.message}`;
-                            reject(e);
-                        });
-                        res.pipe(decompress);
-                        break;
-                    }
-                    default:
-                        decompress = new stream_1.Stream.Transform({
-                            readableObjectMode: false,
-                            writableObjectMode: true,
-                            transform(chunk, enc, cb) {
-                                cb(null, chunk.toString("utf8"));
-                            }
-                        });
-                        res.pipe(decompress);
-                        break;
-                }
+                let decompress = (0, utils_1.createDecompressor)(res);
+                res.pipe(decompress);
                 // Count uncompressed bytes ------------------------------------
                 decompress.on("data", (data) => {
                     this.state.uncompressedBytes += data.length;

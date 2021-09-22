@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const path_1 = require("path");
 const stream_1 = require("stream");
-const PDF_1 = __importDefault(require("./PDF"));
+const PDF_1 = __importDefault(require("../lib/PDF"));
 const url_1 = require("url");
 const node_jose_1 = __importDefault(require("node-jose"));
 async function pdfToText(data) {

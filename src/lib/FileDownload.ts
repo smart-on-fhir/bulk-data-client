@@ -1,9 +1,9 @@
 import util         from "util"
-import zlib         from "zlib"
-import { PassThrough, Readable, Stream } from "stream"
+import { Readable } from "stream"
 import EventEmitter from "events"
 import request      from "./request"
-import { Headers, OptionsOfUnknownResponseBody } from "got/dist/source"
+import { OptionsOfUnknownResponseBody } from "got/dist/source"
+import { createDecompressor } from "./utils"
 
 
 const debug = util.debuglog("app-request")
@@ -102,60 +102,16 @@ class FileDownload extends EventEmitter
                     ));
                 }
 
-                // let transforms = []
-                
-                
-
                 // Un-compress the response if needed --------------------------
-                let decompress;
-                switch (res.headers["content-encoding"]) {
-        
-                    case "gzip":
-                        decompress = zlib.createGunzip();
-                        decompress.on("error", e => {
-                            e.message = `Error un-compressing "gzip" response: ${e.message}`
-                            reject(e)
-                        })
-                        res.pipe(decompress)
-                        break;
-                    
-                    case "deflate":
-                        decompress = zlib.createInflate();
-                        decompress.on("error", e => {
-                            e.message = `Error un-compressing "deflate" response: ${e.message}`
-                            reject(e)
-                        })
-                        res.pipe(decompress)
-                        break;
-            
-                    case "br": {
-                        decompress = zlib.createBrotliDecompress();
-                        decompress.on("error", e => {
-                            e.message = `Error un-compressing "br" response: ${e.message}`
-                            reject(e)
-                        })
-                        res.pipe(decompress);
-                        break;
-                    }
-
-                    default:
-                        decompress = new Stream.Transform({
-                            readableObjectMode: false,
-                            writableObjectMode: true,
-                            transform(chunk, enc, cb) {
-                                cb(null, chunk.toString("utf8"))
-                            }
-                        });
-                        res.pipe(decompress);
-                        break;
-                }
-
+                let decompress = createDecompressor(res);
+                res.pipe(decompress)
+                
                 // Count uncompressed bytes ------------------------------------
                 decompress.on("data", (data: string) => {
                     this.state.uncompressedBytes += data.length
                     this.emit("progress", this.state)
                 });
-
+                
                 // Count incoming raw data chunks ----------------------------------
                 downloadRequest.on("data", () => this.state.downloadedChunks += 1)
                 

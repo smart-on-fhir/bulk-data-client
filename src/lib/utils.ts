@@ -5,7 +5,9 @@ import moment         from "moment"
 import prompt         from "prompt-sync"
 import util           from "util"
 import { Response }   from "got/dist/source"
+import zlib           from "zlib"
 import request        from "./request"
+import { Transform }  from "stream"
 import { BulkDataClient, JsonObject } from "../.."
 
 
@@ -352,4 +354,21 @@ export function exit(arg: any, details?: Record<string, any>) {
     process.exit(exitCode)
 }
 
+export function createDecompressor(res: Response): Transform
+{
+    switch (res.headers["content-encoding"]) {
+        case "gzip"   : return zlib.createGunzip();
+        case "deflate": return zlib.createInflate();
+        case "br"     : return zlib.createBrotliDecompress();
 
+        // Even if there is no compression we need to convert from stream of
+        // bytes to stream of string objects
+        default       : return new Transform({
+            readableObjectMode: false,
+            writableObjectMode: true,
+            transform(chunk, enc, cb) {
+                cb(null, chunk.toString("utf8"))
+            }
+        })
+    }
+}

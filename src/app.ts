@@ -39,19 +39,18 @@ APP.option("--reporter [cli|text]"             , 'Reporter to use to render the 
 
 APP.action(async (args: BulkDataClient.CLIOptions) => {
     const { config, ...params } = args;
-
-    if (!config) {
-        console.log("A '--config' option is required, specifying the config file to load".red)
-        return APP.help()
+    const defaultsPath = resolve(__dirname, "../config/defaults.js");  
+    const base: BulkDataClient.NormalizedOptions = require(defaultsPath)
+    const options: any = { ...base };
+    
+    if (config) {
+        const configPath   = resolve(__dirname, "..", config);
+        const cfg: BulkDataClient.ConfigFileOptions = require(configPath)
+        Object.assign(options, cfg)
     }
 
-    const configPath   = resolve(__dirname, "..", config);
-    const defaultsPath = resolve(__dirname, "../config/defaults.js");
+    Object.assign(options, params)
 
-    const cfg: BulkDataClient.ConfigFileOptions = require(configPath)
-    const base: BulkDataClient.NormalizedOptions = require(defaultsPath)
-
-    const options: any = { ...base, ...cfg, ...params };
 
     // Verify fhirUrl ----------------------------------------------------------
     if (!options.fhirUrl) {
@@ -116,7 +115,7 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
     
     const statusEndpoint = await client.kickOff()
     const manifest = await client.waitForExport(statusEndpoint)
-    const downloads = await client.downloadFiles(manifest)
+    const downloads = await client.downloadAllFiles(manifest)
     // console.log(downloads)
 })
 

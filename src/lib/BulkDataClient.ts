@@ -7,13 +7,13 @@ import aws                              from "aws-sdk"
 import { basename, join, resolve, sep } from "path"
 import FS, { mkdirSync }                from "fs"
 import { expect }                       from "@hapi/code"
-import { OptionsOfUnknownResponseBody } from "got/dist/source"
+import { OptionsOfUnknownResponseBody, Response } from "got/dist/source"
 import { PassThrough, Readable, Stream, Writable } from "stream"
 import request                          from "./request"
 import FileDownload                     from "./FileDownload"
-import ParseNDJSON                      from "./ParseNDJSON"
-import StringifyNDJSON                  from "./StringifyNDJSON"
-import DocumentReferenceHandler         from "./DocumentReferenceHandler"
+import ParseNDJSON                      from "../streams/ParseNDJSON"
+import StringifyNDJSON                  from "../streams/StringifyNDJSON"
+import DocumentReferenceHandler         from "../streams/DocumentReferenceHandler"
 import { BulkDataClient as Types }      from "../.."
 import {
     assert,
@@ -28,18 +28,75 @@ EventEmitter.defaultMaxListeners = 30;
 const pipeline = promisify(Stream.pipeline);
 const debug = debuglog("app-request")
 
+/**
+ * The BulkDataClient instances emit the following events:
+ */
 export interface BulkDataClientEvents {
-    "authorize"       : (accessToken: string) => void;
-    "kickOffStart"    : () => void;
-    "kickOffEnd"      : (statusLocation: string) => void;
-    "exportStart"     : (status: Types.ExportStatus) => void;
-    "exportProgress"  : (status: Types.ExportStatus) => void;
-    "exportComplete"  : (manifest: Types.ExportManifest) => void;
-    "downloadStart"   : (downloads: Types.FileDownload[]) => void;
+    /**
+     * Emitted every time new access token is received
+     * @event
+     */
+    "authorize": (accessToken: string) => void;
+
+    /**
+     * Emitted when new export is started
+     * @event
+     */
+    "kickOffStart": () => void;
+    
+    /**
+     * Emitted when a kick-off response is received
+     * @event
+     */
+    "kickOffEnd": (statusLocation: string) => void;
+    
+    /**
+     * Emitted when the export has began
+     * @event
+     */
+    "exportStart": (status: Types.ExportStatus) => void;
+    
+    /**
+     * Emitted for every status change while waiting for the export
+     * @event
+     */
+    "exportProgress": (status: Types.ExportStatus) => void;
+    
+    /**
+     * Emitted when the export is completed
+     * @event
+     */
+    "exportComplete": (manifest: Types.ExportManifest) => void;
+    
+    /**
+     * Emitted when the download starts
+     * @event
+     */
+    "downloadStart": (downloads: Types.FileDownload[]) => void;
+    
+    /**
+     * Emitted for any status change while files are being downloaded
+     * @event
+     */
     "downloadProgress": (downloads: Types.FileDownload[]) => void;
+
+    /**
+     * Emitted when all files have been downloaded
+     * @event
+     */
     "downloadComplete": (downloads: Types.FileDownload[]) => void;
-    "error"           : (error: Error) => void;
-    "abort"           : () => void;
+    
+    /**
+     * Emitted on error
+     * @event
+     */
+    "error": (error: Error) => void;
+    
+    /**
+     * Emitted when the flow is aborted by the user
+     * @event
+     */
+    "abort": () => void;
 }
 
 
@@ -52,6 +109,24 @@ interface BulkDataClient {
     // emit(event: string, ...args: any[]): boolean;
 }
 
+/**
+ * This class provides all the methods needed for making Bulk Data exports and
+ * downloading data fom bulk data capable FHIR server.
+ * 
+ * **Example:**
+ * ```ts
+ * const client = new Client({ ...options })
+ * 
+ * // Start an export and get the status location
+ * const statusEndpoint = await client.kickOff()
+ * 
+ * // Wait for the export and get the manifest
+ * const manifest = await client.waitForExport(statusEndpoint)
+ * 
+ * // Download everything in the manifest
+ * const downloads = await client.downloadFiles(manifest)
+ * ```
+ */
 class BulkDataClient extends EventEmitter
 {
     /**
@@ -92,7 +167,23 @@ class BulkDataClient extends EventEmitter
         
     }
 
-    public async request<T=unknown>(options: OptionsOfUnknownResponseBody, label = "request")
+    /**
+     * Abort any current asynchronous task. This may include:
+     * - pending HTTP requests
+     * - wait timers
+     * - streams and stream pipelines
+     */
+    public abort() {
+        this.abortController.abort()
+    }
+
+    /**
+     * Used internally to make requests that will automatically authorize if
+     * needed and that can be aborted using [this.abort()]
+     * @param options Any request options
+     * @param label Used to render an error message if the request is aborted
+     */
+    public async request<T=unknown>(options: OptionsOfUnknownResponseBody, label = "request"): Promise<Response<T>>
     {
         const _options: OptionsOfUnknownResponseBody = {
             ...this.options.requests,
@@ -323,7 +414,7 @@ class BulkDataClient extends EventEmitter
         return checkStatus()
     }
 
-    public async downloadFiles(manifest: Types.ExportManifest)
+    public async downloadAllFiles(manifest: Types.ExportManifest)
     {
         
         return new Promise((resolve, reject) => {
@@ -525,28 +616,20 @@ class BulkDataClient extends EventEmitter
         await this.writeToDestination(fileName, processPipeline, subFolder)
         
         onComplete()
-    
-        // if (fileType !== "attachment") {
-        //     /**
-        //      * Convert to stream of JSON objects
-        //      * @type {*}
-        //      */
-        //     pipeline = decompress.pipe(new NdJsonStream());
-
-        //     pipeline.on("data", () => this.setState("objects", this.state.objects + 1));
-
-        //     // Handle DocumentReference with absolute URLs
-        //     pipeline = pipeline.pipe(new DocumentReferenceHandler({
-        //         dir,
-        //         gzip : !!decompress,
-        //         accessToken: this.options.accessToken,
-        //         onAttachment: this.options.onAttachment
-        //     }));
-        // }
-
-
     }
 
+    /**
+     * Given a readable stream as input sends the data to the destination. The
+     * actual actions taken are different depending on the destination:
+     * - For file system destination the files are written to the given location
+     * - For S3 destinations the files are uploaded to S3
+     * - For HTTP destinations the files are posted to the given URL
+     * - If the destination is "" or "none" no action is taken (files are discarded)
+     * @param fileName The desired fileName at destination
+     * @param inputStream The input readable stream
+     * @param subFolder 
+     * @returns 
+     */
     private writeToDestination(fileName: string, inputStream: Readable, subFolder = "") {
         const destination = String(this.options.destination || "none").trim();
 
@@ -627,6 +710,14 @@ class BulkDataClient extends EventEmitter
         return pipeline(inputStream, FS.createWriteStream(join(path, fileName)));
     }
 
+    /**
+     * Given an URL query as URLSearchParams object, appends all the
+     * user-defined Bulk Data Export kick-off parameters from CLI or from config
+     * files and returns the query object
+     * @param params URLSearchParams object to augment
+     * @returns The same URLSearchParams object, possibly augmented with new
+     * parameters
+     */
     private buildKickOffQuery(params: URLSearchParams): URLSearchParams
     {
         if (this.options._outputFormat) {
@@ -655,10 +746,6 @@ class BulkDataClient extends EventEmitter
         }
 
         return params
-    }
-
-    public abort() {
-        this.abortController.abort()
     }
 }
 

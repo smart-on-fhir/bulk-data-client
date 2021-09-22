@@ -10,11 +10,11 @@
     "clean": "rm -rf ./built",
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "test": "nyc -r=text -r=html mocha ./test/*.test.js",
+    "test": "nyc -R=text -R=html mocha ./test/*.test.js",
     "test:watch": "npm test -- -w",
     "coverage": "nyc report",
-    "doc:watch": "typedoc --watch && touch docs/api/.nojekyll",
-    "doc": "typedoc && touch docs/api/.nojekyll"
+    "doc:watch": "rm -rf docs/api && typedoc --watch && touch docs/api/.nojekyll",
+    "doc": "rm -rf docs/api && typedoc && touch docs/api/.nojekyll"
   },
   "repository": {
     "type": "git",
@@ -43,6 +43,7 @@
   "devDependencies": {
     "@types/fhir": "0.0.34",
     "@types/jsonwebtoken": "^8.5.5",
+    "@types/mocha": "^9.0.0",
     "@types/node": "^16.7.13",
     "@types/node-jose": "^1.1.8",
     "@types/pdfjs-dist": "^2.7.4",

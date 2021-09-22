@@ -22,17 +22,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Utils = exports.request = exports.PDF = exports.StringifyNDJSON = exports.ParseNDJSON = exports.FileDownload = exports.DocumentReferenceHandler = exports.BulkDataClient = void 0;
+exports.Utils = exports.request = exports.PDF = exports.FileDownload = exports.BulkDataClient = void 0;
 var BulkDataClient_1 = require("./BulkDataClient");
 Object.defineProperty(exports, "BulkDataClient", { enumerable: true, get: function () { return __importDefault(BulkDataClient_1).default; } });
-var DocumentReferenceHandler_1 = require("./DocumentReferenceHandler");
-Object.defineProperty(exports, "DocumentReferenceHandler", { enumerable: true, get: function () { return __importDefault(DocumentReferenceHandler_1).default; } });
 var FileDownload_1 = require("./FileDownload");
 Object.defineProperty(exports, "FileDownload", { enumerable: true, get: function () { return __importDefault(FileDownload_1).default; } });
-var ParseNDJSON_1 = require("./ParseNDJSON");
-Object.defineProperty(exports, "ParseNDJSON", { enumerable: true, get: function () { return __importDefault(ParseNDJSON_1).default; } });
-var StringifyNDJSON_1 = require("./StringifyNDJSON");
-Object.defineProperty(exports, "StringifyNDJSON", { enumerable: true, get: function () { return __importDefault(StringifyNDJSON_1).default; } });
 var PDF_1 = require("./PDF");
 Object.defineProperty(exports, "PDF", { enumerable: true, get: function () { return __importDefault(PDF_1).default; } });
 var request_1 = require("./request");

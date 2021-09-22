@@ -3,14 +3,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.exit = exports.ask = exports.generateProgress = exports.fhirInstant = exports.assert = exports.humanFileSize = exports.getAccessTokenExpiration = exports.print = exports.formatDuration = exports.wait = exports.detectTokenUrl = exports.getTokenEndpointFromCapabilityStatement = exports.getTokenEndpointFromWellKnownSmartConfig = exports.getCapabilityStatement = exports.getWellKnownSmartConfig = void 0;
+exports.createDecompressor = exports.exit = exports.ask = exports.generateProgress = exports.fhirInstant = exports.assert = exports.humanFileSize = exports.getAccessTokenExpiration = exports.print = exports.formatDuration = exports.wait = exports.detectTokenUrl = exports.getTokenEndpointFromCapabilityStatement = exports.getTokenEndpointFromWellKnownSmartConfig = exports.getCapabilityStatement = exports.getWellKnownSmartConfig = void 0;
 require("colors");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const url_1 = require("url");
 const moment_1 = __importDefault(require("moment"));
 const prompt_sync_1 = __importDefault(require("prompt-sync"));
 const util_1 = __importDefault(require("util"));
+const zlib_1 = __importDefault(require("zlib"));
 const request_1 = __importDefault(require("./request"));
+const stream_1 = require("stream");
 const debug = util_1.default.debuglog("app");
 const HTTP_CACHE = new Map();
 /**
@@ -307,3 +309,20 @@ function exit(arg, details) {
     process.exit(exitCode);
 }
 exports.exit = exit;
+function createDecompressor(res) {
+    switch (res.headers["content-encoding"]) {
+        case "gzip": return zlib_1.default.createGunzip();
+        case "deflate": return zlib_1.default.createInflate();
+        case "br": return zlib_1.default.createBrotliDecompress();
+        // Even if there is no compression we need to convert from stream of
+        // bytes to stream of string objects
+        default: return new stream_1.Transform({
+            readableObjectMode: false,
+            writableObjectMode: true,
+            transform(chunk, enc, cb) {
+                cb(null, chunk.toString("utf8"));
+            }
+        });
+    }
+}
+exports.createDecompressor = createDecompressor;

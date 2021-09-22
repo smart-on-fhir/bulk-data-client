@@ -36,15 +36,15 @@ APP.option("--config <path>", 'Relative path to config file.');
 APP.option("--reporter [cli|text]", 'Reporter to use to render the output. "cli" renders fancy progress bars and tables. "text" is better for log files. Defaults to "cli".');
 APP.action(async (args) => {
     const { config, ...params } = args;
-    if (!config) {
-        console.log("A '--config' option is required, specifying the config file to load".red);
-        return APP.help();
-    }
-    const configPath = (0, path_1.resolve)(__dirname, "..", config);
     const defaultsPath = (0, path_1.resolve)(__dirname, "../config/defaults.js");
-    const cfg = require(configPath);
     const base = require(defaultsPath);
-    const options = { ...base, ...cfg, ...params };
+    const options = { ...base };
+    if (config) {
+        const configPath = (0, path_1.resolve)(__dirname, "..", config);
+        const cfg = require(configPath);
+        Object.assign(options, cfg);
+    }
+    Object.assign(options, params);
     // Verify fhirUrl ----------------------------------------------------------
     if (!options.fhirUrl) {
         console.log("A 'fhirUrl' is required as configuration option, or as '-f' or " +
@@ -93,7 +93,7 @@ APP.action(async (args) => {
     });
     const statusEndpoint = await client.kickOff();
     const manifest = await client.waitForExport(statusEndpoint);
-    const downloads = await client.downloadFiles(manifest);
+    const downloads = await client.downloadAllFiles(manifest);
     // console.log(downloads)
 });
 async function main() {
