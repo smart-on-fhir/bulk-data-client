@@ -1,6 +1,6 @@
 # Bulk Data Client
 
-If you want to use this in JS/TS projects, aor if you would like to contribute to this projects see the **[API Docs](https://github.com/smart-on-fhir/bulk-data-client/docs/api)**
+If you want to use this in JS/TS projects, aor if you would like to contribute to this projects see the **[API Docs](https://docs.smarthealthit.org/bulk-data-client/docs/api/)**
 
 ## Usage examples
 Note: these example are using an open server. Protected server examples would work the same but you need to set your clientId, privateKey and tokenEndpoint in the configuration file. The `fhirUrl` option can also set in the config file to keep the examples shorter.
