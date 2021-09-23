@@ -140,15 +140,15 @@ Note that you can pass a `--help` parameter to see this listed in your terminal
 | `-e`  | `--_elements`    | Zero or more FHIR elements to include in the downloaded resources |
 | `-p`  | `--patient`      | Zero or more patient IDs to be included. Implies `--post`|
 | `-i`  | `--includeAssociatedData` | String of comma delimited values. When provided, server with support for the parameter and requested values SHALL return a pre-defined set of metadata associated with the request. |
-| `-q`  | `--_typeFilter`  | Experimental _typeFilter parameter passed as is to the server
-|       | `--global`       | Global (system-level) export
-|       | `--post`         | Use POST kick-off requests
-| `-g`  | `--group`        | Group ID - only include resources that belong to this group. Ignored if --global is set
-|       | `--lenient`||no|Sets a "Prefer: handling=lenient" request header to tell the server to ignore unsupported parameters
-| `-d`  | `--destination`  | Download destination. See config/defaults.js for examples
-|       | `--config`       | Relative path to config file
-|       | `--reporter`     | Reporter to use to render the output. "cli" renders fancy progress bars and tables. "text" is better for log files. Defaults to "cli"
-| `-c`  | `--custom`       | Custom parameters to be passed to the kick-off endpoint. Example: `-c a=1 b=c`
+| `-q`  | `--_typeFilter`  | Experimental _typeFilter parameter passed as is to the server |
+|       | `--global`       | Global (system-level) export |
+|       | `--post`         | Use POST kick-off requests |
+| `-g`  | `--group`        | Group ID - only include resources that belong to this group. Ignored if --global is set |
+|       | `--lenient`      | Sets a "Prefer: handling=lenient" request header to tell the server to ignore unsupported parameters |
+| `-d`  | `--destination`  | Download destination. See config/defaults.js for examples |
+|       | `--config`       | Relative path to config file |
+|       | `--reporter`     | Reporter to use to render the output. "cli" renders fancy progress bars and tables. "text" is better for log files. Defaults to "cli" |
+| `-c`  | `--custom`       | Custom parameters to be passed to the kick-off endpoint. Example: `-c a=1 b=c` |
 
 
 Features
