@@ -69,10 +69,13 @@ The Bulk Data Client uses `js` configuration files, but you can think of them as
 - *string* **`clientId`** - This is not needed for open servers
 - *number* **`accessTokenLifetime`** - The access token lifetime in seconds. Note that the authentication server may ignore or restrict this to its own boundaries
 - *string* **`reporter`** - The default reporter is "cli". That works well in terminal and renders some fancy stuff like progress bars. However, this does not look good when your STDOUT ends up in log files. For example, if you are using this tool as part of some kind of pipeline and want to maintain clean logs, then consider changing this to "text". Can be overriden from terminal parameter `--reporter`.
+  
   Running an export using the (default) `cli` reporter produces output looking like this:
+  <img alt="bulk-data-client-cli" src="https://user-images.githubusercontent.com/1119082/134519314-01addd27-a086-4227-a5a2-0fc812b91512.png" width="578" />
 
   Running the same export using the `text` reporter produces output looking like this:
-  
+  <img alt="bulk-data-client-text" src="https://user-images.githubusercontent.com/1119082/134519352-7cfd2894-ad73-4fb7-ae2c-44bdbdc36236.png" width="713" />
+
 - *string* **`_outputFormat`** - The value of the `_outputFormat` parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overriden from terminal parameter `-F` or `--_outputFormat`
 - *string* **`_since`** - The value of the `_since` parameter for Bulk Data kick-off requests. Can also be partial date like "2002", "2020-03" etc. Can be anything that Moment can parse. Will be ignored if empty or falsy. See [https://momentjs.com/docs/#/parsing/](https://momentjs.com/docs/#/parsing/). Can be overriden from terminal parameter `-F` or `--_outputFormat`
 - *string* **`_type`** -  The value of the `_type` parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overriden from terminal parameter `-t` or `--_type`
