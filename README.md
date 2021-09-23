@@ -94,7 +94,7 @@ The Bulk Data Client uses `js` configuration files, but you can think of them as
         },
         timeout: 20000, // 20 seconds custom timeout
         headers: {
-            "z-client-id": "whatever" // pass custom headers
+            "x-client-id": "whatever" // pass custom headers
         }
     }
     ```
