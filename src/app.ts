@@ -35,7 +35,7 @@ APP.option('--lenient'                         , 'Sets a "Prefer: handling=lenie
 APP.option('-d, --destination [destination]'   , 'Download destination. See config/defaults.js for examples')
 APP.option("--config <path>"                   , 'Relative path to config file.');
 APP.option("--reporter [cli|text]"             , 'Reporter to use to render the output. "cli" renders fancy progress bars and tables. "text" is better for log files. Defaults to "cli".');
-
+APP.option("-c, --custom [opt=val...]"         , "Custom parameters to be passed to the kick-off endpoint.");
 
 APP.action(async (args: BulkDataClient.CLIOptions) => {
     const { config, ...params } = args;
@@ -94,7 +94,7 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
         }
     }
 
-    // console.log(options)
+    // console.log(args)
 
     const client = new Client(options)
     const reporter = reporters[(options as BulkDataClient.NormalizedOptions).reporter](client)

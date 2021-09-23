@@ -99,7 +99,6 @@ export interface BulkDataClientEvents {
     "abort": () => void;
 }
 
-
 interface BulkDataClient {
 
     on<U extends keyof BulkDataClientEvents>(event: U, listener: BulkDataClientEvents[U]): this;
@@ -285,7 +284,7 @@ class BulkDataClient extends EventEmitter
      */
     public async kickOff(): Promise<string>
     {
-        const { fhirUrl, global, group, lenient } = this.options;
+        const { fhirUrl, global, group, lenient, patient, post } = this.options;
 
         this.emit("kickOffStart")
 
@@ -299,16 +298,23 @@ class BulkDataClient extends EventEmitter
             var url = new URL("Patient/$export", fhirUrl);
         }
 
-        this.buildKickOffQuery(url.searchParams)
-
-        return this.request({
+        const requestOptions: OptionsOfUnknownResponseBody = {
             url,
             responseType: "json",
             headers: {
                 accept: "application/fhir+json",
                 prefer: `respond-async${lenient ? ", handling=lenient" : ""}`
             }
-        }, "kick-off request").then(res => {
+        }
+
+        if (post || patient) {
+            requestOptions.method = "POST";
+            requestOptions.json   = this.buildKickOffPayload();
+        } else {
+            this.buildKickOffQuery(url.searchParams);
+        }
+
+        return this.request(requestOptions, "kick-off request").then(res => {
             const location = res.headers["content-location"];
             assert(location, "The kick-off response did not include content-location header")
             this.emit("kickOffEnd", location)
@@ -745,7 +751,105 @@ class BulkDataClient extends EventEmitter
             params.append("_typeFilter", this.options._typeFilter);
         }
 
+        if (Array.isArray(this.options.custom)) {
+            this.options.custom.forEach(p => {
+                const [name, value] = p.trim().split("=")
+                params.append(name, value)
+            })
+        }
+
         return params
+    }
+
+    private buildKickOffPayload(): fhir4.Parameters
+    {
+        const parameters: fhir4.ParametersParameter[] = []
+
+        // _since --------------------------------------------------------------
+        const since = fhirInstant(this.options._since);
+        if (since) {
+            parameters.push({
+                name: "_since",
+                valueInstant: since
+            });
+        }
+
+        // _type ---------------------------------------------------------------
+        if (this.options._type) {
+            String(this.options._type).trim().split(/\s*,\s*/).forEach(type => {
+                parameters.push({
+                    name: "_type",
+                    valueString: type
+                });
+            });
+        }
+
+        // _elements -----------------------------------------------------------
+        if (this.options._elements) {
+            parameters.push({
+                name: "_elements",
+                valueString: this.options._elements
+            });
+        }
+
+        // patient -------------------------------------------------------------
+        if (this.options.patient) {
+            String(this.options.patient).trim().split(/\s*,\s*/).forEach(id => {
+                parameters.push({
+                    name: "patient",
+                    valueReference: {
+                        reference: `Patient/${id}`
+                    }
+                });
+            });
+        }
+
+        // _typeFilter ---------------------------------------------------------
+        if (this.options._typeFilter) {
+            parameters.push({
+                name: "_typeFilter",
+                valueString: this.options._typeFilter
+            });
+        }
+
+        // _outputFormat -------------------------------------------------------
+        if (this.options._outputFormat) {
+            parameters.push({
+                name: "_outputFormat",
+                valueString: this.options._outputFormat
+            });
+        }
+
+        // Custom parameters ---------------------------------------------------
+        if (Array.isArray(this.options.custom)) {
+            this.options.custom.forEach(p => {
+                let [name, value] = p.trim().split(/\s*=\s*/)
+
+                if (value == "false") {
+                    parameters.push({ name, valueBoolean: false });
+                }
+                else if (value == "true") {
+                    parameters.push({ name, valueBoolean: true });
+                }
+                else if (parseInt(value, 10) + "" === value) {
+                    parameters.push({ name, valueInteger: parseInt(value, 10) });
+                }
+                else if (parseFloat(value) + "" === value) {
+                    parameters.push({ name, valueDecimal: parseFloat(value) });
+                }
+                else if (fhirInstant(value)) {
+                    parameters.push({ name, valueInstant: fhirInstant(value) })
+                }
+                else {
+                    parameters.push({ name, valueString: value })
+                }
+            })
+        }
+
+        return {
+            resourceType: "Parameters",
+            parameter: parameters
+        };
     }
 }
 

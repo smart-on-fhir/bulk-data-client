@@ -232,6 +232,10 @@ export declare namespace BulkDataClient {
         includeAssociatedData?: string
         _typeFilter?: string
 
+        custom?: string[]
+
+        post?: boolean
+
         /**
          * Relative path to config file. Defaults to "config.js".
          */
@@ -269,9 +273,11 @@ export declare namespace BulkDataClient {
         patient?: string
         includeAssociatedData?: string
         _typeFilter?: string
+        custom?: string[]
 
         global: boolean
         group: string
+        post: boolean
 
         /**
          * If true, adds `handling=lenient` to the `prefer` request header. This may

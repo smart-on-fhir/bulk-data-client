@@ -69,6 +69,10 @@ The Bulk Data Client uses `js` configuration files, but you can think of them as
 - *string* **`clientId`** - This is not needed for open servers
 - *number* **`accessTokenLifetime`** - The access token lifetime in seconds. Note that the authentication server may ignore or restrict this to its own boundaries
 - *string* **`reporter`** - The default reporter is "cli". That works well in terminal and renders some fancy stuff like progress bars. However, this does not look good when your STDOUT ends up in log files. For example, if you are using this tool as part of some kind of pipeline and want to maintain clean logs, then consider changing this to "text". Can be overriden from terminal parameter `--reporter`.
+  Running an export using the (default) `cli` reporter produces output looking like this:
+
+  Running the same export using the `text` reporter produces output looking like this:
+  
 - *string* **`_outputFormat`** - The value of the `_outputFormat` parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overriden from terminal parameter `-F` or `--_outputFormat`
 - *string* **`_since`** - The value of the `_since` parameter for Bulk Data kick-off requests. Can also be partial date like "2002", "2020-03" etc. Can be anything that Moment can parse. Will be ignored if empty or falsy. See [https://momentjs.com/docs/#/parsing/](https://momentjs.com/docs/#/parsing/). Can be overriden from terminal parameter `-F` or `--_outputFormat`
 - *string* **`_type`** -  The value of the `_type` parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overriden from terminal parameter `-t` or `--_type`
@@ -141,6 +145,7 @@ Note that you can pass a `--help` parameter to see this listed in your terminal
 | `-d`  | `--destination`  | Download destination. See config/defaults.js for examples
 |       | `--config`       | Relative path to config file
 |       | `--reporter`     | Reporter to use to render the output. "cli" renders fancy progress bars and tables. "text" is better for log files. Defaults to "cli"
+| `-c`  | `--custom`       | Custom parameters to be passed to the kick-off endpoint. Example: `-c a=1 b=c`
 
 
 Features
@@ -167,4 +172,4 @@ Features
 - [x] Destination http
 - [x] multiple config files
 - [ ] tests
-- [ ] Custom kick-off params
+- [x] Custom kick-off params
