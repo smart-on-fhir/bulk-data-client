@@ -28,7 +28,7 @@ module.exports = {
 
     // Path to a custom CSS file to for the theme to import.
     // --customCss
-    // customCss: "",
+    customCss: "./docs/custom.css",
 
     // Specifies the code highlighting theme in dark mode.
     // --darkHighlightTheme
@@ -90,6 +90,7 @@ module.exports = {
     //  --intentionallyNotExported  A list of types which should not produce 'referenced but not documented' warnings.
     //  --json                      Specifies the location and filename a JSON file describing the project is written to.
     //  --lightHighlightTheme       Specifies the code highlighting theme in light mode.
+    lightHighlightTheme: "min-light",
     //  --listInvalidSymbolLinks    Emits a list of broken symbol {@link navigation} links after documentation generation, DEPRECATED, prefer validation.invalidLink instead.
     //  --logger                    Specify the logger that should be used, 'none' or 'console'
     //  --logLevel                  Specify what level of logging should be used.
@@ -124,6 +125,7 @@ module.exports = {
     //  --showConfig                Print the resolved configuration and exit
     //  --sort                      Specify the sort strategy for documented values
     //  --theme                     Specify the path to the theme that should be used, or 'default' or 'minimal' to use built-in themes.Note: Not resolved according to the config file location, always resolved according to cwd.
+    // theme: "./docs/typedoc-theme"
     //  --treatWarningsAsErrors     If set, warnings will be treated as errors.
     //  --tsconfig                  Specify a TypeScript config file that should be loaded. If not specified TypeDoc will look for 'tsconfig.json' in the current directory.
     //  --validation                Specify which validation steps TypeDoc should perform on your generated documentation.
