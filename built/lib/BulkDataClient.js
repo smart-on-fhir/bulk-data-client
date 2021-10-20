@@ -104,6 +104,10 @@ class BulkDataClient extends events_1.EventEmitter {
             headers: {
                 ...this.options.requests.headers,
                 ...options.headers
+            },
+            context: {
+                ...options.context,
+                interactive: this.options.reporter === "cli"
             }
         };
         const accessToken = await this.getAccessToken();
@@ -633,6 +637,14 @@ class BulkDataClient extends events_1.EventEmitter {
             resourceType: "Parameters",
             parameter: parameters
         };
+    }
+    cancelExport(statusEndpoint) {
+        this.abort();
+        return this.request({
+            method: "DELETE",
+            url: statusEndpoint,
+            responseType: "json"
+        });
     }
 }
 exports.default = BulkDataClient;
