@@ -218,8 +218,6 @@ function humanFileSize(fileSizeInBytes = 0, useBits = false) {
 exports.humanFileSize = humanFileSize;
 function assert(condition, message = "Assertion failed", details) {
     if (!(condition)) {
-        // console.error("ASSERTION ERROR".bold + ": " + message.red)
-        // process.exit(1)
         exit(new Error(message), {
             ...details,
             type: "ASSERTION ERROR"
@@ -294,12 +292,9 @@ function exit(arg, details) {
             console.log(arg.message.red);
             details = { ...details, ...arg };
         }
-        // for (const prop in arg) {
-        //     console.log(prop.bold + ":", arg[prop])
-        // }
     }
     if (details) {
-        const answer = (0, prompt_sync_1.default)()("Would you like to see error details [y/N]? ".cyan);
+        const answer = process.env.SHOW_ERRORS || (0, prompt_sync_1.default)()("Would you like to see error details [y/N]? ".cyan);
         if (answer.toLowerCase() == "y") {
             for (const prop in details) {
                 console.log(prop.bold + ":", details[prop]);

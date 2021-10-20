@@ -652,28 +652,28 @@ class BulkDataClient extends EventEmitter
 
         // S3 ------------------------------------------------------------------
         if (destination.startsWith("s3://")) {
-            assert(
-                this.options.awsAccessKeyId,
-                "Please set the 'awsAccessKeyId' property in your config file",
-                { description: "The 'awsAccessKeyId' configuration option is required if the 'destination' option is an S3 uri" }
-            )
-            assert(
-                this.options.awsSecretAccessKey,
-                "Please set the 'awsSecretAccessKey' property in your config file",
-                { description: "The 'awsSecretAccessKey' configuration option is required if the 'destination' option is an S3 uri" }
-            )
-            assert(
-                this.options.awsRegion,
-                "Please set the 'awsRegion' property in your config file",
-                { description: "The 'awsRegion' configuration option is required if the 'destination' option is an S3 uri" }
-            )
+            // assert(
+            //     this.options.awsAccessKeyId,
+            //     "Please set the 'awsAccessKeyId' property in your config file",
+            //     { description: "The 'awsAccessKeyId' configuration option is required if the 'destination' option is an S3 uri" }
+            // )
+            // assert(
+            //     this.options.awsSecretAccessKey,
+            //     "Please set the 'awsSecretAccessKey' property in your config file",
+            //     { description: "The 'awsSecretAccessKey' configuration option is required if the 'destination' option is an S3 uri" }
+            // )
+            // assert(
+            //     this.options.awsRegion,
+            //     "Please set the 'awsRegion' property in your config file",
+            //     { description: "The 'awsRegion' configuration option is required if the 'destination' option is an S3 uri" }
+            // )
 
-            aws.config.update({
-                apiVersion     : this.options.awsApiVersion,
-                region         : this.options.awsRegion,
-                accessKeyId    : this.options.awsAccessKeyId,
-                secretAccessKey: this.options.awsSecretAccessKey
-            });
+            // aws.config.update({
+            //     // apiVersion     : this.options.awsApiVersion,
+            //     region         : this.options.awsRegion,
+            //     accessKeyId    : this.options.awsAccessKeyId,
+            //     secretAccessKey: this.options.awsSecretAccessKey
+            // });
 
             let bucket = destination.substring(5);
             if (subFolder) {

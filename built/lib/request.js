@@ -43,7 +43,7 @@ exports.default = source_1.default.extend({
                             if (msg) {
                                 console.log("- " + msg.join("\n- "));
                             }
-                            const answer = (0, prompt_sync_1.default)()("Would you like to retry? [Y/n]".cyan);
+                            const answer = process.env.AUTO_RETRY_TRANSIENT_ERRORS || (0, prompt_sync_1.default)()("Would you like to retry? [Y/n]".cyan);
                             if (!answer || answer.toLowerCase() === 'y') {
                                 return retryWithMergedOptions(options);
                             }
@@ -92,11 +92,6 @@ exports.default = source_1.default.extend({
                 utils_1.print.commit();
                 // @ts-ignore
                 process.stdout.write(String(title + ": ").red.bold);
-                // console.log(message.red)
-                // for (const prop in props) {
-                //     console.log(prop.bold + ":", props[prop])
-                // }
-                // process.exit()
                 (0, utils_1.exit)(message.red, props);
             }
         ]
