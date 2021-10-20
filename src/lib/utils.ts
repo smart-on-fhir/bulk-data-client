@@ -251,8 +251,6 @@ export function humanFileSize(fileSizeInBytes = 0, useBits = false): string {
 
 export function assert(condition: any, message="Assertion failed", details?: Record<string, any>): asserts condition {
     if (!(condition)) {
-        // console.error("ASSERTION ERROR".bold + ": " + message.red)
-        // process.exit(1)
         exit(new Error(message), {
             ...details,
             type: "ASSERTION ERROR"
@@ -336,14 +334,10 @@ export function exit(arg: any, details?: Record<string, any>) {
             console.log(arg.message.red)
             details = { ...details, ...arg }
         }
-
-        // for (const prop in arg) {
-        //     console.log(prop.bold + ":", arg[prop])
-        // }
     }
 
     if (details) {
-        const answer = prompt()("Would you like to see error details [y/N]? ".cyan)
+        const answer = process.env.SHOW_ERRORS || prompt()("Would you like to see error details [y/N]? ".cyan)
         if (answer.toLowerCase() == "y") {
             for (const prop in details) {
                 console.log(prop.bold + ":", details[prop])

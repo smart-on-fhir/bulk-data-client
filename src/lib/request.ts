@@ -51,7 +51,7 @@ export default got.extend({
                             if (msg) {
                                 console.log("- " + msg.join("\n- "))
                             }
-                            const answer = prompt()("Would you like to retry? [Y/n]".cyan);
+                            const answer = process.env.AUTO_RETRY_TRANSIENT_ERRORS || prompt()("Would you like to retry? [Y/n]".cyan);
                             if (!answer || answer.toLowerCase() === 'y') {
                                 return retryWithMergedOptions(options);
                             } else {
@@ -111,11 +111,6 @@ export default got.extend({
                 print.commit()
                 // @ts-ignore
                 process.stdout.write(String(title + ": ").red.bold)
-                // console.log(message.red)
-                // for (const prop in props) {
-                //     console.log(prop.bold + ":", props[prop])
-                // }
-                // process.exit()
                 exit(message.red, props)
             }
         ]
