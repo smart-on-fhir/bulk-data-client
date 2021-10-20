@@ -7,6 +7,7 @@ require("colors");
 const commander_1 = require("commander");
 const path_1 = require("path");
 const node_jose_1 = __importDefault(require("node-jose"));
+const prompt_sync_1 = __importDefault(require("prompt-sync"));
 const utils_1 = require("./lib/utils");
 const BulkDataClient_1 = __importDefault(require("./lib/BulkDataClient"));
 const cli_1 = __importDefault(require("./reporters/cli"));
@@ -96,6 +97,12 @@ APP.action(async (args) => {
     const manifest = await client.waitForExport(statusEndpoint);
     const downloads = await client.downloadAllFiles(manifest);
     // console.log(downloads)
+    if (options.reporter === "cli") {
+        const answer = (0, prompt_sync_1.default)()("Do you want to signal the server that this export can be removed? [Y/n]".cyan);
+        if (!answer || answer.toLowerCase() === 'y') {
+            client.cancelExport(statusEndpoint).then(() => console.log("\nThe server was asked to remove this export!".green.bold));
+        }
+    }
 });
 async function main() {
     await APP.parseAsync(process.argv);

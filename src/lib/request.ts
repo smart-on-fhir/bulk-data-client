@@ -38,8 +38,13 @@ export default got.extend({
                     response.body ?? ""
                 )
 
-                // Handle transient errors
-                if (response.body && typeof response.body == "object") {
+                // Handle transient errors by asking the user if (s)he wants to
+                // retry. Note that this only happens if the "reporter" option
+                // is "cli", which implies interactive capabilities. If the
+                // reporter is "text", then there may be no way to render a
+                // question prompt so transient errors should be handled 
+                // downstream by the postprocessing components
+                if (options.context?.interactive && response.body && typeof response.body == "object") {
                         
                     // @ts-ignore OperationOutcome errors
                     if (response.body.resourceType === "OperationOutcome") {

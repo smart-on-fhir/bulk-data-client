@@ -1,12 +1,13 @@
-import                         "colors"
-import { Command }        from "commander"
-import { resolve }        from "path"
-import jose               from "node-jose"
-import { BulkDataClient } from ".."
+import                               "colors"
+import { Command }              from "commander"
+import { resolve }              from "path"
+import jose                     from "node-jose"
+import prompt                   from "prompt-sync"
+import { BulkDataClient }       from ".."
 import { detectTokenUrl, exit } from "./lib/utils"
-import Client             from "./lib/BulkDataClient"
-import CLIReporter        from "./reporters/cli"
-import TextReporter       from "./reporters/text"
+import Client                   from "./lib/BulkDataClient"
+import CLIReporter              from "./reporters/cli"
+import TextReporter             from "./reporters/text"
 
 const reporters = {
     cli : CLIReporter,
@@ -117,6 +118,15 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
     const manifest = await client.waitForExport(statusEndpoint)
     const downloads = await client.downloadAllFiles(manifest)
     // console.log(downloads)
+    
+    if (options.reporter === "cli") {
+        const answer = prompt()("Do you want to signal the server that this export can be removed? [Y/n]".cyan);
+        if (!answer || answer.toLowerCase() === 'y') {
+            client.cancelExport(statusEndpoint).then(
+                () => console.log("\nThe server was asked to remove this export!".green.bold)
+            )
+        }
+    }
 })
 
 async function main() {

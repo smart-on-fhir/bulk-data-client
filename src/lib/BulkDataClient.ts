@@ -190,6 +190,10 @@ class BulkDataClient extends EventEmitter
             headers: {
                 ...this.options.requests.headers,
                 ...options.headers
+            },
+            context: {
+                ...options.context,
+                interactive: this.options.reporter === "cli"
             }
         }
 
@@ -850,6 +854,15 @@ class BulkDataClient extends EventEmitter
             resourceType: "Parameters",
             parameter: parameters
         };
+    }
+
+    public cancelExport(statusEndpoint: string) {
+        this.abort();
+        return this.request({
+            method: "DELETE",
+            url: statusEndpoint,
+            responseType: "json"
+        });
     }
 }
 
