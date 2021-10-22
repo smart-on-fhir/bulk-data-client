@@ -196,11 +196,6 @@ export declare namespace BulkDataClient {
         destination?: string
         
         /**
-         * **Defaults to `2006-03-01`**
-         */
-        awsApiVersion?: string
-
-        /**
          * **Example: `us-east-1`**
          */
         awsRegion?: string
@@ -409,11 +404,6 @@ export declare namespace BulkDataClient {
          * **Defaults to `./downloads`**
          */
         destination: string
-        
-        /**
-         * **Defaults to `2006-03-01`**
-         */
-        awsApiVersion: string
 
         /**
          * **Example: `us-east-1`**

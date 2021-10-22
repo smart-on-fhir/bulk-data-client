@@ -247,11 +247,6 @@
     destination: "./downloads",
 
     /**
-     * AWS SDK API version
-     */
-    awsApiVersion: "2006-03-01",
-
-    /**
      * **Example: `us-east-1`**
      */
     awsRegion: "",

@@ -123,10 +123,28 @@ The Bulk Data Client uses `js` configuration files, but you can think of them as
      - `"none"` - do nothing
      
      Can be overriden from terminal parameter `-d` or `--destination`
-- *string* **`awsApiVersion`** - AWS SDK API version (example: "2006-03-01")
-- *string* **`awsRegion`** - Example: `us-east-1`
-- *string* **`awsAccessKeyId`** - Only needed if `destination` points to S3
-- *string* **`awsSecretAccessKey`** - Only needed if `destination` points to S3
+- *string* **`awsRegion`** - Example: `us-east-1`. Only used if `destination` points to S3. The AWS SDK will first look for this in the shared config file (`~/.aws/config`). Then the SDK will look for an `AWS_REGION` environment variable. Finally, you can override both of these if you set the `awsRegion` variable in your bulk-data client config file. 
+- *string* **`awsAccessKeyId`** - Only used if `destination` points to S3. The AWS SDK will first look for this in the shared credentials file (`~/.aws/credentials`). You can override this if you set the `awsAccessKeyId` variable in your bulk-data client config file, but only if you also set the `awsSecretAccessKey`. 
+- *string* **`awsSecretAccessKey`** - Only needed if `destination` points to S3. The AWS SDK will first look for this in the shared credentials file (`~/.aws/credentials`). You can override this if you set the `awsSecretAccessKey` variable in your bulk-data client config file, but only if you also set the `awsAccessKeyId`.
+
+
+### Environment Variables
+There are two environment that can be passed to the client to modify it's behavior.
+- `AUTO_RETRY_TRANSIENT_ERRORS` - Typically, if the server replies with an error as
+  OperationOutcome having a **transient** code, the user is asked if (s)he wants to
+  retry. However, if the client runs as part of some kind of automated pipeline (with
+  no human interaction), the we don't want to ask question which no one could answer.
+  `AUTO_RETRY_TRANSIENT_ERRORS` can be set to truthy or falsy value to pre-answer
+  questions like these.
+- `SHOW_ERRORS` - When an error is thrown, if it contains additional details the
+  user is asked if (s)he wants to see those. Similarly to `AUTO_RETRY_TRANSIENT_ERRORS`,
+  setting `SHOW_ERRORS` to boolean-like value will make it so that those error
+  details are always shown or hidden and will avoid having to show question prompts.
+
+Example of running in non-interactive mode:
+```sh
+AUTO_RETRY_TRANSIENT_ERRORS=1 SHOW_ERRORS=1 node . --config myConfigFile.js --reporter text
+```
 
 ### CLI Parameters
 Note that you can pass a `--help` parameter to see this listed in your terminal

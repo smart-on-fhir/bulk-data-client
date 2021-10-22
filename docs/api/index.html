@@ -139,15 +139,33 @@ Group-level export</p>
 </ul>
 <p>   Can be overriden from terminal parameter <code>-d</code> or <code>--destination</code></p>
 </li>
-<li><p><em>string</em> <strong><code>awsApiVersion</code></strong> - AWS SDK API version (example: &quot;2006-03-01&quot;)</p>
+<li><p><em>string</em> <strong><code>awsRegion</code></strong> - Example: <code>us-east-1</code>. Only used if <code>destination</code> points to S3. The AWS SDK will first look for this in the shared config file (<code>~/.aws/config</code>). Then the SDK will look for an <code>AWS_REGION</code> environment variable. Finally, you can override both of these if you set the <code>awsRegion</code> variable in your bulk-data client config file. </p>
 </li>
-<li><p><em>string</em> <strong><code>awsRegion</code></strong> - Example: <code>us-east-1</code></p>
+<li><p><em>string</em> <strong><code>awsAccessKeyId</code></strong> - Only used if <code>destination</code> points to S3. The AWS SDK will first look for this in the shared credentials file (<code>~/.aws/credentials</code>). You can override this if you set the <code>awsAccessKeyId</code> variable in your bulk-data client config file, but only if you also set the <code>awsSecretAccessKey</code>. </p>
 </li>
-<li><p><em>string</em> <strong><code>awsAccessKeyId</code></strong> - Only needed if <code>destination</code> points to S3</p>
-</li>
-<li><p><em>string</em> <strong><code>awsSecretAccessKey</code></strong> - Only needed if <code>destination</code> points to S3</p>
+<li><p><em>string</em> <strong><code>awsSecretAccessKey</code></strong> - Only needed if <code>destination</code> points to S3. The AWS SDK will first look for this in the shared credentials file (<code>~/.aws/credentials</code>). You can override this if you set the <code>awsSecretAccessKey</code> variable in your bulk-data client config file, but only if you also set the <code>awsAccessKeyId</code>.</p>
 </li>
 </ul>
+
+<a href="#environment-variables" id="environment-variables" style="color: inherit; text-decoration: none;">
+  <h3>Environment Variables</h3>
+</a>
+<p>There are two environment that can be passed to the client to modify it&#39;s behavior.</p>
+<ul>
+<li><code>AUTO_RETRY_TRANSIENT_ERRORS</code> - Typically, if the server replies with an error as
+OperationOutcome having a <strong>transient</strong> code, the user is asked if (s)he wants to
+retry. However, if the client runs as part of some kind of automated pipeline (with
+no human interaction), the we don&#39;t want to ask question which no one could answer.
+<code>AUTO_RETRY_TRANSIENT_ERRORS</code> can be set to truthy or falsy value to pre-answer
+questions like these.</li>
+<li><code>SHOW_ERRORS</code> - When an error is thrown, if it contains additional details the
+user is asked if (s)he wants to see those. Similarly to <code>AUTO_RETRY_TRANSIENT_ERRORS</code>,
+setting <code>SHOW_ERRORS</code> to boolean-like value will make it so that those error
+details are always shown or hidden and will avoid having to show question prompts.</li>
+</ul>
+<p>Example of running in non-interactive mode:</p>
+<pre><code class="language-sh"><span class="hl-0">AUTO_RETRY_TRANSIENT_ERRORS=1 SHOW_ERRORS=1 node </span><span class="hl-1">.</span><span class="hl-0"> --config myConfigFile.js --reporter text</span>
+</code></pre>
 
 <a href="#cli-parameters" id="cli-parameters" style="color: inherit; text-decoration: none;">
   <h3>CLI Parameters</h3>
