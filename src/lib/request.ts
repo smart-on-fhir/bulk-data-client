@@ -12,7 +12,7 @@ export default got.extend({
     hooks: {
         beforeRequest: [
             options => {
-                options.headers["user-agent"] = "Bulk Data Client <https://github.com/smart-on-fhir/bulk-data-client>"
+                options.headers["user-agent"] = "SMART-On-FHIR Bulk Data Client/ 1.0.0"
             }
         ],        
         afterResponse: [

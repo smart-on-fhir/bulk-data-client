@@ -202,7 +202,7 @@ class BulkDataClient extends EventEmitter
         if (accessToken) {
             _options.headers = {
                 ...options.headers,
-                authorization: `bearer ${ accessToken }`
+                authorization: `Bearer ${ accessToken }`
             };
         }
 
@@ -484,7 +484,7 @@ class BulkDataClient extends EventEmitter
                                 }
                                 tick()
                             },
-                            true,
+                            manifest.requiresAccessToken,
                             status.exportType == "output" ? "" : status.exportType,
                             status.exportType
                         )
