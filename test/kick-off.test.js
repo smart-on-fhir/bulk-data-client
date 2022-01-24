@@ -1,8 +1,6 @@
 const nock           = require("nock")
 const BulkDataClient = require("../built/lib/BulkDataClient").default
-
-
-const baseSettings = require("../config/defaults.js");
+const baseSettings   = require("../config/defaults.js");
 
 const TEST_SERVER_BASE_URL = "http://testserver.dev"
 
@@ -80,17 +78,32 @@ describe('status', () => {
     })
 
     describe("error", () => {
-        it("throws the error", async() => {
+        it("throws the error", async () => {
             nock(TEST_SERVER_BASE_URL)
                 .get("/status")
                 .reply(400);
 
             const client = new BulkDataClient({
                 ...baseSettings,
-                fhirUrl: TEST_SERVER_BASE_URL
+                fhirUrl: TEST_SERVER_BASE_URL,
+                requests: {
+                    ...baseSettings.requests,
+                    context: {
+                        ...baseSettings.requests?.context,
+                        ignoreErrors: true
+                    }
+                }
             })
 
             await client.waitForExport(TEST_SERVER_BASE_URL + "/status")
+            .then(
+                () => {
+                    throw new Error("The test should have failed")
+                },
+                () => {
+                    // Error was expected so we are good to go
+                }
+            )
         })
     })
 })

@@ -1,5 +1,5 @@
 const nock           = require("nock")
-const BulkDataClient = require("../built/lib/BulkDataClient")
+const BulkDataClient = require("../built/lib/BulkDataClient").default
 const baseSettings   = require("../config/defaults.js")
 
 const TEST_SERVER_BASE_URL = "http://testserver.dev"
@@ -14,9 +14,16 @@ describe('download', () => {
 
     it("normal ndjson file", async () => {
 
-        // nock(TEST_SERVER_BASE_URL)
-        //     .get("/download")
-        //     .reply(202, "", { "content-location": "x" });
+        nock(TEST_SERVER_BASE_URL)
+            .get("/download")
+            .reply(
+                200,
+                '{"resourceType":"Patient"}\n' +
+                '{"resourceType":"Patient"}',
+                 {
+                     "content-type": "application/ndjson"
+                 }
+            );
 
         const client = new BulkDataClient({
             ...baseSettings,
@@ -24,23 +31,16 @@ describe('download', () => {
         })
 
         // @ts-ignore
-        const result = await client.downloadFile(
+        await client.downloadFile(
             {
                 type: "Patient",
                 url: TEST_SERVER_BASE_URL + "/download",
                 count: 2
             },
             "1.Patient.ndjson",
-            {
-                onProgress: state => {},
-                authorize : false,
-                exportType: "output"
-            }
+            state => {},
+            () => {}
         )
-
-        console.log(result)
-
-        // await client.kickOff()
     })
 
     // it("can make a system-level export", async () => {
