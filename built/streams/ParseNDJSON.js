@@ -89,20 +89,18 @@ class ParseNDJSON extends stream_1.Transform {
      * still contain the last line so make sure we handle that as well
      * @param {function} next
      */
-    _flush(next) {
+    _final(next) {
         try {
             if (this._stringBuffer) {
                 const json = JSON.parse(this._stringBuffer);
                 this._stringBuffer = "";
                 this.push(json);
+                this._count += 1;
             }
-            next();
         }
         catch (error) {
-            next(new SyntaxError(`Error parsing NDJSON on line ${this._line + 1}: ${error}`));
+            return next(new SyntaxError(`Error parsing NDJSON on line ${this._line + 1}: ${error}`));
         }
-    }
-    _final(next) {
         if (this.options.expectedCount > -1 && this._count !== this.options.expectedCount) {
             return next(new Error(`Expected ${this.options.expectedCount} resources but found ${this._count}`));
         }

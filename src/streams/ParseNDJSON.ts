@@ -127,27 +127,26 @@ export default class ParseNDJSON extends Transform
      * still contain the last line so make sure we handle that as well
      * @param {function} next 
      */
-    override _flush(next: (err?: Error) => any)
+    override _final(next: (err?: Error) => any)
     {
         try {
             if (this._stringBuffer) {
                 const json = JSON.parse(this._stringBuffer);
                 this._stringBuffer = "";
                 this.push(json);
+                this._count += 1;
             }
-            next();
         } catch (error) {
-            next(new SyntaxError(
+            return next(new SyntaxError(
                 `Error parsing NDJSON on line ${this._line + 1}: ${error}`
             ));
         }
-    }
-
-    override _final(next: (error?: Error) => any) {
+        
         if (this.options.expectedCount > -1 && this._count !== this.options.expectedCount) {
             return next(new Error(`Expected ${this.options.expectedCount
             } resources but found ${this._count}`))
         }
+        
         next()
     }
 }
