@@ -106,6 +106,7 @@ class BulkDataClient extends events_1.EventEmitter {
                 ...options.headers
             },
             context: {
+                ...this.options.requests?.context,
                 ...options.context,
                 interactive: this.options.reporter === "cli"
             }

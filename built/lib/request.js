@@ -60,6 +60,9 @@ exports.default = source_1.default.extend({
             // @ts-ignore
             error => {
                 const { response, options } = error;
+                if (options.context?.ignoreErrors) {
+                    return error; // Do not exit or print custom stuff
+                }
                 let title = "Failed to make a request";
                 let message = error.message;
                 const props = {

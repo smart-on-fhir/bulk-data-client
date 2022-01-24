@@ -74,6 +74,10 @@ export default got.extend({
             error => {
                 const { response, options } = error;
 
+                if (options.context?.ignoreErrors) {
+                    return error; // Do not exit or print custom stuff
+                }
+
                 let title = "Failed to make a request"
                 let message = error.message;
 
