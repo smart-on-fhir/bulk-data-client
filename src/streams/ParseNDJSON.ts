@@ -100,7 +100,7 @@ export default class ParseNDJSON extends Transform
                         json.resourceType !== this.options.expectedResourceType) {
                         throw new Error(`Expected each resource to have a "${
                             this.options.expectedResourceType
-                        }" resourceTpe but found "${json.resourceType}"`)
+                        }" resourceType but found "${json.resourceType}"`)
                     }
 
                     this.push(json);

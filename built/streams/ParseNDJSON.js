@@ -68,7 +68,7 @@ class ParseNDJSON extends stream_1.Transform {
                     const json = JSON.parse(jsonString);
                     if (this.options.expectedResourceType &&
                         json.resourceType !== this.options.expectedResourceType) {
-                        throw new Error(`Expected each resource to have a "${this.options.expectedResourceType}" resourceTpe but found "${json.resourceType}"`);
+                        throw new Error(`Expected each resource to have a "${this.options.expectedResourceType}" resourceType but found "${json.resourceType}"`);
                     }
                     this.push(json);
                     this._count += 1;
