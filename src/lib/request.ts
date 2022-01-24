@@ -2,6 +2,8 @@ import got  from "got/dist/source"
 import util from "util"
 import { exit, print } from "./utils"
 import prompt from "prompt-sync"
+// @ts-ignore
+import pkg from "../package.json"
 import "colors"
 
 
@@ -12,7 +14,7 @@ export default got.extend({
     hooks: {
         beforeRequest: [
             options => {
-                options.headers["user-agent"] = "SMART-On-FHIR Bulk Data Client/ 1.0.0"
+                options.headers["user-agent"] = `SMART-On-FHIR Bulk Data Client / ${pkg.version}`
             }
         ],        
         afterResponse: [

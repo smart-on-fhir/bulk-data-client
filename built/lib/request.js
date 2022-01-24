@@ -7,13 +7,15 @@ const source_1 = __importDefault(require("got/dist/source"));
 const util_1 = __importDefault(require("util"));
 const utils_1 = require("./utils");
 const prompt_sync_1 = __importDefault(require("prompt-sync"));
+// @ts-ignore
+const package_json_1 = __importDefault(require("../package.json"));
 require("colors");
 const debug = util_1.default.debuglog("app-request");
 exports.default = source_1.default.extend({
     hooks: {
         beforeRequest: [
             options => {
-                options.headers["user-agent"] = "SMART-On-FHIR Bulk Data Client/ 1.0.0";
+                options.headers["user-agent"] = `SMART-On-FHIR Bulk Data Client / ${package_json_1.default.version}`;
             }
         ],
         afterResponse: [
