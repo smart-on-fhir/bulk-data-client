@@ -115,7 +115,7 @@ class BulkDataClient extends events_1.EventEmitter {
         if (accessToken) {
             _options.headers = {
                 ...options.headers,
-                authorization: `bearer ${accessToken}`
+                authorization: `Bearer ${accessToken}`
             };
         }
         const req = (0, request_1.default)(_options);
@@ -345,7 +345,7 @@ class BulkDataClient extends events_1.EventEmitter {
                                 f.destination = (0, path_1.join)(this.options.destination, fileName);
                             }
                             tick();
-                        }, true, status.exportType == "output" ? "" : status.exportType, status.exportType);
+                        }, manifest.requiresAccessToken, status.exportType == "output" ? "" : status.exportType, status.exportType);
                     }
                 };
             };

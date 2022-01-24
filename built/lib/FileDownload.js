@@ -39,7 +39,7 @@ class FileDownload extends events_1.default {
                 }
             };
             if (accessToken) {
-                options.headers.authorization = `bearer ${accessToken}`;
+                options.headers.authorization = `Bearer ${accessToken}`;
             }
             const downloadRequest = request_1.default.stream(this.url, options);
             if (signal) {

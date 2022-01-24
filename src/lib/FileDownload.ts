@@ -68,7 +68,7 @@ class FileDownload extends EventEmitter
             }
 
             if (accessToken) {
-                options.headers.authorization = `bearer ${accessToken}`
+                options.headers.authorization = `Bearer ${accessToken}`
             }
 
             const downloadRequest = request.stream(this.url, options)
