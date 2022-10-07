@@ -61,7 +61,8 @@ exports.default = source_1.default.extend({
         beforeError: [
             // @ts-ignore
             error => {
-                const { response, options } = error;
+                const { response, options, request } = error;
+                const requestBody = request?.options.body || request?.options.form;
                 if (options.context?.ignoreErrors) {
                     return error; // Do not exit or print custom stuff
                 }
@@ -71,6 +72,9 @@ exports.default = source_1.default.extend({
                     "request": options.method + " " + options.url,
                     "request headers": options.headers
                 };
+                if (requestBody) {
+                    props["request body"] = requestBody;
+                }
                 if (response) {
                     title = "Received an error from the server";
                     props.response = [response.statusCode, response.statusMessage].join(" ");

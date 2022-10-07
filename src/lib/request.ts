@@ -74,7 +74,9 @@ export default got.extend({
         beforeError: [
             // @ts-ignore
             error => {
-                const { response, options } = error;
+                const { response, options, request } = error;
+
+                const requestBody = request?.options.body || request?.options.form
 
                 if (options.context?.ignoreErrors) {
                     return error; // Do not exit or print custom stuff
@@ -88,6 +90,9 @@ export default got.extend({
                     "request headers": options.headers
                 };
 
+                if (requestBody) {
+                    props["request body"] = requestBody
+                }
 
                 if (response) {
 
