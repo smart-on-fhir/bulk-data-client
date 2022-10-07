@@ -33,6 +33,12 @@
     clientId: "",
 
     /**
+     * The scope to use in the authorization request. If not set, defaults to
+     * "system/*.read"
+     */
+    scope: "system/*.read",
+
+    /**
      * The access token lifetime in seconds. Note that the authentication server
      * may ignore or restrict this to its own boundaries
      */

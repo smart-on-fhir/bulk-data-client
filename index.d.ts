@@ -257,6 +257,8 @@ export declare namespace BulkDataClient {
 
         clientId: string
 
+        scope?: string
+
         accessTokenLifetime: number
 
         reporter: "cli" | "text"
