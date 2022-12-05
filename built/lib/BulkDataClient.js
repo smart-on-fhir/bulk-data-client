@@ -437,20 +437,21 @@ class BulkDataClient extends events_1.EventEmitter {
         });
         // Transforms from stream of objects back to stream of strings (lines)
         const stringify = new StringifyNDJSON_1.default();
-        const docRefProcessor = new DocumentReferenceHandler_1.default({
-            request: this.request.bind(this),
-            save: (name, stream, subFolder) => this.writeToDestination(name, stream, subFolder),
-            inlineAttachments: this.options.inlineDocRefAttachmentsSmallerThan,
-            inlineAttachmentTypes: this.options.inlineDocRefAttachmentTypes,
-            pdfToText: this.options.pdfToText,
-            baseUrl: this.options.fhirUrl
-        });
-        docRefProcessor.on("attachment", () => _state.attachments += 1);
-        const processPipeline = downloadStream
-            .pipe(parser)
-            .pipe(docRefProcessor)
-            .pipe(stringify)
-            .pause();
+        let processPipeline = downloadStream.pipe(parser);
+        if (this.options.downloadAttachments !== false) {
+            const docRefProcessor = new DocumentReferenceHandler_1.default({
+                request: this.request.bind(this),
+                save: (name, stream, subFolder) => this.writeToDestination(name, stream, subFolder),
+                inlineAttachments: this.options.inlineDocRefAttachmentsSmallerThan,
+                inlineAttachmentTypes: this.options.inlineDocRefAttachmentTypes,
+                pdfToText: this.options.pdfToText,
+                baseUrl: this.options.fhirUrl
+            });
+            docRefProcessor.on("attachment", () => _state.attachments += 1);
+            processPipeline = processPipeline.pipe(docRefProcessor);
+        }
+        processPipeline = processPipeline.pipe(stringify);
+        processPipeline.pause();
         // When we get an object from a line emit the progress event
         stringify.on("data", () => {
             _state.resources += 1;

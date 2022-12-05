@@ -211,6 +211,13 @@
     forceStandardFileNames: true,
 
     /**
+     * If this is set to `false`, external attachments found in
+     * DocumentReference resources will not be downloaded. The DocumentReference
+     * resources will still be downloaded but no further processing will be done.
+     */
+    downloadAttachments: true,
+
+    /**
      * In `DocumentReference` resources, any `attachment` elements having an
      * `url` (instead of inline data) and a `size` below this number will be
      * downloaded and put inline as base64 `data`. Then the `size` property

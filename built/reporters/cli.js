@@ -50,7 +50,7 @@ function CLIReporter(client) {
             "Downloading exported files".bold + `: ${(0, utils_1.generateProgress)(Math.round(downloadedFiles / totalFiles * 100), 30)}`,
             `          Downloaded Files: ${downloadedFiles} of ${totalFiles}`,
             `            FHIR Resources: ${resources.toLocaleString()}`,
-            `               Attachments: ${totalAttachments.toLocaleString()}`,
+            `               Attachments: ${totalAttachments.toLocaleString()}${client.options.downloadAttachments === false ? " (attachments skipped)" : ""}`,
             `           Downloaded Size: ${(0, utils_1.humanFileSize)(downloadedBytes)}`,
         ];
         if (uncompressedBytes != downloadedBytes) {

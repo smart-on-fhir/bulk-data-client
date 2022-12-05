@@ -358,6 +358,14 @@ export declare namespace BulkDataClient {
         forceStandardFileNames: boolean
 
         /**
+         * If this is set to `false`, external attachments found in
+         * DocumentReference resources will not be downloaded. The
+         * DocumentReference resources will still be downloaded but no further
+         * processing will be done.
+         */
+        downloadAttachments: boolean
+
+        /**
          * In `DocumentReference` resources, any `attachment` elements having an
          * `url` (instead of inline data) and a `size` below this number will be
          * downloaded and put inline as base64 `data`. Then the `size` property
@@ -368,6 +376,8 @@ export declare namespace BulkDataClient {
          * - To inline files smaller than 5 MB set it to `5 * 1024 * 1024` 
          * 
          * **Defaults to `0`**
+         * 
+         * **Ignored** if `downloadAttachments` is set to `false`
          */
         inlineDocRefAttachmentsSmallerThan: number
 
@@ -378,6 +388,8 @@ export declare namespace BulkDataClient {
          * inlined and the rest will be downloaded into "attachment" subfolder.
          * 
          * **Defaults to `["text/plain", "application/pdf"]`**
+         * 
+         * **Ignored** if `downloadAttachments` is set to `false`
          */
         inlineDocRefAttachmentTypes: string[]
 
@@ -386,6 +398,8 @@ export declare namespace BulkDataClient {
          * first be converted to text and then inlined as base64
          * 
          * **Defaults to `false`**
+         * 
+         * **Ignored** if `downloadAttachments` is set to `false`
          */
         pdfToText: boolean
 
@@ -639,13 +653,14 @@ export declare namespace BulkDataClient {
     }
 
     interface FileDownloadProgress {
-        running: boolean
-        completed: boolean
+        // running: boolean
+        // completed: boolean
         downloadedChunks: number
         downloadedBytes: number
-        uncompressedBytes: number
+        uncompressedBytes: number 
         resources: number
-        error: Error | null
+        attachments: number
+        // error: Error | null
     }
 
     interface TokenResponse {

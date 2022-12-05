@@ -8,7 +8,7 @@ const util_1 = __importDefault(require("util"));
 const utils_1 = require("./utils");
 const prompt_sync_1 = __importDefault(require("prompt-sync"));
 // @ts-ignore
-const package_json_1 = __importDefault(require("../package.json"));
+const package_json_1 = __importDefault(require("../../package.json"));
 require("colors");
 const debug = util_1.default.debuglog("app-request");
 exports.default = source_1.default.extend({

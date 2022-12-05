@@ -3,7 +3,7 @@ import util from "util"
 import { exit, print } from "./utils"
 import prompt from "prompt-sync"
 // @ts-ignore
-import pkg from "../package.json"
+import pkg from "../../package.json"
 import "colors"
 
 

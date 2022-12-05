@@ -131,7 +131,7 @@ class BulkDataClient extends EventEmitter
     /**
      * The options of the instance
      */
-    private readonly options: Types.NormalizedOptions;
+    readonly options: Types.NormalizedOptions;
 
     /**
      * Used internally to emit abort signals to pending requests and other async
@@ -601,22 +601,26 @@ class BulkDataClient extends EventEmitter
         // Transforms from stream of objects back to stream of strings (lines)
         const stringify = new StringifyNDJSON()
 
-        const docRefProcessor = new DocumentReferenceHandler({
-            request: this.request.bind(this),
-            save: (name: string, stream: Readable, subFolder: string) => this.writeToDestination(name, stream, subFolder),
-            inlineAttachments: this.options.inlineDocRefAttachmentsSmallerThan,
-            inlineAttachmentTypes: this.options.inlineDocRefAttachmentTypes,
-            pdfToText: this.options.pdfToText,
-            baseUrl: this.options.fhirUrl
-        })
+        let processPipeline: Readable = downloadStream.pipe(parser);
 
-        docRefProcessor.on("attachment", () => _state.attachments += 1)
+        if (this.options.downloadAttachments !== false) {
 
-        const processPipeline = downloadStream
-            .pipe(parser)
-            .pipe(docRefProcessor)
-            .pipe(stringify)
-            .pause();
+            const docRefProcessor = new DocumentReferenceHandler({
+                request: this.request.bind(this),
+                save: (name: string, stream: Readable, subFolder: string) => this.writeToDestination(name, stream, subFolder),
+                inlineAttachments: this.options.inlineDocRefAttachmentsSmallerThan,
+                inlineAttachmentTypes: this.options.inlineDocRefAttachmentTypes,
+                pdfToText: this.options.pdfToText,
+                baseUrl: this.options.fhirUrl
+            })
+    
+            docRefProcessor.on("attachment", () => _state.attachments += 1)
+
+            processPipeline = processPipeline.pipe(docRefProcessor)
+        }
+
+        processPipeline = processPipeline.pipe(stringify);
+        processPipeline.pause();
 
         // When we get an object from a line emit the progress event
         stringify.on("data", () => {

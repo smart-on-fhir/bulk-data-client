@@ -69,7 +69,7 @@ export default function CLIReporter(client: BulkDataClient)
             "Downloading exported files".bold + `: ${generateProgress(Math.round(downloadedFiles/totalFiles * 100), 30)}`,
             `          Downloaded Files: ${downloadedFiles} of ${totalFiles}`,
             `            FHIR Resources: ${resources.toLocaleString()}`,
-            `               Attachments: ${totalAttachments.toLocaleString()}`,
+            `               Attachments: ${totalAttachments.toLocaleString()}${client.options.downloadAttachments === false ? " (attachments skipped)" : ""}`,
             `           Downloaded Size: ${humanFileSize(downloadedBytes)}`,
         ]
 

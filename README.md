@@ -105,12 +105,14 @@ The Bulk Data Client uses `js` configuration files, but you can think of them as
 - *boolean* **`ndjsonValidateFHIRResourceCount`** - If the server reports the file `count` in the export manifest, verify that the number of resources found in the file matches the count reported by the server.
 - *boolean* **`addDestinationToManifest`** - The original export manifest will have an `url` property for each file, containing the source location. It his is set to `true`, add a `destination` property to each file containing the path (relative to the manifest file) to the saved file. This is ONLY used if `saveManifest` is set to `true`.
 - *boolean* **`forceStandardFileNames`** - Sometimes a server may use weird names for the exported files. For example, a HAPI server will use random numbers as file names. If this is set to `true` files will be renamed to match the standard naming convention - `{fileNumber}.{ResourceType}.ndjson`.
-- *number* **`inlineDocRefAttachmentsSmallerThan`** - In `DocumentReference` resources, any `attachment` elements having an `url` (instead of inline data) and a `size` below this number will be downloaded and put inline as base64 `data`. Then the `size` property will be updated and the `url` will be removed.
+- *boolean* **`downloadAttachments`** - If this is set to `false`, external attachments found in `DocumentReference` resources will not be downloaded. The `DocumentReference` resources will still be downloaded but no further processing will be done.
+- *number* **`inlineDocRefAttachmentsSmallerThan`** - In `DocumentReference` resources, any `attachment` elements having an `url` (instead of inline data) and a `size` below this number will be downloaded and put inline as base64 `data`. Then the `size` property will be updated and the `url` will be removed. **Ignored** if `downloadAttachments` is set to `false`!
     - To always disable this, set it to `0`
     - To always enable this, set it to `Infinity` (bad idea!)
     - To inline files smaller than 5 MB set it to `5 * 1024 * 1024` 
-- *string[]* **`inlineDocRefAttachmentTypes`** - If an attachment can be inlined (based on its size and the value of the `inlineDocRefAttachmentsSmallerThan` option), then its mime type will be compared with this list. Only files of listed types will be inlined and the rest will be downloaded into "attachment" subfolder. Example: `["text/plain", "application/pdf"]`
-- *boolean* **`pdfToText`** - If this is `true`, attachments of type PDF that are being inlined will first be converted to text and then inlined as base64
+
+- *string[]* **`inlineDocRefAttachmentTypes`** - If an attachment can be inlined (based on its size and the value of the `inlineDocRefAttachmentsSmallerThan` option), then its mime type will be compared with this list. Only files of listed types will be inlined and the rest will be downloaded into "attachment" subfolder. Example: `["text/plain", "application/pdf"]`. **Ignored** if `downloadAttachments` is set to `false`!
+- *boolean* **`pdfToText`** - If this is `true`, attachments of type PDF that are being inlined will first be converted to text and then inlined as base64. **Ignored** if `downloadAttachments` is set to `false`!
 - *string* **`destination`** - Examples:
      - `s3://bucket-name/optional-subfolder/` - Upload to S3
      - `./downloads` - Save to local folder (relative to the config file)
