@@ -1,6 +1,7 @@
-const nock           = require("nock")
-const BulkDataClient = require("../built/lib/BulkDataClient").default
-const baseSettings   = require("../config/defaults.js")
+import nock           from "nock"
+import BulkDataClient from "../src/lib/BulkDataClient"
+// @ts-ignore
+import baseSettings   from "../config/defaults.js"
 
 const TEST_SERVER_BASE_URL = "http://testserver.dev"
 

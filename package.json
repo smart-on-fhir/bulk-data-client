@@ -10,7 +10,7 @@
     "clean": "rm -rf ./built",
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "test": "nyc -R=text -R=html mocha ./test/*.test.js",
+    "test": "nyc --reporter=lcov ts-mocha ./test/*.test.ts",
     "test:watch": "npm test -- -w",
     "coverage": "nyc report",
     "doc:watch": "rm -rf docs/api && typedoc --watch && touch docs/api/.nojekyll",
@@ -51,6 +51,7 @@
     "mocha": "^9.1.1",
     "nock": "^13.1.3",
     "nyc": "^15.1.0",
+    "ts-mocha": "^10.0.0",
     "typedoc": "^0.22.3",
     "typescript": "^4.4.2"
   }
