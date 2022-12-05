@@ -18,7 +18,7 @@ export declare namespace BulkDataClient {
          * you are using this tool as part of some kind of pipeline and want to
          * maintain clean logs, then consider changing this to "text".
          * 
-         * Can be overriden from terminal parameter `--reporter`. 
+         * Can be overridden from terminal parameter `--reporter`. 
          * 
          * **Defaults to `cli`**
          */
@@ -71,7 +71,7 @@ export declare namespace BulkDataClient {
          * enable a "retry" option after certain errors. It can also be used to
          * signal the server to silently ignore unsupported parameters.
          * 
-         * Can be overriden from terminal parameter `--lenient`
+         * Can be overridden from terminal parameter `--lenient`
          */
         lenient?: boolean
 
@@ -281,7 +281,7 @@ export declare namespace BulkDataClient {
          * enable a "retry" option after certain errors. It can also be used to
          * signal the server to silently ignore unsupported parameters.
          * 
-         * Can be overriden from terminal parameter `--lenient`
+         * Can be overridden from terminal parameter `--lenient`
          */
         lenient: boolean
 

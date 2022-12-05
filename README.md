@@ -63,12 +63,12 @@ The configuration works by loading the default values from `config/defaults.js`,
 ### Configuration File Options
 The Bulk Data Client uses `js` configuration files, but you can think of them as JSON configuration objects. The only reason to use JS is to allow for comments and type hinting. Below are all the options that can be set in a configuration file.
 
-- *string* **`fhirUrl`** - FHIR server base URL. Can be overriden by the `-f` or `--fhir-url` CLI parameter.
+- *string* **`fhirUrl`** - FHIR server base URL. Can be overridden by the `-f` or `--fhir-url` CLI parameter.
 - *string* **`tokenUrl`** - The Bulk Data server token URL (use `"none"` for open servers and `""` to try to auto-detect it)
 - *object* **`privateKey`** - The private key (as `JWK`) used to sign authentication tokens. This is not needed for open servers
 - *string* **`clientId`** - This is not needed for open servers
 - *number* **`accessTokenLifetime`** - The access token lifetime in seconds. Note that the authentication server may ignore or restrict this to its own boundaries
-- *string* **`reporter`** - The default reporter is "cli". That works well in terminal and renders some fancy stuff like progress bars. However, this does not look good when your STDOUT ends up in log files. For example, if you are using this tool as part of some kind of pipeline and want to maintain clean logs, then consider changing this to "text". Can be overriden from terminal parameter `--reporter`.
+- *string* **`reporter`** - The default reporter is "cli". That works well in terminal and renders some fancy stuff like progress bars. However, this does not look good when your STDOUT ends up in log files. For example, if you are using this tool as part of some kind of pipeline and want to maintain clean logs, then consider changing this to "text". Can be overridden from terminal parameter `--reporter`.
   
   Running an export using the (default) `cli` reporter produces output looking like this:
   <img alt="bulk-data-client-cli" src="https://user-images.githubusercontent.com/1119082/134519314-01addd27-a086-4227-a5a2-0fc812b91512.png" width="578" />
@@ -76,16 +76,16 @@ The Bulk Data Client uses `js` configuration files, but you can think of them as
   Running the same export using the `text` reporter produces output looking like this:
   <img alt="bulk-data-client-text" src="https://user-images.githubusercontent.com/1119082/134519352-7cfd2894-ad73-4fb7-ae2c-44bdbdc36236.png" width="713" />
 
-- *string* **`_outputFormat`** - The value of the `_outputFormat` parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overriden from terminal parameter `-F` or `--_outputFormat`
-- *string* **`_since`** - The value of the `_since` parameter for Bulk Data kick-off requests. Can also be partial date like "2002", "2020-03" etc. Can be anything that Moment can parse. Will be ignored if empty or falsy. See [https://momentjs.com/docs/#/parsing/](https://momentjs.com/docs/#/parsing/). Can be overriden from terminal parameter `-F` or `--_outputFormat`
-- *string* **`_type`** -  The value of the `_type` parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overriden from terminal parameter `-t` or `--_type`
-- *string* **`_elements`** - The value of the `_elements` parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overriden from terminal parameter `-e` or `--_elements`
-- *string* **`patient`** -  The value of the `patient` parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overriden from terminal parameter `-p` or `--patient`
-- *string* **`includeAssociatedData`** - The value of the `includeAssociatedData` parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overriden from terminal parameter `-i` or `--includeAssociatedData`
-- *string* **`_typeFilter`** - The value of the `_typeFilter` parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overriden from terminal parameter `-q` or `--_typeFilter`
-- *boolean* **`global`** - By default this client will make patient-level exports. If this is set to true, it will make system-level exports instead. Ignored if `group` is set! Can be overriden from terminal parameter `--global`
-- *string* **`group`** - Id of FHIR group to export. If set, the client will make group-level exports. Can be overriden from terminal parameter `-g` or `--group`
-- *boolean* **`lenient`** - If `true`, adds `handling=lenient` to the `prefer` request header. This may enable a "retry" option after certain errors. It can also be used to signal the server to silently ignore unsupported parameters. Can be overriden from terminal parameter `--lenient`
+- *string* **`_outputFormat`** - The value of the `_outputFormat` parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter `-F` or `--_outputFormat`
+- *string* **`_since`** - The value of the `_since` parameter for Bulk Data kick-off requests. Can also be partial date like "2002", "2020-03" etc. Can be anything that Moment can parse. Will be ignored if empty or falsy. See [https://momentjs.com/docs/#/parsing/](https://momentjs.com/docs/#/parsing/). Can be overridden from terminal parameter `-F` or `--_outputFormat`
+- *string* **`_type`** -  The value of the `_type` parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter `-t` or `--_type`
+- *string* **`_elements`** - The value of the `_elements` parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter `-e` or `--_elements`
+- *string* **`patient`** -  The value of the `patient` parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter `-p` or `--patient`
+- *string* **`includeAssociatedData`** - The value of the `includeAssociatedData` parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter `-i` or `--includeAssociatedData`
+- *string* **`_typeFilter`** - The value of the `_typeFilter` parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter `-q` or `--_typeFilter`
+- *boolean* **`global`** - By default this client will make patient-level exports. If this is set to true, it will make system-level exports instead. Ignored if `group` is set! Can be overridden from terminal parameter `--global`
+- *string* **`group`** - Id of FHIR group to export. If set, the client will make group-level exports. Can be overridden from terminal parameter `-g` or `--group`
+- *boolean* **`lenient`** - If `true`, adds `handling=lenient` to the `prefer` request header. This may enable a "retry" option after certain errors. It can also be used to signal the server to silently ignore unsupported parameters. Can be overridden from terminal parameter `--lenient`
 - *object* **`requests`** - Custom options for every request, EXCLUDING the authorization request and any upload requests (in case we use remote destination). Many options are available so be careful what you specify here! See [https://github.com/sindresorhus/got/blob/main/documentation/2-options.md](https://github.com/sindresorhus/got/blob/main/documentation/2-options.md). Example:
     ```js
     requests: {
@@ -122,7 +122,7 @@ The Bulk Data Client uses `js` configuration files, but you can think of them as
      - `""` - do nothing
      - `"none"` - do nothing
      
-     Can be overriden from terminal parameter `-d` or `--destination`
+     Can be overridden from terminal parameter `-d` or `--destination`
 - *string* **`awsRegion`** - Example: `us-east-1`. Only used if `destination` points to S3. The AWS SDK will first look for this in the shared config file (`~/.aws/config`). Then the SDK will look for an `AWS_REGION` environment variable. Finally, you can override both of these if you set the `awsRegion` variable in your bulk-data client config file. 
 - *string* **`awsAccessKeyId`** - Only used if `destination` points to S3. The AWS SDK will first look for this in the shared credentials file (`~/.aws/credentials`). You can override this if you set the `awsAccessKeyId` variable in your bulk-data client config file, but only if you also set the `awsSecretAccessKey`. 
 - *string* **`awsSecretAccessKey`** - Only needed if `destination` points to S3. The AWS SDK will first look for this in the shared credentials file (`~/.aws/credentials`). You can override this if you set the `awsSecretAccessKey` variable in your bulk-data client config file, but only if you also set the `awsAccessKeyId`.
