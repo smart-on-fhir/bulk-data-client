@@ -59,7 +59,7 @@ Group-level export</p>
 </a>
 <p>The Bulk Data Client uses <code>js</code> configuration files, but you can think of them as JSON configuration objects. The only reason to use JS is to allow for comments and type hinting. Below are all the options that can be set in a configuration file.</p>
 <ul>
-<li><p><em>string</em> <strong><code>fhirUrl</code></strong> - FHIR server base URL. Can be overriden by the <code>-f</code> or <code>--fhir-url</code> CLI parameter.</p>
+<li><p><em>string</em> <strong><code>fhirUrl</code></strong> - FHIR server base URL. Can be overridden by the <code>-f</code> or <code>--fhir-url</code> CLI parameter.</p>
 </li>
 <li><p><em>string</em> <strong><code>tokenUrl</code></strong> - The Bulk Data server token URL (use <code>&quot;none&quot;</code> for open servers and <code>&quot;&quot;</code> to try to auto-detect it)</p>
 </li>
@@ -69,32 +69,32 @@ Group-level export</p>
 </li>
 <li><p><em>number</em> <strong><code>accessTokenLifetime</code></strong> - The access token lifetime in seconds. Note that the authentication server may ignore or restrict this to its own boundaries</p>
 </li>
-<li><p><em>string</em> <strong><code>reporter</code></strong> - The default reporter is &quot;cli&quot;. That works well in terminal and renders some fancy stuff like progress bars. However, this does not look good when your STDOUT ends up in log files. For example, if you are using this tool as part of some kind of pipeline and want to maintain clean logs, then consider changing this to &quot;text&quot;. Can be overriden from terminal parameter <code>--reporter</code>.</p>
+<li><p><em>string</em> <strong><code>reporter</code></strong> - The default reporter is &quot;cli&quot;. That works well in terminal and renders some fancy stuff like progress bars. However, this does not look good when your STDOUT ends up in log files. For example, if you are using this tool as part of some kind of pipeline and want to maintain clean logs, then consider changing this to &quot;text&quot;. Can be overridden from terminal parameter <code>--reporter</code>.</p>
 <p>Running an export using the (default) <code>cli</code> reporter produces output looking like this:</p>
 <img alt="bulk-data-client-cli" src="https://user-images.githubusercontent.com/1119082/134519314-01addd27-a086-4227-a5a2-0fc812b91512.png" width="578" />
 
 <p>Running the same export using the <code>text</code> reporter produces output looking like this:</p>
 <img alt="bulk-data-client-text" src="https://user-images.githubusercontent.com/1119082/134519352-7cfd2894-ad73-4fb7-ae2c-44bdbdc36236.png" width="713" />
 </li>
-<li><p><em>string</em> <strong><code>_outputFormat</code></strong> - The value of the <code>_outputFormat</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overriden from terminal parameter <code>-F</code> or <code>--_outputFormat</code></p>
+<li><p><em>string</em> <strong><code>_outputFormat</code></strong> - The value of the <code>_outputFormat</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter <code>-F</code> or <code>--_outputFormat</code></p>
 </li>
-<li><p><em>string</em> <strong><code>_since</code></strong> - The value of the <code>_since</code> parameter for Bulk Data kick-off requests. Can also be partial date like &quot;2002&quot;, &quot;2020-03&quot; etc. Can be anything that Moment can parse. Will be ignored if empty or falsy. See <a href="https://momentjs.com/docs/#/parsing/">https://momentjs.com/docs/#/parsing/</a>. Can be overriden from terminal parameter <code>-F</code> or <code>--_outputFormat</code></p>
+<li><p><em>string</em> <strong><code>_since</code></strong> - The value of the <code>_since</code> parameter for Bulk Data kick-off requests. Can also be partial date like &quot;2002&quot;, &quot;2020-03&quot; etc. Can be anything that Moment can parse. Will be ignored if empty or falsy. See <a href="https://momentjs.com/docs/#/parsing/">https://momentjs.com/docs/#/parsing/</a>. Can be overridden from terminal parameter <code>-F</code> or <code>--_outputFormat</code></p>
 </li>
-<li><p><em>string</em> <strong><code>_type</code></strong> -  The value of the <code>_type</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overriden from terminal parameter <code>-t</code> or <code>--_type</code></p>
+<li><p><em>string</em> <strong><code>_type</code></strong> -  The value of the <code>_type</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter <code>-t</code> or <code>--_type</code></p>
 </li>
-<li><p><em>string</em> <strong><code>_elements</code></strong> - The value of the <code>_elements</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overriden from terminal parameter <code>-e</code> or <code>--_elements</code></p>
+<li><p><em>string</em> <strong><code>_elements</code></strong> - The value of the <code>_elements</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter <code>-e</code> or <code>--_elements</code></p>
 </li>
-<li><p><em>string</em> <strong><code>patient</code></strong> -  The value of the <code>patient</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overriden from terminal parameter <code>-p</code> or <code>--patient</code></p>
+<li><p><em>string</em> <strong><code>patient</code></strong> -  The value of the <code>patient</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter <code>-p</code> or <code>--patient</code></p>
 </li>
-<li><p><em>string</em> <strong><code>includeAssociatedData</code></strong> - The value of the <code>includeAssociatedData</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overriden from terminal parameter <code>-i</code> or <code>--includeAssociatedData</code></p>
+<li><p><em>string</em> <strong><code>includeAssociatedData</code></strong> - The value of the <code>includeAssociatedData</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter <code>-i</code> or <code>--includeAssociatedData</code></p>
 </li>
-<li><p><em>string</em> <strong><code>_typeFilter</code></strong> - The value of the <code>_typeFilter</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overriden from terminal parameter <code>-q</code> or <code>--_typeFilter</code></p>
+<li><p><em>string</em> <strong><code>_typeFilter</code></strong> - The value of the <code>_typeFilter</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter <code>-q</code> or <code>--_typeFilter</code></p>
 </li>
-<li><p><em>boolean</em> <strong><code>global</code></strong> - By default this client will make patient-level exports. If this is set to true, it will make system-level exports instead. Ignored if <code>group</code> is set! Can be overriden from terminal parameter <code>--global</code></p>
+<li><p><em>boolean</em> <strong><code>global</code></strong> - By default this client will make patient-level exports. If this is set to true, it will make system-level exports instead. Ignored if <code>group</code> is set! Can be overridden from terminal parameter <code>--global</code></p>
 </li>
-<li><p><em>string</em> <strong><code>group</code></strong> - Id of FHIR group to export. If set, the client will make group-level exports. Can be overriden from terminal parameter <code>-g</code> or <code>--group</code></p>
+<li><p><em>string</em> <strong><code>group</code></strong> - Id of FHIR group to export. If set, the client will make group-level exports. Can be overridden from terminal parameter <code>-g</code> or <code>--group</code></p>
 </li>
-<li><p><em>boolean</em> <strong><code>lenient</code></strong> - If <code>true</code>, adds <code>handling=lenient</code> to the <code>prefer</code> request header. This may enable a &quot;retry&quot; option after certain errors. It can also be used to signal the server to silently ignore unsupported parameters. Can be overriden from terminal parameter <code>--lenient</code></p>
+<li><p><em>boolean</em> <strong><code>lenient</code></strong> - If <code>true</code>, adds <code>handling=lenient</code> to the <code>prefer</code> request header. This may enable a &quot;retry&quot; option after certain errors. It can also be used to signal the server to silently ignore unsupported parameters. Can be overridden from terminal parameter <code>--lenient</code></p>
 </li>
 <li><p><em>object</em> <strong><code>requests</code></strong> - Custom options for every request, EXCLUDING the authorization request and any upload requests (in case we use remote destination). Many options are available so be careful what you specify here! See <a href="https://github.com/sindresorhus/got/blob/main/documentation/2-options.md">https://github.com/sindresorhus/got/blob/main/documentation/2-options.md</a>. Example:</p>
 <pre><code class="language-js"><span class="hl-2">requests</span><span class="hl-3">:</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-2">https</span><span class="hl-3">:</span><span class="hl-0"> {</span><br/><span class="hl-0">        </span><span class="hl-2">rejectUnauthorized</span><span class="hl-3">:</span><span class="hl-0"> </span><span class="hl-4">true</span><span class="hl-0"> </span><span class="hl-5">// reject self-signed certs</span><br/><span class="hl-0">    }</span><span class="hl-3">,</span><br/><span class="hl-0">    </span><span class="hl-2">timeout</span><span class="hl-3">:</span><span class="hl-0"> </span><span class="hl-6">20000</span><span class="hl-3">,</span><span class="hl-0"> </span><span class="hl-5">// 20 seconds custom timeout</span><br/><span class="hl-0">    </span><span class="hl-2">headers</span><span class="hl-3">:</span><span class="hl-0"> {</span><br/><span class="hl-0">        </span><span class="hl-7">&quot;x-client-id&quot;</span><span class="hl-0">: </span><span class="hl-7">&quot;whatever&quot;</span><span class="hl-0"> </span><span class="hl-5">// pass custom headers</span><br/><span class="hl-0">    }</span><br/><span class="hl-0">}</span>
@@ -114,16 +114,18 @@ Group-level export</p>
 </li>
 <li><p><em>boolean</em> <strong><code>forceStandardFileNames</code></strong> - Sometimes a server may use weird names for the exported files. For example, a HAPI server will use random numbers as file names. If this is set to <code>true</code> files will be renamed to match the standard naming convention - <code>{fileNumber}.{ResourceType}.ndjson</code>.</p>
 </li>
-<li><p><em>number</em> <strong><code>inlineDocRefAttachmentsSmallerThan</code></strong> - In <code>DocumentReference</code> resources, any <code>attachment</code> elements having an <code>url</code> (instead of inline data) and a <code>size</code> below this number will be downloaded and put inline as base64 <code>data</code>. Then the <code>size</code> property will be updated and the <code>url</code> will be removed.</p>
+<li><p><em>boolean</em> <strong><code>downloadAttachments</code></strong> - If this is set to <code>false</code>, external attachments found in <code>DocumentReference</code> resources will not be downloaded. The <code>DocumentReference</code> resources will still be downloaded but no further processing will be done.</p>
+</li>
+<li><p><em>number</em> <strong><code>inlineDocRefAttachmentsSmallerThan</code></strong> - In <code>DocumentReference</code> resources, any <code>attachment</code> elements having an <code>url</code> (instead of inline data) and a <code>size</code> below this number will be downloaded and put inline as base64 <code>data</code>. Then the <code>size</code> property will be updated and the <code>url</code> will be removed. <strong>Ignored</strong> if <code>downloadAttachments</code> is set to <code>false</code>!</p>
 <ul>
 <li>To always disable this, set it to <code>0</code></li>
 <li>To always enable this, set it to <code>Infinity</code> (bad idea!)</li>
 <li>To inline files smaller than 5 MB set it to <code>5 * 1024 * 1024</code></li>
 </ul>
 </li>
-<li><p><em>string[]</em> <strong><code>inlineDocRefAttachmentTypes</code></strong> - If an attachment can be inlined (based on its size and the value of the <code>inlineDocRefAttachmentsSmallerThan</code> option), then its mime type will be compared with this list. Only files of listed types will be inlined and the rest will be downloaded into &quot;attachment&quot; subfolder. Example: <code>[&quot;text/plain&quot;, &quot;application/pdf&quot;]</code></p>
+<li><p><em>string[]</em> <strong><code>inlineDocRefAttachmentTypes</code></strong> - If an attachment can be inlined (based on its size and the value of the <code>inlineDocRefAttachmentsSmallerThan</code> option), then its mime type will be compared with this list. Only files of listed types will be inlined and the rest will be downloaded into &quot;attachment&quot; subfolder. Example: <code>[&quot;text/plain&quot;, &quot;application/pdf&quot;]</code>. <strong>Ignored</strong> if <code>downloadAttachments</code> is set to <code>false</code>!</p>
 </li>
-<li><p><em>boolean</em> <strong><code>pdfToText</code></strong> - If this is <code>true</code>, attachments of type PDF that are being inlined will first be converted to text and then inlined as base64</p>
+<li><p><em>boolean</em> <strong><code>pdfToText</code></strong> - If this is <code>true</code>, attachments of type PDF that are being inlined will first be converted to text and then inlined as base64. <strong>Ignored</strong> if <code>downloadAttachments</code> is set to <code>false</code>!</p>
 </li>
 <li><p><em>string</em> <strong><code>destination</code></strong> - Examples:</p>
 <ul>
@@ -137,7 +139,7 @@ Group-level export</p>
 <li><code>&quot;&quot;</code> - do nothing</li>
 <li><code>&quot;none&quot;</code> - do nothing</li>
 </ul>
-<p>   Can be overriden from terminal parameter <code>-d</code> or <code>--destination</code></p>
+<p>   Can be overridden from terminal parameter <code>-d</code> or <code>--destination</code></p>
 </li>
 <li><p><em>string</em> <strong><code>awsRegion</code></strong> - Example: <code>us-east-1</code>. Only used if <code>destination</code> points to S3. The AWS SDK will first look for this in the shared config file (<code>~/.aws/config</code>). Then the SDK will look for an <code>AWS_REGION</code> environment variable. Finally, you can override both of these if you set the <code>awsRegion</code> variable in your bulk-data client config file. </p>
 </li>
