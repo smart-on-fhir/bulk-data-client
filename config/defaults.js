@@ -11,7 +11,7 @@
  module.exports = {
 
     /**
-     * FHIR server base URL. Can be overriden by the `-f` or `--fhir-url`
+     * FHIR server base URL. Can be overridden by the `-f` or `--fhir-url`
      * CLI parameter.
      */
     fhirUrl: "",
@@ -51,7 +51,7 @@
      * you are using this tool as part of some kind of pipeline and want to
      * maintain clean logs, then consider changing this to "text".
      * 
-     * Can be overriden from terminal parameter `--reporter`. 
+     * Can be overridden from terminal parameter `--reporter`. 
      */
     reporter: "cli",
 
@@ -59,7 +59,7 @@
      * The value of the `_outputFormat` parameter for Bulk Data kick-off
      * requests. Will be ignored if empty or falsy.
      * 
-     * Can be overriden from terminal parameter `-F` or `--_outputFormat`
+     * Can be overridden from terminal parameter `-F` or `--_outputFormat`
      */
     _outputFormat: "",
 
@@ -69,7 +69,7 @@
      * Moment can parse. Will be ignored if empty or falsy.
      * @see https://momentjs.com/docs/#/parsing/
      * 
-     * Can be overriden from terminal parameter `-F` or `--_outputFormat`
+     * Can be overridden from terminal parameter `-F` or `--_outputFormat`
      */
     _since: "",
 
@@ -77,7 +77,7 @@
      * The value of the `_type` parameter for Bulk Data kick-off requests.
      * Will be ignored if empty or falsy.
      * 
-     * Can be overriden from terminal parameter `-t` or `--_type`
+     * Can be overridden from terminal parameter `-t` or `--_type`
      */
     _type: "",
 
@@ -85,7 +85,7 @@
      * The value of the `_elements` parameter for Bulk Data kick-off requests.
      * Will be ignored if empty or falsy.
      * 
-     * Can be overriden from terminal parameter `-e` or `--_elements`
+     * Can be overridden from terminal parameter `-e` or `--_elements`
      */
     _elements: "",
 
@@ -93,7 +93,7 @@
      * The value of the `patient` parameter for Bulk Data kick-off requests.
      * Will be ignored if empty or falsy.
      * 
-     * Can be overriden from terminal parameter `-p` or `--patient`
+     * Can be overridden from terminal parameter `-p` or `--patient`
      */
     patient: "",
 
@@ -101,7 +101,7 @@
      * The value of the `includeAssociatedData` parameter for Bulk Data kick-off
      * requests. Will be ignored if empty or falsy.
      * 
-     * Can be overriden from terminal parameter `-i` or `--includeAssociatedData`
+     * Can be overridden from terminal parameter `-i` or `--includeAssociatedData`
      */
     includeAssociatedData: "",
 
@@ -109,7 +109,7 @@
      * The value of the `_typeFilter` parameter for Bulk Data kick-off requests.
      * Will be ignored if empty or falsy.
      * 
-     * Can be overriden from terminal parameter `-q` or `--_typeFilter`
+     * Can be overridden from terminal parameter `-q` or `--_typeFilter`
      */
     _typeFilter: "",
 
@@ -119,7 +119,7 @@
      * 
      * Ignored if `group` is set!
      * 
-     * Can be overriden from terminal parameter `--global`
+     * Can be overridden from terminal parameter `--global`
      */
     global: false,
 
@@ -127,7 +127,7 @@
      * Id of FHIR group to export. If set, the client will make group-level
      * exports.
      * 
-     * Can be overriden from terminal parameter `-g` or `--group`
+     * Can be overridden from terminal parameter `-g` or `--group`
      */
     group: "",
 
@@ -136,7 +136,7 @@
      * enable a "retry" option after certain errors. It can also be used to
      * signal the server to silently ignore unsupported parameters.
      * 
-     * Can be overriden from terminal parameter `--lenient`
+     * Can be overridden from terminal parameter `--lenient`
      */
     lenient: true,
 
@@ -248,7 +248,7 @@
      * - `""` - do nothing
      * - `"none"` - do nothing
      * 
-     * Can be overriden from terminal parameter `-d` or `--destination`
+     * Can be overridden from terminal parameter `-d` or `--destination`
      */
     destination: "./downloads",
 
