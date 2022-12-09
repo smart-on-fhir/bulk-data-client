@@ -163,7 +163,6 @@ class BulkDataClient extends EventEmitter
         this.abortController.signal.addEventListener("abort", () => {
             this.emit("abort")
         });
-        
     }
 
     /**
@@ -386,9 +385,9 @@ class BulkDataClient extends EventEmitter
                 if (res.statusCode == 202) {
                     const now = Date.now();
 
-                    let progress    = String(res.headers["x-progress"] || "").trim();
-                    let retryAfter  = String(res.headers["retry-after"] || "").trim();
-                    let progressPct = parseInt(progress, 10);
+                    const progress    = String(res.headers["x-progress" ] || "").trim();
+                    const retryAfter  = String(res.headers["retry-after"] || "").trim();
+                    const progressPct = parseInt(progress, 10);
 
                     let retryAfterMSec = 1000;
                     if (retryAfter.match(/\d+/)) {
@@ -579,7 +578,9 @@ class BulkDataClient extends EventEmitter
             requestOptions: this.options.requests
         });
 
-
+        // ---------------------------------------------------------------------
+        // Create an NDJSON parser to verify that every single line is valid
+        // ---------------------------------------------------------------------
         let expectedResourceType = ""
         if (this.options.ndjsonValidateFHIRResourceType) {
             switch (exportType) {
@@ -590,44 +591,50 @@ class BulkDataClient extends EventEmitter
             }
         }
 
-        // Create an NDJSON parser to verify that every single line can be
-        // parsed as JSON
         const parser = new ParseNDJSON({
             maxLineLength: this.options.ndjsonMaxLineLength,
             expectedCount: exportType == "output" ? file.count || -1 : -1,
             expectedResourceType
         })
-        
-        // Transforms from stream of objects back to stream of strings (lines)
-        const stringify = new StringifyNDJSON()
 
-        let processPipeline: Readable = downloadStream.pipe(parser);
+        processPipeline = processPipeline.pipe(parser);
 
+
+        // ---------------------------------------------------------------------
+        // Download attachments
+        // ---------------------------------------------------------------------
         if (this.options.downloadAttachments !== false) {
 
             const docRefProcessor = new DocumentReferenceHandler({
-                request: this.request.bind(this),
-                save: (name: string, stream: Readable, subFolder: string) => this.writeToDestination(name, stream, subFolder),
-                inlineAttachments: this.options.inlineDocRefAttachmentsSmallerThan,
+                inlineAttachments    : this.options.inlineDocRefAttachmentsSmallerThan,
                 inlineAttachmentTypes: this.options.inlineDocRefAttachmentTypes,
-                pdfToText: this.options.pdfToText,
-                baseUrl: this.options.fhirUrl
+                pdfToText            : this.options.pdfToText,
+                baseUrl              : this.options.fhirUrl,
+                save: (name: string, stream: Readable, subFolder: string) => {
+                    return this.writeToDestination(name, stream, subFolder)
+                },
             })
     
-            docRefProcessor.on("attachment", () => _state.attachments += 1)
+            docRefProcessor.on("attachment", () => _state.attachments! += 1)
 
             processPipeline = processPipeline.pipe(docRefProcessor)
         }
 
-        processPipeline = processPipeline.pipe(stringify);
-        processPipeline.pause();
 
-        // When we get an object from a line emit the progress event
+        // ---------------------------------------------------------------------
+        // Transforms from stream of objects back to stream of line strings
+        // ---------------------------------------------------------------------
+        const stringify = new StringifyNDJSON()
         stringify.on("data", () => {
-            _state.resources += 1
+            _state.resources! += 1
             onProgress(_state)
         });
+        processPipeline = processPipeline.pipe(stringify);
 
+
+        // ---------------------------------------------------------------------
+        // Write the file to the configured destination
+        // ---------------------------------------------------------------------
         await this.writeToDestination(fileName, processPipeline, subFolder)
         
         onComplete()

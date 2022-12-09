@@ -1,8 +1,7 @@
-import util         from "util"
-import { Readable } from "stream"
-import EventEmitter from "events"
-import request      from "./request"
-import { OptionsOfUnknownResponseBody } from "got/dist/source"
+import util                   from "util"
+import { Readable }           from "stream"
+import EventEmitter           from "events"
+import request                from "./request"
 import { createDecompressor } from "./utils"
 
 
@@ -15,8 +14,8 @@ export interface FileDownloadState {
 }
 
 export interface FileDownloadOptions {
-    signal?: AbortSignal
-    accessToken?: string
+    signal        ?: AbortSignal
+    accessToken   ?: string
     requestOptions?: OptionsOfUnknownResponseBody
 }
 
@@ -89,8 +88,10 @@ class FileDownload extends EventEmitter
             // In case the request itself fails --------------------------------
             downloadRequest.on("error", reject)
 
-            // Count downloaded bytes --------------------------------------
-            downloadRequest.on("data", (data: string) => this.state.downloadedBytes += data.length);
+            // Count downloaded bytes ------------------------------------------
+            downloadRequest.on("data", (data: string) => {
+                this.state.downloadedBytes += data.length
+            });
 
             // Everything else happens after we get a response -----------------
             downloadRequest.on("response", res => {
@@ -112,7 +113,7 @@ class FileDownload extends EventEmitter
                     this.emit("progress", this.state)
                 });
                 
-                // Count incoming raw data chunks ----------------------------------
+                // Count incoming raw data chunks ------------------------------
                 downloadRequest.on("data", () => this.state.downloadedChunks += 1)
                 
                 // Pause it now. We have only set up the downloading part of the
