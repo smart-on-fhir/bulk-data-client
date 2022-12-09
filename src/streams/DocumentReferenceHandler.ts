@@ -45,14 +45,10 @@ export default class DocumentReferenceHandler extends Transform
 
     private async downloadAttachment(url: string): Promise<Response<Buffer>> {
         if (url.search(/^https?:\/\/.+/) === 0) {
-            return this.downloadAttachmentFromAbsoluteUrl(url)
+            url = new URL(url, this.options.baseUrl).href
         }
-        return this.downloadAttachmentFromRelativeUrl(url);
-    }
 
-    private async downloadAttachmentFromAbsoluteUrl(url: string): Promise<Response<Buffer>> {
-        // console.log(`Downloading attachment from ${url}`)
-        return await this.options.request({
+        const res = await this.options.request<Buffer>({
             url,
             responseType: "buffer"
         });
@@ -65,6 +61,9 @@ export default class DocumentReferenceHandler extends Transform
             url,
             responseType: "buffer",
         });
+    }
+
+        return res
     }
 
     private async inlineAttachmentData(node: fhir4.Attachment, data: Buffer) {
@@ -88,14 +87,12 @@ export default class DocumentReferenceHandler extends Transform
             }
 
             const response = await this.downloadAttachment(attachment.url);
-            const type = attachment.contentType || response.headers["content-type"] || ""
-            const isInlineable = (
-                response.body.byteLength < this.options.inlineAttachments &&
-                this.options.inlineAttachmentTypes.find(m => type.startsWith(m))
-            )
-            if (isInlineable) {
+            
+            if (this.canPutAttachmentInline(response, attachment.contentType)) {
                 await this.inlineAttachmentData(attachment, response.body);
-            } else {
+            }
+            
+            else {
                 const fileName = Date.now() + "-" + jose.util.randomBytes(6).toString("hex") + extname(attachment.url);
                 await this.options.save(
                     fileName,
@@ -108,6 +105,25 @@ export default class DocumentReferenceHandler extends Transform
         }
 
         return resource;
+    }
+
+    canPutAttachmentInline(response: Response<Buffer>, contentType?: string): boolean
+    {
+        if (response.body.byteLength > this.options.inlineAttachments) {
+            return false
+        }
+
+        const type = contentType || response.headers["content-type"] || ""
+
+        if (!type) {
+            return false
+        }
+
+        if (!this.options.inlineAttachmentTypes.find(m => type.startsWith(m))) {
+            return false
+        }
+
+        return true
     }
 
     override _transform(
