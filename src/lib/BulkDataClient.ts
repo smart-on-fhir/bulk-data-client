@@ -37,7 +37,7 @@ export interface BulkDataClientEvents {
      * Emitted every time new access token is received
      * @event
      */
-    "authorize": (accessToken: string) => void;
+    "authorize": (this: BulkDataClient, accessToken: string) => void;
 
     /**
      * Emitted when new export is started
@@ -59,19 +59,19 @@ export interface BulkDataClientEvents {
      * Emitted when the export has began
      * @event
      */
-    "exportStart": (status: Types.ExportStatus) => void;
+    "exportStart": (this: BulkDataClient, status: Types.ExportStatus) => void;
     
     /**
      * Emitted for every status change while waiting for the export
      * @event
      */
-    "exportProgress": (status: Types.ExportStatus) => void;
-    
+    "exportProgress": (this: BulkDataClient, status: Types.ExportStatus) => void;
+
     /**
      * Emitted when the export is completed
      * @event
      */
-    "exportComplete": (manifest: Types.ExportManifest) => void;
+    "exportComplete": (this: BulkDataClient, manifest: Types.ExportManifest) => void;
     
     /**
      * Emitted when the download starts
@@ -87,7 +87,8 @@ export interface BulkDataClientEvents {
      * Emitted for any status change while files are being downloaded
      * @event
      */
-    "downloadProgress": (downloads: Types.FileDownload[]) => void;
+    "downloadProgress": (this: BulkDataClient, downloads: Types.FileDownload[]) => void;
+
 
     /**
      * Emitted when all files have been downloaded
@@ -99,13 +100,13 @@ export interface BulkDataClientEvents {
      * Emitted on error
      * @event
      */
-    "error": (error: Error) => void;
+    "error": (this: BulkDataClient, error: Error) => void;
     
     /**
      * Emitted when the flow is aborted by the user
      * @event
      */
-    "abort": () => void;
+    "abort": (this: BulkDataClient) => void;
 }
 
 interface BulkDataClient {
