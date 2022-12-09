@@ -20,6 +20,7 @@ import {
     fhirInstant,
     formatDuration,
     getAccessTokenExpiration,
+    getCapabilityStatement,
     wait
 } from "./utils"
 
@@ -42,13 +43,17 @@ export interface BulkDataClientEvents {
      * Emitted when new export is started
      * @event
      */
-    "kickOffStart": () => void;
+    "kickOffStart": (this: BulkDataClient, requestOptions: OptionsOfUnknownResponseBody) => void;
     
     /**
      * Emitted when a kick-off response is received
      * @event
      */
-    "kickOffEnd": (statusLocation: string) => void;
+    "kickOffEnd": (this: BulkDataClient, data: {
+        response           : Response
+        capabilityStatement: fhir4.CapabilityStatement
+        requestParameters  : Record<string, any>
+    }) => void;
     
     /**
      * Emitted when the export has began
@@ -290,8 +295,6 @@ class BulkDataClient extends EventEmitter
     {
         const { fhirUrl, global, group, lenient, patient, post } = this.options;
 
-        this.emit("kickOffStart")
-
         if (global) {
             var url = new URL("$export", fhirUrl);
         }
@@ -301,6 +304,8 @@ class BulkDataClient extends EventEmitter
         else {
             var url = new URL("Patient/$export", fhirUrl);
         }
+
+        const { body: capabilityStatement } = await getCapabilityStatement(fhirUrl)
 
         const requestOptions: OptionsOfUnknownResponseBody = {
             url,
@@ -318,12 +323,37 @@ class BulkDataClient extends EventEmitter
             this.buildKickOffQuery(url.searchParams);
         }
 
-        return this.request(requestOptions, "kick-off request").then(res => {
-            const location = res.headers["content-location"];
-            assert(location, "The kick-off response did not include content-location header")
-            this.emit("kickOffEnd", location)
-            return location
-        });
+        this.emit("kickOffStart", requestOptions)
+
+        const requestParameters: any = {
+            _outputFormat: this.options._outputFormat                 || undefined,
+            _since       : fhirInstant(this.options._since)           || undefined,
+            _type        : this.options._type                         || undefined,
+            _elements    : this.options._elements                     || undefined,
+            includeAssociatedData: this.options.includeAssociatedData || undefined,
+            _typeFilter: this.options._typeFilter                     || undefined
+        }
+
+        if (Array.isArray(this.options.custom)) {
+            this.options.custom.forEach(p => {
+                const [name, value] = p.trim().split("=")
+                requestParameters[name] = value
+            })
+        }
+
+        const res = await this.request(requestOptions, "kick-off request")
+            .catch(error => {
+                this.emit("kickOffEnd", { response: res, capabilityStatement, requestParameters })
+                throw error
+            });
+
+        const location = res.headers["content-location"];
+        
+        assert(location, "The kick-off response did not include content-location header")
+        
+        this.emit("kickOffEnd", { response: res, capabilityStatement, requestParameters })
+        
+        return location
     }
 
     /**
