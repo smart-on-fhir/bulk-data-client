@@ -40,7 +40,7 @@ export default function CLIReporter(client: BulkDataClient)
     }
 
     function onDownloadStart() {
-        downloadStart = Date.now()
+        if (!downloadStart) downloadStart = Date.now()
     }
 
     function onDownloadProgress(downloads: Types.FileDownload[]) {
@@ -93,7 +93,6 @@ export default function CLIReporter(client: BulkDataClient)
         console.error(error)
     }
 
-        
     client.on("authorize"       , onAuthorize       )
     client.on("kickOffStart"    , onKickOffStart    )
     client.on("kickOffEnd"      , onKickOffEnd      )

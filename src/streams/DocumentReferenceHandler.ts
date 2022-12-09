@@ -11,7 +11,7 @@ export interface DocumentReferenceHandlerOptions {
     inlineAttachmentTypes: string[]
     pdfToText: boolean
     baseUrl: string
-    request: <T=unknown>(options: OptionsOfUnknownResponseBody, label?: string) => Promise<Response<T>>
+    request: <T=unknown>(options: OptionsOfUnknownResponseBody) => Promise<Response<T>>
     save: (fileName: string, stream: Readable, subFolder: string) => Promise<any>
 }
 

@@ -77,7 +77,11 @@ export interface BulkDataClientEvents {
      * Emitted when the download starts
      * @event
      */
-    "downloadStart": (downloads: Types.FileDownload[]) => void;
+    "downloadStart": (this: BulkDataClient, detail: {
+        fileUrl: string
+        itemType: string
+        resourceType: string | null
+    }) => void;
     
     /**
      * Emitted for any status change while files are being downloaded
@@ -565,8 +569,6 @@ class BulkDataClient extends EventEmitter
                 }
             };
 
-            this.emit("downloadStart", downloadJobs.map(j => j.status))
-
             tick()
         })
     }
@@ -586,6 +588,12 @@ class BulkDataClient extends EventEmitter
         if (authorize) {
             accessToken = await this.getAccessToken()
         }
+
+        this.emit("downloadStart", {
+            fileUrl     : file.url,
+            itemType    : exportType,
+            resourceType: file.type
+        })
 
         const download = new FileDownload(file.url)
 
@@ -636,6 +644,14 @@ class BulkDataClient extends EventEmitter
         if (this.options.downloadAttachments !== false) {
 
             const docRefProcessor = new DocumentReferenceHandler({
+                request: (options: OptionsOfUnknownResponseBody) => {
+                    this.emit("downloadStart", {
+                        fileUrl     : options.url!.toString(),
+                        itemType    : "attachment",
+                        resourceType: null
+                    })
+                    return this.request(options, "Attachment")
+                },
                 inlineAttachments    : this.options.inlineDocRefAttachmentsSmallerThan,
                 inlineAttachmentTypes: this.options.inlineDocRefAttachmentTypes,
                 pdfToText            : this.options.pdfToText,

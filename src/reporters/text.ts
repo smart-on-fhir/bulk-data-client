@@ -34,8 +34,10 @@ export default function TextReporter(client: BulkDataClient)
     }
 
     function onDownloadStart(downloads: Types.FileDownload[]) {
-        console.log("Begin file downloads...")
-        downloadStart = Date.now()
+        if (!downloadStart) {
+            console.log("Begin file downloads...")
+            downloadStart = Date.now()
+        }
     }
 
     function onDownloadProgress(downloads: Types.FileDownload[]) {
