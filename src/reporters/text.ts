@@ -65,7 +65,7 @@ export default function TextReporter(client: BulkDataClient)
         }
     }
 
-    function onDownloadComplete(downloads: Types.FileDownload[]) {
+    function onDownloadComplete() {
         console.log(`Download completed in ${formatDuration(Date.now() - downloadStart)}`)
     }
 
@@ -73,29 +73,29 @@ export default function TextReporter(client: BulkDataClient)
         console.error(error)
     }
 
-    client.on("authorize"       , onAuthorize       )
-    client.on("kickOffStart"    , onKickOffStart    )
-    client.on("kickOffEnd"      , onKickOffEnd      )
-    client.on("exportStart"     , onExportStart     )
-    client.on("exportProgress"  , onExportProgress  )
-    client.on("exportComplete"  , onExportComplete  )
-    client.on("downloadStart"   , onDownloadStart   )
-    client.on("downloadProgress", onDownloadProgress)
-    client.on("downloadComplete", onDownloadComplete)
-    client.on("error"           , onError           )
+    client.on("authorize"           , onAuthorize       )
+    client.on("kickOffStart"        , onKickOffStart    )
+    client.on("kickOffEnd"          , onKickOffEnd      )
+    client.on("exportStart"         , onExportStart     )
+    client.on("exportProgress"      , onExportProgress  )
+    client.on("exportComplete"      , onExportComplete  )
+    client.on("downloadStart"       , onDownloadStart   )
+    client.on("downloadProgress"    , onDownloadProgress)
+    client.on("allDownloadsComplete", onDownloadComplete)
+    client.on("error"               , onError           )
 
     return {
         detach() {
-            client.off("authorize"       , onAuthorize       )
-            client.off("kickOffStart"    , onKickOffStart    )
-            client.off("kickOffEnd"      , onKickOffEnd      )
-            client.off("exportStart"     , onExportStart     )
-            client.off("exportProgress"  , onExportProgress  )
-            client.off("exportComplete"  , onExportComplete  )
-            client.off("downloadStart"   , onDownloadStart   )
-            client.off("downloadProgress", onDownloadProgress)
-            client.off("downloadComplete", onDownloadComplete)
-            client.off("error"           , onError           )
+            client.off("authorize"           , onAuthorize       )
+            client.off("kickOffStart"        , onKickOffStart    )
+            client.off("kickOffEnd"          , onKickOffEnd      )
+            client.off("exportStart"         , onExportStart     )
+            client.off("exportProgress"      , onExportProgress  )
+            client.off("exportComplete"      , onExportComplete  )
+            client.off("downloadStart"       , onDownloadStart   )
+            client.off("downloadProgress"    , onDownloadProgress)
+            client.off("allDownloadsComplete", onDownloadComplete)
+            client.off("error"               , onError           )
         }
     }
 }

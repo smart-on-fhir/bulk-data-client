@@ -94,7 +94,7 @@ export interface BulkDataClientEvents {
      * Emitted when all files have been downloaded
      * @event
      */
-    "downloadComplete": (downloads: Types.FileDownload[]) => void;
+    "allDownloadsComplete": (this: BulkDataClient, downloads: Types.FileDownload[]) => void;
     
     /**
      * Emitted on error
@@ -555,17 +555,17 @@ class BulkDataClient extends EventEmitter
                 this.emit("downloadProgress", downloadJobs.map(j => j.status))
 
                 if (completed === downloadJobs.length) {
+                    const downloads = downloadJobs.map(j => j.status)
+                    this.emit("allDownloadsComplete", downloads)
                     if (this.options.saveManifest) {
                         this.writeToDestination(
                             "manifest.json",
                             Readable.from(JSON.stringify(manifest, null, 4))
                         ).then(() => {
-                            this.emit("downloadComplete", downloadJobs.map(j => j.status))
-                            resolve(downloadJobs.map(j => j.status))
+                            resolve(downloads)
                         });
                     } else {
-                        this.emit("downloadComplete", downloadJobs.map(j => j.status))
-                        resolve(downloadJobs.map(j => j.status))
+                        resolve(downloads)
                     }
                 }
             };
@@ -653,6 +653,13 @@ class BulkDataClient extends EventEmitter
                     })
                     return this.request(options, "Attachment")
                 },
+                onDownloadComplete: (url, byteSize) => {
+                    this.emit("downloadComplete", {
+                        fileUrl      : url,
+                        fileSize     : byteSize,
+                        resourceCount: null
+                    })
+                },
                 inlineAttachments    : this.options.inlineDocRefAttachmentsSmallerThan,
                 inlineAttachmentTypes: this.options.inlineDocRefAttachmentTypes,
                 pdfToText            : this.options.pdfToText,
@@ -683,8 +690,12 @@ class BulkDataClient extends EventEmitter
         // Write the file to the configured destination
         // ---------------------------------------------------------------------
         await this.writeToDestination(fileName, processPipeline, subFolder)
-        
-        onComplete()
+
+        this.emit("downloadComplete", {
+            fileUrl      : file.url,
+            fileSize     : _state.uncompressedBytes,
+            resourceCount: _state.resources!
+        })
     }
 
     /**
