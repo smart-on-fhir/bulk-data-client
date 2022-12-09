@@ -89,6 +89,15 @@ export interface BulkDataClientEvents {
      */
     "downloadProgress": (this: BulkDataClient, downloads: Types.FileDownload[]) => void;
 
+    /**
+     * Emitted when any file has been downloaded
+     * @event
+     */
+    "downloadComplete": (this: BulkDataClient, detail: {
+        fileUrl      : string
+        fileSize     : number
+        resourceCount: number | null // null for attachments
+    }) => void;
 
     /**
      * Emitted when all files have been downloaded

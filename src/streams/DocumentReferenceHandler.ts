@@ -13,6 +13,7 @@ export interface DocumentReferenceHandlerOptions {
     baseUrl: string
     request: <T=unknown>(options: OptionsOfUnknownResponseBody) => Promise<Response<T>>
     save: (fileName: string, stream: Readable, subFolder: string) => Promise<any>
+    onDownloadComplete: (url: string, buteSize: number) => void
 }
 
 async function pdfToText(data: Buffer) {
@@ -62,6 +63,8 @@ export default class DocumentReferenceHandler extends Transform
             responseType: "buffer",
         });
     }
+
+        this.options.onDownloadComplete(url, res.body.byteLength)
 
         return res
     }
