@@ -487,7 +487,7 @@ class BulkDataClient extends EventEmitter
         return checkStatus()
     }
 
-    public async downloadAllFiles(manifest: Types.ExportManifest)
+    public async downloadAllFiles(manifest: Types.ExportManifest): Promise<Types.FileDownload[]>
     {
         
         return new Promise((resolve, reject) => {
@@ -530,27 +530,27 @@ class BulkDataClient extends EventEmitter
                     worker: async () => {
                         status.running = true
                         status.completed = false
-                        this.downloadFile(
-                            f,
+                        await this.downloadFile({
+                            file: f,
                             fileName,
-                            state => {
+                            onProgress: state => {
                                 Object.assign(status, state)
                                 this.emit("downloadProgress", downloadJobs.map(j => j.status))
                             },
-                            () => {
-                                status.running = false
-                                status.completed = true
+                            authorize: manifest.requiresAccessToken,
+                            subFolder: status.exportType == "output" ? "" : status.exportType,
+                            exportType: status.exportType
+                        })
 
-                                if (this.options.addDestinationToManifest) {
-                                    // @ts-ignore
-                                    f.destination = join(this.options.destination, fileName)
-                                }
-                                tick()
-                            },
-                            manifest.requiresAccessToken,
-                            status.exportType == "output" ? "" : status.exportType,
-                            status.exportType
-                        )
+                        status.running = false
+                        status.completed = true
+
+                        if (this.options.addDestinationToManifest) {
+                            // @ts-ignore
+                            f.destination = join(this.options.destination, fileName)
+                        }
+
+                        tick()
                     }
                 };
             };
@@ -602,15 +602,22 @@ class BulkDataClient extends EventEmitter
         })
     }
 
-    private async downloadFile(
-        file: Types.ExportManifestFile,
-        fileName: string,
-        onProgress: (state: Partial<Types.FileDownloadProgress>) => any,
-        onComplete: () => any,
+    private async downloadFile({
+        file,
+        fileName,
+        onProgress,
         authorize = false,
         subFolder = "",
         exportType = "output"
-    )
+    }:
+    {
+        file       : Types.ExportManifestFile
+        fileName   : string
+        onProgress : (state: Partial<Types.FileDownloadProgress>) => any
+        authorize ?: boolean
+        subFolder ?: string
+        exportType?: string
+    })
     {
         let accessToken = ""
 
@@ -632,14 +639,15 @@ class BulkDataClient extends EventEmitter
         let _state = {
             ...download.getState(),
             resources: 0,
-            attachments: 0
+            attachments: 0,
+            itemType: exportType
         }
 
         // Just "remember" the progress values but don't emit anything yet
         download.on("progress", state => Object.assign(_state, state))
 
         // Start the download (the stream will be paused though)
-        const downloadStream = await download.run({
+        let processPipeline: Readable = await download.run({
             accessToken,
             signal: this.abortController.signal,
             requestOptions: this.options.requests
