@@ -671,12 +671,16 @@ export declare namespace BulkDataClient {
     }
 
     interface ExportStatus {
-        startedAt      : number
-        completedAt    : number
-        elapsedTime    : number
-        percentComplete: number
-        nextCheckAfter : number
-        message        : string
+        startedAt        : number
+        completedAt      : number
+        elapsedTime      : number
+        percentComplete  : number
+        nextCheckAfter   : number
+        message          : string
+        xProgressHeader ?: string
+        retryAfterHeader?: string
+        body            ?: any
+        virtual         ?: boolean
     }
 }
 

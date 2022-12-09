@@ -67,6 +67,11 @@ export interface BulkDataClientEvents {
      */
     "exportProgress": (this: BulkDataClient, status: Types.ExportStatus) => void;
 
+    "exportError": (this: BulkDataClient, details: {
+        body: string | fhir4.OperationOutcome | null,
+        code: number | null
+    }) => void;
+    
     /**
      * Emitted when the export is completed
      * @event
@@ -383,12 +388,15 @@ class BulkDataClient extends EventEmitter
     public async waitForExport(statusEndpoint: string): Promise<Types.ExportManifest>
     {
         const status = {
-            startedAt      : Date.now(),
-            completedAt    : -1,
-            elapsedTime    : 0,
-            percentComplete: -1,
-            nextCheckAfter : 1000,
-            message        : "Bulk Data export started"
+            startedAt       : Date.now(),
+            completedAt     : -1,
+            elapsedTime     : 0,
+            percentComplete : -1,
+            nextCheckAfter  : 1000,
+            message         : "Bulk Data export started",
+            xProgressHeader : "",
+            retryAfterHeader: "",
+            statusEndpoint
         };
 
         this.emit("exportStart", status)
@@ -414,7 +422,8 @@ class BulkDataClient extends EventEmitter
                     status.percentComplete = 100
                     status.nextCheckAfter = -1
                     status.message = `Bulk Data export completed in ${formatDuration(elapsedTime)}`
-                    this.emit("exportProgress", status)
+
+                    this.emit("exportProgress", { ...status, virtual: true })
 
                     expect(res.body, "No export manifest returned").to.exist()
                     expect(res.body.output, "The export manifest output is not an array").to.be.an.array();
@@ -451,12 +460,22 @@ class BulkDataClient extends EventEmitter
                             `Bulk Data export: ${progressPct}% complete in ${formatDuration(elapsedTime)}`
                     });
 
-                    this.emit("exportProgress", status)
+                    this.emit("exportProgress", {
+                        ...status,
+                        retryAfterHeader: retryAfter,
+                        xProgressHeader : progress,
+                        body            : res.body
+                    })
                     // debug("%o", status)
                     
                     return wait(poolDelay, this.abortController.signal).then(checkStatus)
                 }
                 else {
+                    this.emit("exportError", {
+                        body: res.body as any || null,
+                        code: res.statusCode || null
+                    });
+
                     // TODO: handle unexpected response
                     throw new Error(`Unexpected status response ${res.statusCode} ${res.statusMessage}`)
                     // this.emit("error", status)
