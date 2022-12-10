@@ -8,6 +8,7 @@ import { detectTokenUrl, exit } from "./lib/utils"
 import Client                   from "./lib/BulkDataClient"
 import CLIReporter              from "./reporters/cli"
 import TextReporter             from "./reporters/text"
+import { createLogger }         from "./loggers"
 
 const reporters = {
     cli : CLIReporter,
@@ -95,10 +96,100 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
         }
     }
 
-    // console.log(args)
-
     const client = new Client(options)
     const reporter = reporters[(options as BulkDataClient.NormalizedOptions).reporter](client)
+
+    if (options.log?.enabled) {
+        const logger = createLogger(options.log)
+        const startTime = Date.now()
+
+        // kickoff -----------------------------------------------------------------
+        client.on("kickOffEnd", ({ requestParameters, capabilityStatement, response }) => {
+            logger.log("info", {
+                eventId: "kickoff",
+                eventDetail: {
+                    exportUrl          : response.requestUrl,
+                    errorCode          : response.statusCode >= 400 ? response.statusCode : null,
+                    errorBody          : response.statusCode >= 400 ? response.body : null,
+                    softwareName       : capabilityStatement.software?.name || null,
+                    softwareVersion    : capabilityStatement.software?.version || null,
+                    softwareReleaseDate: capabilityStatement.software?.releaseDate || null,
+                    fhirVersion        : capabilityStatement.fhirVersion,
+                    requestParameters
+                }
+            })
+        })
+
+        // status_progress ---------------------------------------------------------
+        client.on("exportProgress", e => {
+            if (!e.virtual) { // skip the artificially triggered 100% event
+                logger.log("info", {
+                    eventId: "status_progress",
+                    eventDetail: {
+                        body      : e.body,
+                        xProgress : e.xProgressHeader,
+                        retryAfter: e.retryAfterHeader
+                    }
+                })
+            }
+        })
+
+        // status_error ------------------------------------------------------------
+        client.on("exportError", eventDetail => {
+            logger.log("error", {
+                eventId: "status_error",
+                eventDetail
+            });
+        })
+
+        // status_complete ---------------------------------------------------------
+        client.on("exportComplete", manifest => {
+            logger.log("info", {
+                eventId: "status_complete",
+                eventDetail: {
+                    transactionTime : manifest.transactionTime,
+                    outputFileCount : manifest.output.length,
+                    deletedFileCount: manifest.deleted?.length || 0,
+                    errorFileCount  : manifest.error.length
+                }
+            })
+        })
+
+        // download_request --------------------------------------------------------
+        client.on("downloadStart", eventDetail => {
+            logger.log("info", { eventId: "download_request", eventDetail })
+        })
+
+        // download_complete -------------------------------------------------------
+        client.on("downloadComplete", eventDetail => {
+            logger.log("info", { eventId: "download_complete", eventDetail })
+        })
+
+        // download_error ----------------------------------------------------------
+        client.on("downloadError", eventDetail => {
+            logger.log("info", { eventId: "download_error", eventDetail })
+        })
+
+        // export_complete ---------------------------------------------------------
+        client.on("allDownloadsComplete", downloads => {
+            const eventDetail = {
+                files      : 0,
+                resources  : 0,
+                bytes      : 0,
+                attachments: 0,
+                duration   : Date.now() - startTime
+            };
+        
+            downloads.forEach(d => {
+                eventDetail.files       += 1
+                eventDetail.resources   += d.resources
+                eventDetail.bytes       += d.uncompressedBytes
+                eventDetail.attachments += d.attachments
+            })
+        
+            logger.log("info", { eventId: "export_complete", eventDetail })
+        })
+    }
 
     process.on("SIGINT", () => {
         console.log("\nExport canceled.".magenta.bold);

@@ -38,13 +38,14 @@
     "node-jose": "^2.0.0",
     "pdfjs-dist": "^2.9.359",
     "prompt-sync": "^4.2.0",
+    "winston": "^3.8.2",
     "zlib": "^1.0.5"
   },
   "devDependencies": {
     "@types/fhir": "0.0.34",
     "@types/jsonwebtoken": "^8.5.5",
     "@types/mocha": "^9.0.0",
-    "@types/node": "^16.7.13",
+    "@types/node": "^18.11.11",
     "@types/node-jose": "^1.1.8",
     "@types/pdfjs-dist": "^2.7.4",
     "@types/prompt-sync": "^4.1.1",

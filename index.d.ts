@@ -209,6 +209,19 @@ export declare namespace BulkDataClient {
          * Only needed if `destination` points to S3
          */
         awsSecretAccessKey?: string
+
+        log?: LoggingOptions
+    }
+
+    interface LoggingOptions
+    {
+        enabled?: boolean
+
+        /**
+         * Key/value pairs to be added to every log entry. Can be used to add
+         * useful information, for example which site imported this data.
+         */
+        metadata?: Record<string, any>
     }
 
     interface CLIOptions {
