@@ -15,6 +15,7 @@ import ParseNDJSON                      from "../streams/ParseNDJSON"
 import StringifyNDJSON                  from "../streams/StringifyNDJSON"
 import DocumentReferenceHandler         from "../streams/DocumentReferenceHandler"
 import { BulkDataClient as Types }      from "../.."
+import { FileDownloadError }            from "./errors"
 import {
     assert,
     fhirInstant,
@@ -93,6 +94,16 @@ export interface BulkDataClientEvents {
      * @event
      */
     "downloadProgress": (this: BulkDataClient, downloads: Types.FileDownload[]) => void;
+
+    /**
+     * Emitted for every file which fails to download
+     * @event
+     */
+    "downloadError": (this: BulkDataClient, details: {
+        body: string | fhir4.OperationOutcome | null, // Buffer
+        code: number,
+        fileUrl: string
+    }) => void;
 
     /**
      * Emitted when any file has been downloaded
@@ -651,6 +662,15 @@ class BulkDataClient extends EventEmitter
             accessToken,
             signal: this.abortController.signal,
             requestOptions: this.options.requests
+        }).catch(e => {
+            if (e instanceof FileDownloadError) {
+                this.emit("downloadError", {
+                    body: null, // Buffer
+                    code: e.code,
+                    fileUrl: e.fileUrl
+                })
+            }
+            throw e
         });
 
         // ---------------------------------------------------------------------

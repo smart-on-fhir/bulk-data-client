@@ -1,13 +1,13 @@
-import                     "colors"
-import jwt            from "jsonwebtoken"
-import { URL }        from "url"
-import moment         from "moment"
-import prompt         from "prompt-sync"
-import util           from "util"
-import { Response }   from "got/dist/source"
-import zlib           from "zlib"
-import request        from "./request"
-import { Transform }  from "stream"
+import                                     "colors"
+import jwt                            from "jsonwebtoken"
+import { URL }                        from "url"
+import moment                         from "moment"
+import prompt                         from "prompt-sync"
+import util                           from "util"
+import { HTTPError, Response }        from "got/dist/source"
+import zlib                           from "zlib"
+import request                        from "./request"
+import { Transform }                  from "stream"
 import { BulkDataClient, JsonObject } from "../.."
 
 
@@ -249,12 +249,14 @@ export function humanFileSize(fileSizeInBytes = 0, useBits = false): string {
     return Math.max(fileSizeInBytes, 0).toFixed(1) + units[i];
 }
 
-export function assert(condition: any, message="Assertion failed", details?: Record<string, any>): asserts condition {
+export function assert(condition: any, error?: string | ErrorConstructor, ctor = Error): asserts condition {
     if (!(condition)) {
-        exit(new Error(message), {
-            ...details,
-            type: "ASSERTION ERROR"
-        })
+        if (typeof error === "function") {
+            throw new error()
+        }
+        else {
+            throw new ctor(error || "Assertion failed")
+        }
     }
 }
 
@@ -329,7 +331,58 @@ export function exit(arg: any, details?: Record<string, any>) {
     }
 
     else {
-        if (arg instanceof Error) {
+        if (arg instanceof HTTPError) {
+            const { response, options, request } = arg;
+            const requestBody = request?.options.body || request?.options.form
+
+            let title = "Failed to make a request"
+            let message = arg.message;
+
+            const props: any = {
+                "request": options.method + " " + options.url,
+                "request headers": options.headers
+            };
+
+            if (requestBody) {
+                props["request body"] = requestBody
+            }
+
+            if (response) {
+
+                title = "Received an error from the server"
+
+                props.response = [response.statusCode, response.statusMessage].join(" ")
+
+                props["response headers"] = response.headers
+
+                if (response?.body && typeof response?.body == "object") {
+                    
+                    // @ts-ignore OperationOutcome errors
+                    if (response.body.resourceType === "OperationOutcome") {
+                        const oo = response.body as fhir4.OperationOutcome
+                        props.type = "OperationOutcome"
+                        props.severity = oo.issue[0].severity
+                        props.code = oo.issue[0].code
+                        props.payload = oo
+                        message = oo.issue[0].details?.text || oo.issue[0].diagnostics || "Unknown error"
+                    }
+
+                    // @ts-ignore OAuth errors
+                    else if (response.body.error) {
+                        props.type = "OAuth Error"
+                        props.payload = response.body
+                        // @ts-ignore
+                        message = [response.body.error, response.body.error_description].filter(Boolean).join(": ")
+                    }
+                }
+            }
+            // @ts-ignore
+            process.stdout.write(String(title + ": ").red.bold)
+            exitCode = 1
+            details = props
+            console.log(message.red)
+        }
+        else if (arg instanceof Error) {
             exitCode = 1
             console.log(arg.message.red)
             details = { ...details, ...arg }

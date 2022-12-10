@@ -70,65 +70,6 @@ export default got.extend({
 
                 return response
             }
-        ],
-        beforeError: [
-            // @ts-ignore
-            error => {
-                const { response, options, request } = error;
-
-                const requestBody = request?.options.body || request?.options.form
-
-                if (options.context?.ignoreErrors) {
-                    return error; // Do not exit or print custom stuff
-                }
-
-                let title = "Failed to make a request"
-                let message = error.message;
-
-                const props: any = {
-                    "request": options.method + " " + options.url,
-                    "request headers": options.headers
-                };
-
-                if (requestBody) {
-                    props["request body"] = requestBody
-                }
-
-                if (response) {
-
-                    title = "Received an error from the server"
-
-                    props.response = [response.statusCode, response.statusMessage].join(" ")
-
-                    props["response headers"] = response.headers
-
-                    if (response?.body && typeof response?.body == "object") {
-                        
-                        // @ts-ignore OperationOutcome errors
-                        if (response.body.resourceType === "OperationOutcome") {
-                            const oo = response.body as fhir4.OperationOutcome
-                            props.type = "OperationOutcome"
-                            props.severity = oo.issue[0].severity
-                            props.code = oo.issue[0].code
-                            props.payload = oo
-                            message = oo.issue[0].details?.text || oo.issue[0].diagnostics || "Unknown error"
-                        }
-
-                        // @ts-ignore OAuth errors
-                        else if (response.body.error) {
-                            props.type = "OAuth Error"
-                            props.payload = response.body
-                            // @ts-ignore
-                            message = [response.body.error, response.body.error_description].filter(Boolean).join(": ")
-                        }
-                    }
-                }
-
-                print.commit()
-                // @ts-ignore
-                process.stdout.write(String(title + ": ").red.bold)
-                exit(message.red, props)
-            }
         ]
     }
 })

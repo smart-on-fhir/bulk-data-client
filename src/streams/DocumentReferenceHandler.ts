@@ -1,9 +1,10 @@
-import { OptionsOfUnknownResponseBody, Response } from "got/dist/source";
-import { extname } from "path";
-import { Readable, Transform }  from "stream"
-import PDF from "../lib/PDF"
-import { URL } from "url"
-import jose from "node-jose"
+import { extname }                                from "path"
+import { Readable, Transform }                    from "stream"
+import { URL }                                    from "url"
+import jose                                       from "node-jose"
+import { OptionsOfUnknownResponseBody, Response } from "got/dist/source"
+import PDF                                        from "../lib/PDF"
+import { FileDownloadError }                      from "../lib/errors"
 
 
 export interface DocumentReferenceHandlerOptions {
@@ -51,18 +52,17 @@ export default class DocumentReferenceHandler extends Transform
 
         const res = await this.options.request<Buffer>({
             url,
-            responseType: "buffer"
-        });
-    }
-
-    private async downloadAttachmentFromRelativeUrl(uri: string): Promise<Response<Buffer>> {
-        const url = new URL(uri, this.options.baseUrl)
-        // console.log(`Downloading attachment from ${url}`)
-        return await this.options.request({
-            url,
             responseType: "buffer",
+            throwHttpErrors: false
         });
-    }
+
+        if (res.statusCode >= 400) {
+            throw new FileDownloadError({
+                fileUrl: url,
+                body   : null,
+                code   : res.statusCode
+            });
+        }
 
         this.options.onDownloadComplete(url, res.body.byteLength)
 

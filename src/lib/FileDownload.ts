@@ -3,6 +3,7 @@ import { Readable }           from "stream"
 import EventEmitter           from "events"
 import request                from "./request"
 import { createDecompressor } from "./utils"
+import { FileDownloadError }  from "./errors"
 import {
     Options,
     OptionsOfUnknownResponseBody,
@@ -131,6 +132,11 @@ class FileDownload extends EventEmitter
                 // In case we get an error response ----------------------------
                 if (res.statusCode >= 400) {
                     this.emit("error");
+                    return reject(new FileDownloadError({
+                        fileUrl: this.url,
+                        body: res.body,
+                        code: res.statusCode
+                    }))
                 }
 
                 // Un-compress the response if needed --------------------------
