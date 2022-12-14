@@ -272,5 +272,17 @@
     /**
      * Only needed if `destination` points to S3
      */
-    awsSecretAccessKey: ""
+    awsSecretAccessKey: "",
+
+    log: {
+        enabled: true,
+
+        /**
+         * Key/value pairs to be added to every log entry. Can be used to add
+         * useful information, for example which site imported this data.
+         */
+        metadata: {
+            // siteId: "localhost"
+        }
+    }
 }
