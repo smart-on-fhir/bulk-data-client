@@ -338,7 +338,12 @@ class BulkDataClient extends EventEmitter
             var url = new URL("Patient/$export", fhirUrl);
         }
 
-        const { body: capabilityStatement } = await getCapabilityStatement(fhirUrl)
+        let capabilityStatement: any;
+        try {
+            capabilityStatement = (await getCapabilityStatement(fhirUrl)).body
+        } catch {
+            capabilityStatement = {}
+        }
 
         const requestOptions: OptionsOfUnknownResponseBody = {
             url,
