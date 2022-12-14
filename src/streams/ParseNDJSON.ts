@@ -94,25 +94,9 @@ export default class ParseNDJSON extends Transform
             // If this is not an empty line!
             if (jsonString.trim().length) {
                 try {
-                    const json = JSON.parse(jsonString);
-
-                    if (this.options.expectedResourceType &&
-                        json.resourceType !== this.options.expectedResourceType) {
-                        throw new Error(`Expected each resource to have a "${
-                            this.options.expectedResourceType
-                        }" resourceType but found "${json.resourceType}"`)
-                    }
-
-                    this.push(json);
-
-                    this._count += 1;
+                    this.processLine(jsonString)
                 } catch (error) {
-                    // this.push(jsonString);
-                    this._stringBuffer = "";
-                    this.bufferSize   = 0;
-                    return next(new SyntaxError(
-                        `Error parsing NDJSON on line ${this._line} ('${eolPos}'): ${error}`
-                    ));
+                    return next(error as Error)
                 }
             }
 
@@ -129,17 +113,13 @@ export default class ParseNDJSON extends Transform
      */
     override _final(next: (err?: Error) => any)
     {
-        try {
-            if (this._stringBuffer) {
-                const json = JSON.parse(this._stringBuffer);
-                this._stringBuffer = "";
-                this.push(json);
-                this._count += 1;
+        if (this._stringBuffer) {
+            this._line += 1
+            try {
+                this.processLine(this._stringBuffer)
+            } catch (error) {
+                return next(error as Error)
             }
-        } catch (error) {
-            return next(new SyntaxError(
-                `Error parsing NDJSON on line ${this._line + 1}: ${error}`
-            ));
         }
         
         if (this.options.expectedCount > -1 && this._count !== this.options.expectedCount) {
@@ -148,6 +128,28 @@ export default class ParseNDJSON extends Transform
         }
         
         next()
+    }
+
+    processLine(line: string) {
+        try {
+            const json = JSON.parse(line);
+
+            if (this.options.expectedResourceType &&
+                json.resourceType !== this.options.expectedResourceType) {
+                throw new Error(`Expected each resource to have a "${
+                    this.options.expectedResourceType
+                }" resourceType but found "${json.resourceType}"`)
+            }
+
+            this.push(json);
+            this._count += 1;
+        } catch (error) {
+            this._stringBuffer = "";
+            this.bufferSize    = 0;
+            throw new SyntaxError(
+                `Error parsing NDJSON on line ${this._line}: ${error}`
+            );
+        }
     }
 }
 
