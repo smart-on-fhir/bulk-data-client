@@ -65,6 +65,7 @@ class FileDownload extends events_1.default {
             // downloadRequest.on("error", reject)
             downloadRequest.on("error", error => {
                 this.state.error = error;
+                this.emit("error");
                 reject(error);
             });
             // Count downloaded bytes ------------------------------------------
@@ -75,6 +76,7 @@ class FileDownload extends events_1.default {
             downloadRequest.on("response", res => {
                 // In case we get an error response ----------------------------
                 if (res.statusCode >= 400) {
+                    this.emit("error");
                     return reject(new errors_1.FileDownloadError({
                         fileUrl: this.url,
                         body: res.body,

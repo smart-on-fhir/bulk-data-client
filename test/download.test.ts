@@ -1,131 +1,82 @@
-import nock           from "nock"
 import { expect }     from "@hapi/code"
 import BulkDataClient from "../src/lib/BulkDataClient"
-// @ts-ignore
-import baseSettings from "../config/defaults.js"
+import baseSettings   from "../config/defaults.js"
+import { mockServer } from "./lib"
 
-const TEST_SERVER_BASE_URL = "http://testserver.dev"
-
-
-afterEach(async () => {
-    nock.cleanAll()
-})
 
 describe('download', () => {
-
-
+    
     it("normal ndjson file", async () => {
 
-        nock(TEST_SERVER_BASE_URL)
-            .get("/download")
-            .reply(
-                200,
-                '{"resourceType":"Patient"}\n' +
+        mockServer.mock("/download", {
+            status: 200,
+            body: '{"resourceType":"Patient"}\n' +
                 '{"resourceType":"Patient"}',
-                 {
-                     "content-type": "application/ndjson"
-                 }
-            );
-
-        const client = new BulkDataClient({
-            ...baseSettings,
-            fhirUrl: TEST_SERVER_BASE_URL
-        })
+            headers: {
+                "content-type": "application/ndjson"
+            }
+        });
 
         // @ts-ignore
-        await client.downloadFile(
-            {
+        const client = new BulkDataClient({ ...baseSettings, fhirUrl: mockServer.baseUrl })
+
+        // @ts-ignore
+        await client.downloadFile({
+            file: {
                 type: "Patient",
-                url: TEST_SERVER_BASE_URL + "/download",
+                url: mockServer.baseUrl + "/download",
                 count: 2
             },
-            "1.Patient.ndjson",
-            state => {},
-            () => {}
-        )
+            fileName: "1.Patient.ndjson",
+            onProgress: state => {}
+        })
     })
 
     it("can skip attachments", async () => {
 
-        nock(TEST_SERVER_BASE_URL).get("/attachment").reply(200, "whatever");
+        mockServer.mock("/attachment", { body: "whatever" });
 
-        nock(TEST_SERVER_BASE_URL).get("/download").reply(
-            200,
-            JSON.stringify({
+        mockServer.mock("/download", {
+            body: JSON.stringify({
                 resourceType: "DocumentReference",
                 content:[{
                     attachment: {
                         contentType: "image/jpeg",
-                        url: TEST_SERVER_BASE_URL + "/attachment",
+                        url: mockServer.baseUrl + "/attachment",
                         size: 190326
                     }
                 }]
             }),
-            {
+            headers: {
                 "content-type": "application/ndjson"
             }
-        ).persist(true);
-
-        const client = new BulkDataClient({
-            ...baseSettings,
-            fhirUrl: TEST_SERVER_BASE_URL,
-            downloadAttachments: true
-        })
+        });
 
         // @ts-ignore
-        await client.downloadFile(
-            {
+        const client = new BulkDataClient({ ...baseSettings, fhirUrl: mockServer.baseUrl })
+
+        // @ts-ignore
+        await client.downloadFile({
+            file: {
                 type: "DocumentReference",
-                url: TEST_SERVER_BASE_URL + "/download",
+                url: mockServer.baseUrl + "/download",
                 count: 1
             },
-            "1.DocumentReference.ndjson",
-            state => { expect(state.attachments).to.equal(1) },
-            () => {}
-        )
+            fileName: "1.DocumentReference.ndjson",
+            onProgress: state => { expect(state.attachments).to.equal(1) }
+        })
 
         client.options.downloadAttachments = false
 
         // @ts-ignore
-        await client.downloadFile(
-            {
+        await client.downloadFile({
+            file: {
                 type: "DocumentReference",
-                url: TEST_SERVER_BASE_URL + "/download",
+                url: mockServer.baseUrl + "/download",
                 count: 1
             },
-            "1.DocumentReference.ndjson",
-            state => { expect(state.attachments).to.equal(0) },
-            () => {}
-        )
+            fileName: "1.DocumentReference.ndjson",
+            onProgress: state => { expect(state.attachments).to.equal(0) }
+        })
     })
-
-    // it("can make a system-level export", async () => {
-
-    //     nock(TEST_SERVER_BASE_URL)
-    //         .get("/$export")
-    //         .reply(202, "", { "content-location": "x" });
-
-    //     const client = new BulkDataClient({
-    //         ...baseSettings,
-    //         fhirUrl: TEST_SERVER_BASE_URL,
-    //         global: true
-    //     })
-
-    //     await client.kickOff()
-    // })
-
-    // it("can make a group-level export", async () => {
-
-    //     nock(TEST_SERVER_BASE_URL)
-    //         .get("/Group/abc/$export")
-    //         .reply(202, "", { "content-location": "x" });
-
-    //     const client = new BulkDataClient({
-    //         ...baseSettings,
-    //         fhirUrl: TEST_SERVER_BASE_URL,
-    //         group: "abc"
-    //     })
-
-    //     await client.kickOff()
-    // })
 })

@@ -65,10 +65,19 @@ class ParseNDJSON extends stream_1.Transform {
             // If this is not an empty line!
             if (jsonString.trim().length) {
                 try {
-                    this.processLine(jsonString);
+                    const json = JSON.parse(jsonString);
+                    if (this.options.expectedResourceType &&
+                        json.resourceType !== this.options.expectedResourceType) {
+                        throw new Error(`Expected each resource to have a "${this.options.expectedResourceType}" resourceType but found "${json.resourceType}"`);
+                    }
+                    this.push(json);
+                    this._count += 1;
                 }
                 catch (error) {
-                    return next(error);
+                    // this.push(jsonString);
+                    this._stringBuffer = "";
+                    this.bufferSize = 0;
+                    return next(new SyntaxError(`Error parsing NDJSON on line ${this._line} ('${eolPos}'): ${error}`));
                 }
             }
             eolPos = this._stringBuffer.search(/\n/);
@@ -81,35 +90,21 @@ class ParseNDJSON extends stream_1.Transform {
      * @param {function} next
      */
     _final(next) {
-        if (this._stringBuffer) {
-            this._line += 1;
-            try {
-                this.processLine(this._stringBuffer);
+        try {
+            if (this._stringBuffer) {
+                const json = JSON.parse(this._stringBuffer);
+                this._stringBuffer = "";
+                this.push(json);
+                this._count += 1;
             }
-            catch (error) {
-                return next(error);
-            }
+        }
+        catch (error) {
+            return next(new SyntaxError(`Error parsing NDJSON on line ${this._line + 1}: ${error}`));
         }
         if (this.options.expectedCount > -1 && this._count !== this.options.expectedCount) {
             return next(new Error(`Expected ${this.options.expectedCount} resources but found ${this._count}`));
         }
         next();
-    }
-    processLine(line) {
-        try {
-            const json = JSON.parse(line);
-            if (this.options.expectedResourceType &&
-                json.resourceType !== this.options.expectedResourceType) {
-                throw new Error(`Expected each resource to have a "${this.options.expectedResourceType}" resourceType but found "${json.resourceType}"`);
-            }
-            this.push(json);
-            this._count += 1;
-        }
-        catch (error) {
-            this._stringBuffer = "";
-            this.bufferSize = 0;
-            throw new SyntaxError(`Error parsing NDJSON on line ${this._line}: ${error}`);
-        }
     }
 }
 exports.default = ParseNDJSON;

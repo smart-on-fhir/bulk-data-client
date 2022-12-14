@@ -128,6 +128,10 @@ The Bulk Data Client uses `js` configuration files, but you can think of them as
 - *string* **`awsRegion`** - Example: `us-east-1`. Only used if `destination` points to S3. The AWS SDK will first look for this in the shared config file (`~/.aws/config`). Then the SDK will look for an `AWS_REGION` environment variable. Finally, you can override both of these if you set the `awsRegion` variable in your bulk-data client config file. 
 - *string* **`awsAccessKeyId`** - Only used if `destination` points to S3. The AWS SDK will first look for this in the shared credentials file (`~/.aws/credentials`). You can override this if you set the `awsAccessKeyId` variable in your bulk-data client config file, but only if you also set the `awsSecretAccessKey`. 
 - *string* **`awsSecretAccessKey`** - Only needed if `destination` points to S3. The AWS SDK will first look for this in the shared credentials file (`~/.aws/credentials`). You can override this if you set the `awsSecretAccessKey` variable in your bulk-data client config file, but only if you also set the `awsAccessKeyId`.
+- *object* **`log`** - Optional logging options (see below)
+- *boolean* **`log.enabled`** - Set this to false to disable logging. Optional (defaults to true).
+- *string* **`log.file`** - Path to the log file. Absolute, or relative to process CWD. If not provided, the file will be called log.ndjson and will be stored in the downloads folder.
+- *object* **`log.metadata`** - Key/value pairs to be added to every log entry. Can be used to add useful information (for example which site imported this data).
 
 
 ### Environment Variables
@@ -194,5 +198,6 @@ Features
 - [x] Destination directory path
 - [x] Destination http
 - [x] multiple config files
-- [ ] tests
+- [ ] tests (~64% coverage)
 - [x] Custom kick-off params
+- [x] Logging

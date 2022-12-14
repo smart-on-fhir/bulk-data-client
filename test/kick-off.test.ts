@@ -1,31 +1,30 @@
-import nock           from "nock"
 import BulkDataClient from "../src/lib/BulkDataClient"
-// @ts-ignore
 import baseSettings   from "../config/defaults.js"
+import { mockServer } from "./lib"
 
-const TEST_SERVER_BASE_URL = "http://testserver.dev"
-
-
-afterEach(async () => {
-    nock.cleanAll()
-})
 
 describe('kick-off', () => {
     it("makes a patient-level export by default", async () => {
-        nock(TEST_SERVER_BASE_URL).get("/Patient/$export").reply(202, "", { "content-location": "x" });
-        const client = new BulkDataClient({ ...baseSettings, fhirUrl: TEST_SERVER_BASE_URL })
+        mockServer.mock("/metadata", { status: 200, body: {} });
+        mockServer.mock("/Patient/\\$export", { status: 202, body: "", headers: { "content-location": "x" }});
+        // @ts-ignore
+        const client = new BulkDataClient({ ...baseSettings, fhirUrl: mockServer.baseUrl })
         await client.kickOff()
     })
 
     it("can make a system-level export", async () => {
-        nock(TEST_SERVER_BASE_URL).get("/$export").reply(202, "", { "content-location": "x" });
-        const client = new BulkDataClient({ ...baseSettings, fhirUrl: TEST_SERVER_BASE_URL, global: true })
+        mockServer.mock("/metadata", { status: 200, body: {} });
+        mockServer.mock("/\\$export", { status: 202, body: "", headers: { "content-location": "x" }});
+        // @ts-ignore
+        const client = new BulkDataClient({ ...baseSettings, fhirUrl: mockServer.baseUrl, global: true })
         await client.kickOff()
     })
 
     it("can make a group-level export", async () => {
-        nock(TEST_SERVER_BASE_URL).get("/Group/abc/$export").reply(202, "", { "content-location": "x" });
-        const client = new BulkDataClient({ ...baseSettings, fhirUrl: TEST_SERVER_BASE_URL, group: "abc" })
+        mockServer.mock("/metadata", { status: 200, body: {} });
+        mockServer.mock("/Group/abc/\\$export", { status: 202, body: "", headers: { "content-location": "x" }});
+        // @ts-ignore
+        const client = new BulkDataClient({ ...baseSettings, fhirUrl: mockServer.baseUrl, group: "abc" })
         await client.kickOff()
     })
 })
@@ -35,19 +34,21 @@ describe('status', () => {
     describe("complete", () => {
         
         it("returns the manifest", async() => {
-            nock(TEST_SERVER_BASE_URL).get("/status").reply(200, { output: [{}] });
-            const client = new BulkDataClient({ ...baseSettings, fhirUrl: TEST_SERVER_BASE_URL })
-            await client.waitForExport(TEST_SERVER_BASE_URL + "/status")
+            mockServer.mock("/status", { status: 200, body: { output: [{}] }});
+            // @ts-ignore
+            const client = new BulkDataClient({ ...baseSettings, fhirUrl: mockServer.baseUrl })
+            await client.waitForExport(mockServer.baseUrl + "/status")
         })
     })
 
     describe("error", () => {
         it("throws the error", async () => {
-            nock(TEST_SERVER_BASE_URL).get("/status").reply(400);
+            mockServer.mock("/status", { status: 400 });
 
+            // @ts-ignore
             const client = new BulkDataClient({
                 ...baseSettings,
-                fhirUrl: TEST_SERVER_BASE_URL,
+                fhirUrl: mockServer.baseUrl,
                 requests: {
                     ...baseSettings.requests,
                     context: {
@@ -57,7 +58,7 @@ describe('status', () => {
                 }
             })
 
-            await client.waitForExport(TEST_SERVER_BASE_URL + "/status")
+            await client.waitForExport(mockServer.baseUrl + "/status")
             .then(
                 () => {
                     throw new Error("The test should have failed")

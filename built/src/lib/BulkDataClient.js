@@ -32,7 +32,6 @@ const path_1 = require("path");
 const fs_1 = __importStar(require("fs"));
 const code_1 = require("@hapi/code");
 const stream_1 = require("stream");
-const promises_1 = require("stream/promises");
 const request_1 = __importDefault(require("./request"));
 const FileDownload_1 = __importDefault(require("./FileDownload"));
 const ParseNDJSON_1 = __importDefault(require("../streams/ParseNDJSON"));
@@ -41,6 +40,7 @@ const DocumentReferenceHandler_1 = __importDefault(require("../streams/DocumentR
 const errors_1 = require("./errors");
 const utils_1 = require("./utils");
 events_1.EventEmitter.defaultMaxListeners = 30;
+const pipeline = (0, util_1.promisify)(stream_1.Stream.pipeline);
 const debug = (0, util_1.debuglog)("app-request");
 /**
  * This class provides all the methods needed for making Bulk Data exports and
@@ -196,13 +196,7 @@ class BulkDataClient extends events_1.EventEmitter {
         else {
             var url = new url_1.URL("Patient/$export", fhirUrl);
         }
-        let capabilityStatement;
-        try {
-            capabilityStatement = (await (0, utils_1.getCapabilityStatement)(fhirUrl)).body;
-        }
-        catch {
-            capabilityStatement = {};
-        }
+        const { body: capabilityStatement } = await (0, utils_1.getCapabilityStatement)(fhirUrl);
         const requestOptions = {
             url,
             responseType: "json",
@@ -236,14 +230,14 @@ class BulkDataClient extends events_1.EventEmitter {
         return this.request(requestOptions, "kick-off request")
             .then(res => {
             const location = res.headers["content-location"];
+            this.emit("kickOffEnd", { response: res, capabilityStatement, requestParameters });
             if (!location) {
                 throw new Error("The kick-off response did not include content-location header");
             }
-            this.emit("kickOffEnd", { response: res, capabilityStatement, requestParameters });
             return location;
         })
             .catch(error => {
-            this.emit("kickOffEnd", { response: error.response || {}, capabilityStatement, requestParameters });
+            this.emit("kickOffEnd", { response: error.response, capabilityStatement, requestParameters });
             throw error;
         });
     }
@@ -298,8 +292,7 @@ class BulkDataClient extends events_1.EventEmitter {
                     catch (ex) {
                         this.emit("exportError", {
                             body: res.body || null,
-                            code: res.statusCode || null,
-                            message: ex.message
+                            code: res.statusCode || null
                         });
                         throw ex;
                     }
@@ -339,8 +332,7 @@ class BulkDataClient extends events_1.EventEmitter {
                 else {
                     this.emit("exportError", {
                         body: res.body || null,
-                        code: res.statusCode || null,
-                        message: `Unexpected status response ${res.statusCode} ${res.statusMessage}`
+                        code: res.statusCode || null
                     });
                     // TODO: handle unexpected response
                     throw new Error(`Unexpected status response ${res.statusCode} ${res.statusMessage}`);
@@ -467,25 +459,21 @@ class BulkDataClient extends events_1.EventEmitter {
         };
         // Just "remember" the progress values but don't emit anything yet
         download.on("progress", state => Object.assign(_state, state));
-        const streams = [];
         // Start the download (the stream will be paused though)
-        let downloadStream = await download.run({
+        let processPipeline = await download.run({
             accessToken,
             signal: this.abortController.signal,
             requestOptions: this.options.requests
-        })
-            .catch(e => {
+        }).catch(e => {
             if (e instanceof errors_1.FileDownloadError) {
                 this.emit("downloadError", {
                     body: null,
-                    code: e.code || null,
-                    fileUrl: e.fileUrl,
-                    message: String(e.message || "File download failed")
+                    code: e.code,
+                    fileUrl: e.fileUrl
                 });
             }
             throw e;
         });
-        streams.push(downloadStream);
         // ---------------------------------------------------------------------
         // Create an NDJSON parser to verify that every single line is valid
         // ---------------------------------------------------------------------
@@ -511,7 +499,7 @@ class BulkDataClient extends events_1.EventEmitter {
             expectedCount: exportType == "output" ? file.count || -1 : -1,
             expectedResourceType
         });
-        streams.push(parser);
+        processPipeline = processPipeline.pipe(parser);
         // ---------------------------------------------------------------------
         // Download attachments
         // ---------------------------------------------------------------------
@@ -541,7 +529,7 @@ class BulkDataClient extends events_1.EventEmitter {
                 },
             });
             docRefProcessor.on("attachment", () => _state.attachments += 1);
-            streams.push(docRefProcessor);
+            processPipeline = processPipeline.pipe(docRefProcessor);
         }
         // ---------------------------------------------------------------------
         // Transforms from stream of objects back to stream of line strings
@@ -551,28 +539,16 @@ class BulkDataClient extends events_1.EventEmitter {
             _state.resources += 1;
             onProgress(_state);
         });
-        streams.push(stringify);
+        processPipeline = processPipeline.pipe(stringify);
         // ---------------------------------------------------------------------
         // Write the file to the configured destination
         // ---------------------------------------------------------------------
-        try {
-            await (0, promises_1.pipeline)(streams);
-        }
-        catch (e) {
-            this.emit("downloadError", {
-                body: null,
-                code: e.code || null,
-                fileUrl: e.fileUrl || file.url,
-                message: String(e.message || "Downloading failed")
-            });
-            throw e;
-        }
+        await this.writeToDestination(fileName, processPipeline, subFolder);
         this.emit("downloadComplete", {
             fileUrl: file.url,
             fileSize: _state.uncompressedBytes,
             resourceCount: _state.resources
         });
-        await this.writeToDestination(fileName, stringify, subFolder);
     }
     /**
      * Given a readable stream as input sends the data to the destination. The
@@ -590,7 +566,7 @@ class BulkDataClient extends events_1.EventEmitter {
         const destination = String(this.options.destination || "none").trim();
         // No destination ------------------------------------------------------
         if (!destination || destination.toLowerCase() == "none") {
-            return (0, promises_1.pipeline)(inputStream, new stream_1.Writable({
+            return pipeline(inputStream, new stream_1.Writable({
                 write(chunk, encoding, cb) { cb(); }
             }));
         }
@@ -620,7 +596,7 @@ class BulkDataClient extends events_1.EventEmitter {
         }
         // HTTP ----------------------------------------------------------------
         if (destination.match(/^https?\:\/\//)) {
-            return (0, promises_1.pipeline)(inputStream, request_1.default.stream.post((0, path_1.join)(destination, fileName) + "?folder=" + subFolder), new stream_1.PassThrough());
+            return pipeline(inputStream, request_1.default.stream.post((0, path_1.join)(destination, fileName) + "?folder=" + subFolder), new stream_1.PassThrough());
         }
         // local filesystem destinations ---------------------------------------
         let path = destination.startsWith("file://") ?
@@ -636,7 +612,7 @@ class BulkDataClient extends events_1.EventEmitter {
                 (0, fs_1.mkdirSync)(path);
             }
         }
-        return (0, promises_1.pipeline)(inputStream, fs_1.default.createWriteStream((0, path_1.join)(path, fileName)));
+        return pipeline(inputStream, fs_1.default.createWriteStream((0, path_1.join)(path, fileName)));
     }
     /**
      * Given an URL query as URLSearchParams object, appends all the

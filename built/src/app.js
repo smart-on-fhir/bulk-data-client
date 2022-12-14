@@ -85,6 +85,7 @@ APP.action(async (args) => {
         ...(options.log || {})
     };
     const client = new BulkDataClient_1.default(options);
+    // console.log(client.options)
     const reporter = reporters[options.reporter](client);
     if (options.log.enabled) {
         const logger = (0, loggers_1.createLogger)(options.log);
@@ -100,7 +101,7 @@ APP.action(async (args) => {
                     softwareName: capabilityStatement.software?.name || null,
                     softwareVersion: capabilityStatement.software?.version || null,
                     softwareReleaseDate: capabilityStatement.software?.releaseDate || null,
-                    fhirVersion: capabilityStatement.fhirVersion || null,
+                    fhirVersion: capabilityStatement.fhirVersion,
                     requestParameters
                 }
             });
