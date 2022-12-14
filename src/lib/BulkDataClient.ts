@@ -105,6 +105,7 @@ export interface BulkDataClientEvents {
         body: string | fhir4.OperationOutcome | null // Buffer
         code: number | null
         fileUrl: string
+        message?: string
     }) => void;
 
     /**
@@ -677,8 +678,9 @@ class BulkDataClient extends EventEmitter
             if (e instanceof FileDownloadError) {
                 this.emit("downloadError", {
                     body: null, // Buffer
-                    code: e.code,
-                    fileUrl: e.fileUrl
+                    code: e.code || null,
+                    fileUrl: e.fileUrl,
+                    message: String(e.message || "File download failed")
                 })
             }
             throw e
