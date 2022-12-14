@@ -96,10 +96,15 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
         }
     }
 
+    options.log = {
+        enabled: true,
+        ...(options.log || {})
+    }
+
     const client = new Client(options)
     const reporter = reporters[(options as BulkDataClient.NormalizedOptions).reporter](client)
-
-    if (options.log?.enabled) {
+    if (options.log.enabled) {
+        
         const logger = createLogger(options.log)
         const startTime = Date.now()
 
@@ -110,11 +115,11 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
                 eventDetail: {
                     exportUrl          : response.requestUrl,
                     errorCode          : response.statusCode >= 400 ? response.statusCode : null,
-                    errorBody          : response.statusCode >= 400 ? response.body : null,
-                    softwareName       : capabilityStatement.software?.name || null,
-                    softwareVersion    : capabilityStatement.software?.version || null,
-                    softwareReleaseDate: capabilityStatement.software?.releaseDate || null,
-                    fhirVersion        : capabilityStatement.fhirVersion,
+                    errorBody          : response.statusCode >= 400 ? response.body       : null,
+                    softwareName       : capabilityStatement.software?.name              || null,
+                    softwareVersion    : capabilityStatement.software?.version           || null,
+                    softwareReleaseDate: capabilityStatement.software?.releaseDate       || null,
+                    fhirVersion        : capabilityStatement.fhirVersion                 || null,
                     requestParameters
                 }
             })

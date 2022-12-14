@@ -9,6 +9,7 @@ import FS, { mkdirSync }                from "fs"
 import { expect }                       from "@hapi/code"
 import { OptionsOfUnknownResponseBody, Response } from "got/dist/source"
 import { PassThrough, Readable, Stream, Writable } from "stream"
+import { pipeline }                     from "stream/promises"
 import request                          from "./request"
 import FileDownload                     from "./FileDownload"
 import ParseNDJSON                      from "../streams/ParseNDJSON"
@@ -27,7 +28,7 @@ import {
 
 EventEmitter.defaultMaxListeners = 30;
 
-const pipeline = promisify(Stream.pipeline);
+
 const debug = debuglog("app-request")
 
 /**
@@ -69,7 +70,7 @@ export interface BulkDataClientEvents {
     "exportProgress": (this: BulkDataClient, status: Types.ExportStatus) => void;
 
     "exportError": (this: BulkDataClient, details: {
-        body: string | fhir4.OperationOutcome | null,
+        body: string | fhir4.OperationOutcome | null
         code: number | null
     }) => void;
     
@@ -100,8 +101,8 @@ export interface BulkDataClientEvents {
      * @event
      */
     "downloadError": (this: BulkDataClient, details: {
-        body: string | fhir4.OperationOutcome | null, // Buffer
-        code: number,
+        body: string | fhir4.OperationOutcome | null // Buffer
+        code: number | null
         fileUrl: string
     }) => void;
 

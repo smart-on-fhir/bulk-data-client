@@ -8,7 +8,6 @@ const { combine, timestamp, uncolorize, printf } = format;
 
 export function createLogger(options: BulkDataClient.LoggingOptions = {}) {
     const exportId = Crypto.randomBytes(10).toString("hex");
-    
     return _createLogger({
         silent: options.enabled === false,
         transports: [
@@ -18,7 +17,6 @@ export function createLogger(options: BulkDataClient.LoggingOptions = {}) {
                 maxFiles     : 5,
                 maxsize      : 1024 * 1024,
                 tailable     : true,
-                silent       : process.env.NODE_ENV === "test",
                 level        : "silly",
                 eol          : "\n"
             })

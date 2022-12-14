@@ -33,7 +33,7 @@ export default function TextReporter(client: BulkDataClient)
         console.log("Received export manifest")
     }
 
-    function onDownloadStart(downloads: Types.FileDownload[]) {
+    function onDownloadStart() {
         if (!downloadStart) {
             console.log("Begin file downloads...")
             downloadStart = Date.now()

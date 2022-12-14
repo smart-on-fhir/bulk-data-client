@@ -335,7 +335,7 @@ export function exit(arg: any, details?: Record<string, any>) {
             const { response, options, request } = arg;
             const requestBody = request?.options.body || request?.options.form
 
-            let title = "Failed to make a request"
+            let title = "failed to make a request"
             let message = arg.message;
 
             const props: any = {
@@ -349,7 +349,7 @@ export function exit(arg: any, details?: Record<string, any>) {
 
             if (response) {
 
-                title = "Received an error from the server"
+                title = "received an error from the server"
 
                 props.response = [response.statusCode, response.statusMessage].join(" ")
 
@@ -377,7 +377,7 @@ export function exit(arg: any, details?: Record<string, any>) {
                 }
             }
             // @ts-ignore
-            process.stdout.write(String(title + ": ").red.bold)
+            process.stdout.write((response?.requestUrl + ": " + String(title + ": ").bold).red)
             exitCode = 1
             details = props
             console.log(message.red)

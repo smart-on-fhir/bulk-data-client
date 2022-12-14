@@ -31,7 +31,6 @@ export interface FileDownloadOptions {
 export interface FileDownloadEvents {
     start   : (this: FileDownload, state: FileDownloadState) => void
     progress: (this: FileDownload, state: FileDownloadState) => void
-    error   : (this: FileDownload, error: FileDownloadState) => void
     complete: (this: FileDownload, state: FileDownloadState) => void
 }
 
@@ -117,7 +116,6 @@ class FileDownload extends EventEmitter
             // downloadRequest.on("error", reject)
             downloadRequest.on("error", error => {
                 this.state.error = error
-                this.emit("error")
                 reject(error)
             })
 
@@ -131,7 +129,6 @@ class FileDownload extends EventEmitter
                 
                 // In case we get an error response ----------------------------
                 if (res.statusCode >= 400) {
-                    this.emit("error");
                     return reject(new FileDownloadError({
                         fileUrl: this.url,
                         body: res.body,

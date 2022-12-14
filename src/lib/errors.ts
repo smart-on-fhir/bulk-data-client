@@ -5,7 +5,15 @@ export class FileDownloadError extends Error
     readonly body: string | object | null;
     readonly fileUrl: string
 
-    constructor({ body, code, fileUrl }: FileDownloadErrorDetails) {
+    constructor({
+        body,
+        code,
+        fileUrl
+    }: {
+        body: string | fhir4.OperationOutcome | null, // Buffer
+        code: number,
+        fileUrl: string
+    }) {
         super(`Downloading the file from ${fileUrl
             } returned HTTP status code ${code}.${
             body ? " Body: " + JSON.stringify(body) : ""
