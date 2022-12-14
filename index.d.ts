@@ -222,6 +222,13 @@ export declare namespace BulkDataClient {
          * useful information, for example which site imported this data.
          */
         metadata?: Record<string, any>
+
+        /**
+         * Path to log file. Absolute, or relative to process CWD. If not
+         * provided, the file will be called log.ndjson and will be stored in
+         * the downloads folder.
+         */
+        file?: string
     }
 
     interface CLIOptions {
@@ -448,6 +455,8 @@ export declare namespace BulkDataClient {
          * Only needed if `destination` points to S3
          */
         awsSecretAccessKey: string
+
+        log: LoggingOptions
     }
 
     interface JWK {
