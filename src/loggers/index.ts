@@ -12,10 +12,10 @@ export function createLogger(options: BulkDataClient.LoggingOptions = {}) {
         silent: options.enabled === false,
         transports: [
             new transports.File({
-                filename     : resolve(__dirname, '../downloads/log.ndjson'),
+                filename     : options.file || resolve(__dirname, "../../downloads/log.ndjson"),
                 zippedArchive: true,
                 maxFiles     : 5,
-                maxsize      : 1024 * 1024,
+                maxsize      : 1024 * 1024 * 50,
                 tailable     : true,
                 level        : "silly",
                 eol          : "\n"
