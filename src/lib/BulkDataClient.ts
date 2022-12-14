@@ -379,19 +379,19 @@ class BulkDataClient extends EventEmitter
             })
         }
 
-        const res = await this.request(requestOptions, "kick-off request")
-            .catch(error => {
+        return this.request(requestOptions, "kick-off request")
+            .then(res => {
+                const location = res.headers["content-location"];
+                if (!location) {
+                    throw new Error("The kick-off response did not include content-location header")
+                }
                 this.emit("kickOffEnd", { response: res, capabilityStatement, requestParameters })
+                return location
+            })
+            .catch(error => {
+                this.emit("kickOffEnd", { response: error.response || {}, capabilityStatement, requestParameters })
                 throw error
             });
-
-        const location = res.headers["content-location"];
-        
-        assert(location, "The kick-off response did not include content-location header")
-        
-        this.emit("kickOffEnd", { response: res, capabilityStatement, requestParameters })
-        
-        return location
     }
 
     /**
