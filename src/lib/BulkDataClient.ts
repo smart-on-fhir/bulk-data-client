@@ -72,6 +72,7 @@ export interface BulkDataClientEvents {
     "exportError": (this: BulkDataClient, details: {
         body: string | fhir4.OperationOutcome | null
         code: number | null
+        message?: string
     }) => void;
     
     /**
@@ -437,12 +438,20 @@ class BulkDataClient extends EventEmitter
 
                     this.emit("exportProgress", { ...status, virtual: true })
 
-                    expect(res.body, "No export manifest returned").to.exist()
-                    expect(res.body.output, "The export manifest output is not an array").to.be.an.array();
-                    expect(res.body.output, "The export manifest output contains no files").to.not.be.empty()
+                    try {
+                        expect(res.body, "No export manifest returned").to.exist()
+                        expect(res.body.output, "The export manifest output is not an array").to.be.an.array();
+                        expect(res.body.output, "The export manifest output contains no files").to.not.be.empty()
+                        this.emit("exportComplete", res.body)
+                    } catch (ex) {
+                        this.emit("exportError", {
+                            body: res.body as any || null,
+                            code: res.statusCode || null,
+                            message: (ex as Error).message
+                        });
+                        throw ex
+                    }
 
-                    this.emit("exportComplete", res.body)
-                    // debug("%o", status)
                     return res.body
                 }
 
@@ -485,7 +494,8 @@ class BulkDataClient extends EventEmitter
                 else {
                     this.emit("exportError", {
                         body: res.body as any || null,
-                        code: res.statusCode || null
+                        code: res.statusCode || null,
+                        message: `Unexpected status response ${res.statusCode} ${res.statusMessage}`
                     });
 
                     // TODO: handle unexpected response
