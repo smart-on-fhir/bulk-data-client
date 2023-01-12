@@ -79,4 +79,41 @@ describe('download', () => {
             onProgress: state => { expect(state.attachments).to.equal(0) }
         })
     })
+
+    it ("using http destination", async () => {
+
+        mockServer.mock("/download", {
+            status : 200,
+            body   : '{"resourceType":"Patient"}\n{"resourceType":"Patient"}',
+            headers: { "content-type": "application/ndjson" }
+        });
+
+        mockServer.mock({ method: "post", path: "/upload/1.Patient.ndjson" }, {
+            handler(req, res) {
+                req.on("data", chunk => {
+                    expect(chunk.toString()).to.include('{"resourceType":"Patient"}')
+                })
+                req.on("end", () => res.end("done"))
+            }
+        })
+
+        const options = {
+            ...baseSettings,
+            fhirUrl: mockServer.baseUrl,
+            destination: mockServer.baseUrl + "/upload"
+        }
+
+        const client = new BulkDataClient(options as any)
+
+        // @ts-ignore
+        await client.downloadFile({
+            file: {
+                type: "Patient",
+                url: mockServer.baseUrl + "/download",
+                count: 2
+            },
+            fileName: "1.Patient.ndjson",
+            onProgress: state => {}
+        })
+    })
 })
