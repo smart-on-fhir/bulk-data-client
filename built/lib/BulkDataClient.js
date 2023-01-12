@@ -433,7 +433,8 @@ class BulkDataClient extends events_1.EventEmitter {
                     const downloads = downloadJobs.map(j => j.status);
                     this.emit("allDownloadsComplete", downloads);
                     if (this.options.saveManifest) {
-                        this.writeToDestination("manifest.json", stream_1.Readable.from(JSON.stringify(manifest, null, 4))).then(() => {
+                        const readable = stream_1.Readable.from(JSON.stringify(manifest, null, 4));
+                        (0, promises_1.pipeline)(readable, this.createDestinationStream("manifest.json")).then(() => {
                             resolve(downloads);
                         });
                     }
@@ -537,7 +538,7 @@ class BulkDataClient extends events_1.EventEmitter {
                 pdfToText: this.options.pdfToText,
                 baseUrl: this.options.fhirUrl,
                 save: (name, stream, subFolder) => {
-                    return this.writeToDestination(name, stream, subFolder);
+                    return (0, promises_1.pipeline)(stream, this.createDestinationStream(name, subFolder));
                 },
             });
             docRefProcessor.on("attachment", () => _state.attachments += 1);
@@ -554,6 +555,10 @@ class BulkDataClient extends events_1.EventEmitter {
         streams.push(stringify);
         // ---------------------------------------------------------------------
         // Write the file to the configured destination
+        // ---------------------------------------------------------------------
+        streams.push(this.createDestinationStream(fileName, subFolder));
+        // ---------------------------------------------------------------------
+        // Run the pipeline
         // ---------------------------------------------------------------------
         try {
             await (0, promises_1.pipeline)(streams);
@@ -572,27 +577,21 @@ class BulkDataClient extends events_1.EventEmitter {
             fileSize: _state.uncompressedBytes,
             resourceCount: _state.resources
         });
-        await this.writeToDestination(fileName, stringify, subFolder);
     }
     /**
-     * Given a readable stream as input sends the data to the destination. The
-     * actual actions taken are different depending on the destination:
+     * Creates and returns a writable stream to the destination.
      * - For file system destination the files are written to the given location
      * - For S3 destinations the files are uploaded to S3
      * - For HTTP destinations the files are posted to the given URL
      * - If the destination is "" or "none" no action is taken (files are discarded)
      * @param fileName The desired fileName at destination
-     * @param inputStream The input readable stream
-     * @param subFolder
-     * @returns
+     * @param subFolder Optional subfolder
      */
-    writeToDestination(fileName, inputStream, subFolder = "") {
+    createDestinationStream(fileName, subFolder = "") {
         const destination = String(this.options.destination || "none").trim();
         // No destination ------------------------------------------------------
         if (!destination || destination.toLowerCase() == "none") {
-            return (0, promises_1.pipeline)(inputStream, new stream_1.Writable({
-                write(chunk, encoding, cb) { cb(); }
-            }));
+            return new stream_1.Writable({ write(chunk, encoding, cb) { cb(); } });
         }
         // S3 ------------------------------------------------------------------
         if (destination.startsWith("s3://")) {
@@ -609,18 +608,20 @@ class BulkDataClient extends events_1.EventEmitter {
             if (subFolder) {
                 bucket = (0, path_1.join)(bucket, subFolder);
             }
+            const stream = new stream_1.PassThrough();
             const upload = new aws_sdk_1.default.S3.ManagedUpload({
                 params: {
                     Bucket: bucket,
                     Key: fileName,
-                    Body: inputStream
+                    Body: stream
                 }
             });
-            return upload.promise();
+            upload.promise().catch(console.error);
+            return stream;
         }
         // HTTP ----------------------------------------------------------------
         if (destination.match(/^https?\:\/\//)) {
-            return (0, promises_1.pipeline)(inputStream, request_1.default.stream.post((0, path_1.join)(destination, fileName) + "?folder=" + subFolder), new stream_1.PassThrough());
+            return request_1.default.stream.post((0, path_1.join)(destination, fileName) + "?folder=" + subFolder);
         }
         // local filesystem destinations ---------------------------------------
         let path = destination.startsWith("file://") ?
@@ -636,7 +637,7 @@ class BulkDataClient extends events_1.EventEmitter {
                 (0, fs_1.mkdirSync)(path);
             }
         }
-        return (0, promises_1.pipeline)(inputStream, fs_1.default.createWriteStream((0, path_1.join)(path, fileName)));
+        return fs_1.default.createWriteStream((0, path_1.join)(path, fileName));
     }
     /**
      * Given an URL query as URLSearchParams object, appends all the

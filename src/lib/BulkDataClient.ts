@@ -614,10 +614,8 @@ class BulkDataClient extends EventEmitter
                     const downloads = downloadJobs.map(j => j.status)
                     this.emit("allDownloadsComplete", downloads)
                     if (this.options.saveManifest) {
-                        this.writeToDestination(
-                            "manifest.json",
-                            Readable.from(JSON.stringify(manifest, null, 4))
-                        ).then(() => {
+                        const readable = Readable.from(JSON.stringify(manifest, null, 4));
+                        pipeline(readable, this.createDestinationStream("manifest.json")).then(() => {
                             resolve(downloads)
                         });
                     } else {
@@ -743,7 +741,7 @@ class BulkDataClient extends EventEmitter
                 pdfToText            : this.options.pdfToText,
                 baseUrl              : this.options.fhirUrl,
                 save: (name: string, stream: Readable, subFolder: string) => {
-                    return this.writeToDestination(name, stream, subFolder)
+                    return pipeline(stream, this.createDestinationStream(name, subFolder))
                 },
             })
     
@@ -767,17 +765,21 @@ class BulkDataClient extends EventEmitter
         // ---------------------------------------------------------------------
         // Write the file to the configured destination
         // ---------------------------------------------------------------------
+        streams.push(this.createDestinationStream(fileName, subFolder))
+        
+        // ---------------------------------------------------------------------
+        // Run the pipeline
+        // ---------------------------------------------------------------------
         try {
             await pipeline(streams)
-            
-        } catch (e: any) {
+        }
+        catch (e: any) {
             this.emit("downloadError", {
                 body   : null,
                 code   : e.code || null,
                 fileUrl: e.fileUrl || file.url,
                 message: String(e.message || "Downloading failed")
             })
-
             throw e
         }
         
@@ -786,30 +788,23 @@ class BulkDataClient extends EventEmitter
             fileSize     : _state.uncompressedBytes,
             resourceCount: _state.resources!
         })
-        
-        await this.writeToDestination(fileName, stringify, subFolder)
     }
 
     /**
-     * Given a readable stream as input sends the data to the destination. The
-     * actual actions taken are different depending on the destination:
+     * Creates and returns a writable stream to the destination.
      * - For file system destination the files are written to the given location
      * - For S3 destinations the files are uploaded to S3
      * - For HTTP destinations the files are posted to the given URL
      * - If the destination is "" or "none" no action is taken (files are discarded)
      * @param fileName The desired fileName at destination
-     * @param inputStream The input readable stream
-     * @param subFolder 
-     * @returns 
+     * @param subFolder Optional subfolder
      */
-    private writeToDestination(fileName: string, inputStream: Readable, subFolder = "") {
+    private createDestinationStream(fileName: string, subFolder = ""): Writable {
         const destination = String(this.options.destination || "none").trim();
 
         // No destination ------------------------------------------------------
         if (!destination || destination.toLowerCase() == "none") {
-            return pipeline(inputStream, new Writable({
-                write(chunk, encoding, cb) { cb() }
-            }))
+            return new Writable({ write(chunk, encoding, cb) { cb() } })
         }
 
         // S3 ------------------------------------------------------------------
@@ -831,24 +826,24 @@ class BulkDataClient extends EventEmitter
                 bucket = join(bucket, subFolder)
             }
 
+            const stream = new PassThrough()
+
             const upload = new aws.S3.ManagedUpload({
                 params: {
                     Bucket: bucket,
                     Key   : fileName,
-                    Body  : inputStream
+                    Body  : stream
                 }
             });
 
-            return upload.promise()
+            upload.promise().catch(console.error)
+            
+            return stream;
         }
 
         // HTTP ----------------------------------------------------------------
         if (destination.match(/^https?\:\/\//)) {
-            return pipeline(
-                inputStream,
-                request.stream.post(join(destination, fileName) + "?folder=" + subFolder),
-                new PassThrough()
-            );
+            return request.stream.post(join(destination, fileName) + "?folder=" + subFolder)
         }
 
         // local filesystem destinations ---------------------------------------
@@ -868,7 +863,7 @@ class BulkDataClient extends EventEmitter
             }
         }
 
-        return pipeline(inputStream, FS.createWriteStream(join(path, fileName)));
+        return FS.createWriteStream(join(path, fileName));
     }
 
     /**
