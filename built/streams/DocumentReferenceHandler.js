@@ -31,7 +31,7 @@ class DocumentReferenceHandler extends stream_1.Transform {
         this.options = options;
     }
     async downloadAttachment(url) {
-        if (url.search(/^https?:\/\/.+/) === 0) {
+        if (url.search(/^https?:\/\/.+/) === -1) {
             url = new url_1.URL(url, this.options.baseUrl).href;
         }
         const res = await this.options.request({

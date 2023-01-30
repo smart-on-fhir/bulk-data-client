@@ -46,7 +46,7 @@ export default class DocumentReferenceHandler extends Transform
     }
 
     private async downloadAttachment(url: string): Promise<Response<Buffer>> {
-        if (url.search(/^https?:\/\/.+/) === 0) {
+        if (url.search(/^https?:\/\/.+/) === -1) {
             url = new URL(url, this.options.baseUrl).href
         }
 
