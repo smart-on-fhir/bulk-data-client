@@ -1,4 +1,5 @@
 import { debuglog }                     from "util"
+import http                             from "http"
 import jwt                              from "jsonwebtoken"
 import jose                             from "node-jose"
 import { URL, fileURLToPath }           from "url"
@@ -843,7 +844,17 @@ class BulkDataClient extends EventEmitter
 
         // HTTP ----------------------------------------------------------------
         if (destination.match(/^https?\:\/\//)) {
-            return request.stream.post(join(destination, fileName) + "?folder=" + subFolder)
+            const url = new URL(join(destination, fileName));
+            if (subFolder) {
+                url.searchParams.set("folder", subFolder)
+            }
+            const req = http.request(url, { method: 'POST' });
+              
+            req.on('error', error => {
+                console.error(`Problem with upload request: ${error.message}`);
+            });
+
+            return req
         }
 
         // local filesystem destinations ---------------------------------------
