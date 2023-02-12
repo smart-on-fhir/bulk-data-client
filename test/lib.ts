@@ -37,15 +37,34 @@ export function emptyFolder(path: string) {
     }
 }
 
+/**
+ * Invokes the client and replies with a promise that will resolve when the
+ * download is complete
+ */
 export async function invoke({
     options = {},
     args = [],
     timeout = 30000,
     stdio = "ignore"
 }: {
+    /**
+     * Any custom options to pass
+     */
     options?: Partial<types.NormalizedOptions>
+    
+    /**
+     * Any custom arguments to pass
+     */
     args?: string[]
+    
+    /**
+     * Timeout in milliseconds. Defaults to `30000`.
+     */
     timeout?: number,
+
+    /**
+     * Stdio option for the process
+     */
     stdio?: StdioOptions
 } = {}): Promise<{
     config: types.NormalizedOptions
