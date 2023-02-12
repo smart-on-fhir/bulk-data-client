@@ -11,6 +11,7 @@ import { expect }                       from "@hapi/code"
 import { OptionsOfUnknownResponseBody, Response } from "got/dist/source"
 import { PassThrough, Readable, Writable } from "stream"
 import { pipeline }                     from "stream/promises"
+import prompt                           from "prompt-sync"
 import request                          from "./request"
 import FileDownload                     from "./FileDownload"
 import ParseNDJSON                      from "../streams/ParseNDJSON"
@@ -24,7 +25,8 @@ import {
     formatDuration,
     getAccessTokenExpiration,
     getCapabilityStatement,
-    wait
+    wait,
+    print
 } from "./utils"
 
 EventEmitter.defaultMaxListeners = 30;
@@ -421,7 +423,7 @@ class BulkDataClient extends EventEmitter
 
         this.emit("exportStart", status)
 
-        const checkStatus: () => Promise<Types.ExportManifest> = async () => {
+        const checkStatus: (retries?: number) => Promise<Types.ExportManifest> = async (retries = 10) => {
             
             return this.request<Types.ExportManifest>({
                 url: statusEndpoint,
@@ -496,9 +498,22 @@ class BulkDataClient extends EventEmitter
                     })
                     // debug("%o", status)
                     
-                    return wait(poolDelay, this.abortController.signal).then(checkStatus)
+                    return wait(poolDelay, this.abortController.signal).then(() => checkStatus(retries))
                 }
                 else {
+                    
+                    if (retries) { // if any retries are left
+                        if (this.options.reporter === "cli") {
+                            const answer = prompt()(`Unexpected status response "${res.statusCode} ${res.statusMessage}". Would you like to retry? [y/N] `.red);
+                            if (answer && answer.toLowerCase() === 'y') {
+                                print("Checking again in 10 seconds...".cyan)
+                                return wait(10000, this.abortController.signal).then(() => checkStatus(retries - 1));
+                            }
+                        } else {
+                            return wait(10000, this.abortController.signal).then(() => checkStatus(retries - 1));
+                        }
+                    }
+
                     this.emit("exportError", {
                         body: res.body as any || null,
                         code: res.statusCode || null,
