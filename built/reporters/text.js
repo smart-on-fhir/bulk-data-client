@@ -16,6 +16,7 @@ function TextReporter(client) {
     function onExportStart(status) {
         downloadedPct = 0;
         console.log(status.message);
+        console.log(`Status endpoint: ${status.statusEndpoint}`);
     }
     function onExportProgress(status) {
         console.log(status.message);

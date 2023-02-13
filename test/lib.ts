@@ -8,7 +8,8 @@ import {
     readdirSync,
     readFileSync,
     rmSync,
-    writeFileSync
+    writeFileSync,
+    statSync
 } from "fs"
 
 
@@ -26,6 +27,9 @@ afterEach(async () => {
     mockServer.clear();
 })
 
+export function isFile(path: string) {
+    return statSync(path).isFile()
+}
 
 export function emptyFolder(path: string) {
     if (existsSync(path)) {
@@ -74,7 +78,7 @@ export async function invoke({
 {
     return new Promise((resolve, reject) => {
 
-        const logFile = "test/tmp/log.ndjson"
+        const logFile = __dirname + "/tmp/log.ndjson"
 
         const fullOptions = {
             ...baseSettings,

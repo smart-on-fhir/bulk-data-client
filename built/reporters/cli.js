@@ -15,6 +15,7 @@ function CLIReporter(client) {
     }
     function onExportStart(status) {
         console.log(status.message);
+        console.log(`Status endpoint: ${status.statusEndpoint}`);
     }
     function onExportProgress(status) {
         (0, utils_1.print)(status.message);

@@ -23,6 +23,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const util_1 = require("util");
+const http_1 = __importDefault(require("http"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const node_jose_1 = __importDefault(require("node-jose"));
 const url_1 = require("url");
@@ -337,14 +338,16 @@ class BulkDataClient extends events_1.EventEmitter {
                     return (0, utils_1.wait)(poolDelay, this.abortController.signal).then(checkStatus);
                 }
                 else {
+                    const msg = `Unexpected status response ${res.statusCode} ${res.statusMessage}`;
                     this.emit("exportError", {
                         body: res.body || null,
                         code: res.statusCode || null,
-                        message: `Unexpected status response ${res.statusCode} ${res.statusMessage}`
+                        message: msg
                     });
-                    // TODO: handle unexpected response
-                    throw new Error(`Unexpected status response ${res.statusCode} ${res.statusMessage}`);
-                    // this.emit("error", status)
+                    const error = new Error(msg);
+                    // @ts-ignore
+                    error.body = res.body || null;
+                    throw error;
                 }
             });
         };
@@ -621,7 +624,15 @@ class BulkDataClient extends events_1.EventEmitter {
         }
         // HTTP ----------------------------------------------------------------
         if (destination.match(/^https?\:\/\//)) {
-            return request_1.default.stream.post((0, path_1.join)(destination, fileName) + "?folder=" + subFolder);
+            const url = new url_1.URL((0, path_1.join)(destination, fileName));
+            if (subFolder) {
+                url.searchParams.set("folder", subFolder);
+            }
+            const req = http_1.default.request(url, { method: 'POST' });
+            req.on('error', error => {
+                console.error(`Problem with upload request: ${error.message}`);
+            });
+            return req;
         }
         // local filesystem destinations ---------------------------------------
         let path = destination.startsWith("file://") ?

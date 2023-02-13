@@ -45,28 +45,51 @@ export default class DocumentReferenceHandler extends Transform
         this.options = options;
     }
 
-    private async downloadAttachment(url: string): Promise<Response<Buffer>> {
-        if (url.search(/^https?:\/\/.+/) === -1) {
-            url = new URL(url, this.options.baseUrl).href
+    private async downloadAttachment(attachment: fhir4.Attachment): Promise<{ contentType: string; data: Buffer }> {
+
+        if (!attachment.url) {
+            throw new Error("DocumentReferenceHandler.downloadAttachment called on attachment that has no 'url'")
         }
+
+        // If the url is relative then convert it to absolute on the same base
+        const url = new URL(attachment.url, this.options.baseUrl)
 
         const res = await this.options.request<Buffer>({
             url,
             responseType: "buffer",
-            throwHttpErrors: false
-        });
+            throwHttpErrors: false,
+            headers: {
+                accept: attachment.contentType || "application/json+fhir"
+            }
+        })
 
         if (res.statusCode >= 400) {
             throw new FileDownloadError({
-                fileUrl: url,
+                fileUrl: attachment.url,
                 body   : null,
                 code   : res.statusCode
             });
         }
 
-        this.options.onDownloadComplete(url, res.body.byteLength)
+        const contentType = res.headers["content-type"] || "";
 
-        return res
+        // We may have gotten back a Binary FHIR resource
+        if (contentType.match(/\bapplication\/json(\+fhir)?\b/)) {
+            const json = JSON.parse(res.body.toString("utf8"));
+            const { resourceType, contentType, data } = json;
+            if (resourceType === "Binary") {
+                const buffer = Buffer.from(data, "base64")
+                this.options.onDownloadComplete(attachment.url, buffer.byteLength)
+                return { contentType, data: buffer }
+            }
+        }
+
+        this.options.onDownloadComplete(attachment.url, res.body.byteLength)
+
+        return {
+            contentType: contentType || attachment.contentType || "",
+            data       : res.body
+        }
     }
 
     private async inlineAttachmentData(node: fhir4.Attachment, data: Buffer) {
@@ -89,17 +112,17 @@ export default class DocumentReferenceHandler extends Transform
                 continue;
             }
 
-            const response = await this.downloadAttachment(attachment.url);
+            const response = await this.downloadAttachment(attachment);
             
-            if (this.canPutAttachmentInline(response, attachment.contentType)) {
-                await this.inlineAttachmentData(attachment, response.body);
+            if (this.canPutAttachmentInline(response.data, response.contentType)) {
+                await this.inlineAttachmentData(attachment, response.data);
             }
             
             else {
                 const fileName = Date.now() + "-" + jose.util.randomBytes(6).toString("hex") + extname(attachment.url);
                 await this.options.save(
                     fileName,
-                    Readable.from(response.body),
+                    Readable.from(response.data),
                     "attachments"
                 )
                 attachment.url = `./attachments/${fileName}`
@@ -110,19 +133,17 @@ export default class DocumentReferenceHandler extends Transform
         return resource;
     }
 
-    canPutAttachmentInline(response: Response<Buffer>, contentType?: string): boolean
+    canPutAttachmentInline(data: Buffer, contentType: string): boolean
     {
-        if (response.body.byteLength > this.options.inlineAttachments) {
+        if (data.byteLength > this.options.inlineAttachments) {
             return false
         }
 
-        const type = contentType || response.headers["content-type"] || ""
-
-        if (!type) {
+        if (!contentType) {
             return false
         }
 
-        if (!this.options.inlineAttachmentTypes.find(m => type.startsWith(m))) {
+        if (!this.options.inlineAttachmentTypes.find(m => contentType.startsWith(m))) {
             return false
         }
 

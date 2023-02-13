@@ -30,24 +30,49 @@ class DocumentReferenceHandler extends stream_1.Transform {
         });
         this.options = options;
     }
-    async downloadAttachment(url) {
-        if (url.search(/^https?:\/\/.+/) === -1) {
-            url = new url_1.URL(url, this.options.baseUrl).href;
+    async downloadAttachment(attachment) {
+        if (!attachment.url) {
+            throw new Error("DocumentReferenceHandler.downloadAttachment called on attachment that has no 'url'");
         }
+        // If the url is relative then convert it to absolute on the same base
+        const url = new url_1.URL(attachment.url, this.options.baseUrl);
+
         const res = await this.options.request({
             url,
             responseType: "buffer",
-            throwHttpErrors: false
+            throwHttpErrors: false,
+            headers: {
+                accept: attachment.contentType || "application/json+fhir"
+            }
         });
+
         if (res.statusCode >= 400) {
             throw new errors_1.FileDownloadError({
-                fileUrl: url,
+                fileUrl: attachment.url,
                 body: null,
                 code: res.statusCode
             });
         }
-        this.options.onDownloadComplete(url, res.body.byteLength);
-        return res;
+
+        const contentType = res.headers["content-type"] || "";
+
+        // We may have gotten back a Binary FHIR resource
+        if (contentType.match(/\bapplication\/json(\+fhir)?\b/)) {
+            const json = JSON.parse(res.body.toString("utf8"));
+            const { resourceType, contentType, data } = json;
+            if (resourceType === "Binary") {
+                const buffer = Buffer.from(data, "base64");
+                this.options.onDownloadComplete(attachment.url, buffer.byteLength);
+                return { contentType, data: buffer };
+            }
+        }
+
+        this.options.onDownloadComplete(attachment.url, res.body.byteLength);
+
+        return {
+            contentType: contentType || attachment.contentType || "",
+            data: res.body
+        };
     }
     async inlineAttachmentData(node, data) {
         if (node.contentType == "application/pdf" && this.options.pdfToText) {
@@ -65,28 +90,27 @@ class DocumentReferenceHandler extends stream_1.Transform {
             if (!attachment.url) {
                 continue;
             }
-            const response = await this.downloadAttachment(attachment.url);
-            if (this.canPutAttachmentInline(response, attachment.contentType)) {
-                await this.inlineAttachmentData(attachment, response.body);
+            const response = await this.downloadAttachment(attachment);
+            if (this.canPutAttachmentInline(response.data, response.contentType)) {
+                await this.inlineAttachmentData(attachment, response.data);
             }
             else {
                 const fileName = Date.now() + "-" + node_jose_1.default.util.randomBytes(6).toString("hex") + (0, path_1.extname)(attachment.url);
-                await this.options.save(fileName, stream_1.Readable.from(response.body), "attachments");
+                await this.options.save(fileName, stream_1.Readable.from(response.data), "attachments");
                 attachment.url = `./attachments/${fileName}`;
             }
             this.emit("attachment");
         }
         return resource;
     }
-    canPutAttachmentInline(response, contentType) {
-        if (response.body.byteLength > this.options.inlineAttachments) {
+    canPutAttachmentInline(data, contentType) {
+        if (data.byteLength > this.options.inlineAttachments) {
             return false;
         }
-        const type = contentType || response.headers["content-type"] || "";
-        if (!type) {
+        if (!contentType) {
             return false;
         }
-        if (!this.options.inlineAttachmentTypes.find(m => type.startsWith(m))) {
+        if (!this.options.inlineAttachmentTypes.find(m => contentType.startsWith(m))) {
             return false;
         }
         return true;

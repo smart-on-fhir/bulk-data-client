@@ -37,6 +37,7 @@ APP.option('-d, --destination [destination]', 'Download destination. See config/
 APP.option("--config <path>", 'Relative path to config file.');
 APP.option("--reporter [cli|text]", 'Reporter to use to render the output. "cli" renders fancy progress bars and tables. "text" is better for log files. Defaults to "cli".');
 APP.option("-c, --custom [opt=val...]", "Custom parameters to be passed to the kick-off endpoint.");
+APP.option("--status [url]", "Status endpoint of already started export.");
 APP.action(async (args) => {
     const { config, ...params } = args;
     const defaultsPath = (0, path_1.resolve)(__dirname, "../config/defaults.js");
@@ -178,7 +179,7 @@ APP.action(async (args) => {
         console.error(error);
         process.exit(1);
     });
-    const statusEndpoint = await client.kickOff();
+    const statusEndpoint = options.status || await client.kickOff();
     const manifest = await client.waitForExport(statusEndpoint);
     const downloads = await client.downloadAllFiles(manifest);
     // console.log(downloads)
