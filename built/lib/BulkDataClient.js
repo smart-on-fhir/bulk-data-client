@@ -312,7 +312,7 @@ class BulkDataClient extends events_1.EventEmitter {
                     const progress = String(res.headers["x-progress"] || "").trim();
                     const retryAfter = String(res.headers["retry-after"] || "").trim();
                     const progressPct = parseInt(progress, 10);
-                    let retryAfterMSec = 1000;
+                    let retryAfterMSec = this.options.retryAfterMSec;
                     if (retryAfter.match(/\d+/)) {
                         retryAfterMSec = parseInt(retryAfter, 10) * 1000;
                     }
@@ -320,7 +320,7 @@ class BulkDataClient extends events_1.EventEmitter {
                         let d = new Date(retryAfter);
                         retryAfterMSec = Math.ceil(d.getTime() - now);
                     }
-                    const poolDelay = Math.min(Math.max(retryAfterMSec / 10, 1000), 10000);
+                    const poolDelay = Math.min(Math.max(retryAfterMSec, 100), 1000 * 60 * 60 * 24);
                     Object.assign(status, {
                         percentComplete: isNaN(progressPct) ? -1 : progressPct,
                         nextCheckAfter: poolDelay,

@@ -284,5 +284,11 @@
         metadata: {
             // siteId: "localhost"
         }
-    }
+    },
+
+    /**
+     * If the server does not provide `Retry-after` header use this number of
+     * milliseconds before checking the status again
+     */
+    retryAfterMSec: 200
 }

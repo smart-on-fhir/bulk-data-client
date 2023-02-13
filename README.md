@@ -132,6 +132,7 @@ The Bulk Data Client uses `js` configuration files, but you can think of them as
 - *boolean* **`log.enabled`** - Set this to false to disable logging. Optional (defaults to true).
 - *string* **`log.file`** - Path to the log file. Absolute, or relative to process CWD. If not provided, the file will be called log.ndjson and will be stored in the downloads folder.
 - *object* **`log.metadata`** - Key/value pairs to be added to every log entry. Can be used to add useful information (for example which site imported this data).
+- *number* **`retryAfterMSec`** - If the server does not provide `Retry-after` header use this number of milliseconds before checking the status again.
 
 
 ### Environment Variables
@@ -173,6 +174,7 @@ Note that you can pass a `--help` parameter to see this listed in your terminal
 |       | `--config`       | Relative path to config file |
 |       | `--reporter`     | Reporter to use to render the output. "cli" renders fancy progress bars and tables. "text" is better for log files. Defaults to "cli" |
 | `-c`  | `--custom`       | Custom parameters to be passed to the kick-off endpoint. Example: `-c a=1 b=c` |
+|       | `--status`       | If a status request fails for some reason the client will exit. However, if the status endpoint is printed in the output, you can retry by passing it as `--status` option here |
 
 
 Features

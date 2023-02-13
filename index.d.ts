@@ -211,6 +211,12 @@ export declare namespace BulkDataClient {
         awsSecretAccessKey?: string
 
         log?: LoggingOptions
+
+        /**
+         * If the server does not provide `Retry-after` header use this number of
+         * milliseconds before checking the status again
+         */
+        retryAfterMSec?: number
     }
 
     interface LoggingOptions
@@ -463,6 +469,12 @@ export declare namespace BulkDataClient {
         awsSecretAccessKey: string
 
         log: LoggingOptions
+
+        /**
+         * If the server does not provide `Retry-after` header use this number of
+         * milliseconds before checking the status again
+         */
+        retryAfterMSec: number
     }
 
     interface JWK {

@@ -470,7 +470,7 @@ class BulkDataClient extends EventEmitter
                     const retryAfter  = String(res.headers["retry-after"] || "").trim();
                     const progressPct = parseInt(progress, 10);
 
-                    let retryAfterMSec = 1000;
+                    let retryAfterMSec = this.options.retryAfterMSec;
                     if (retryAfter.match(/\d+/)) {
                         retryAfterMSec = parseInt(retryAfter, 10) * 1000
                     } else {
