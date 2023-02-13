@@ -27,6 +27,7 @@ export default function CLIReporter(client: BulkDataClient)
 
     function onExportStart(status: Types.ExportStatus) {
         console.log(status.message)
+        console.log(`Status endpoint: ${status.statusEndpoint}`)
     }
 
     function onExportProgress(status: Types.ExportStatus) {

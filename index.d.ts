@@ -257,6 +257,12 @@ export declare namespace BulkDataClient {
         config?: string
 
         reporter?: "cli" | "text"
+
+        /**
+         * Use if you have a status endpoint of an export that has already been
+         * started.
+         */
+        status?: string
     }
 
     interface NormalizedOptions {
@@ -703,6 +709,7 @@ export declare namespace BulkDataClient {
         retryAfterHeader?: string
         body            ?: any
         virtual         ?: boolean
+        statusEndpoint   : string
     }
 }
 
