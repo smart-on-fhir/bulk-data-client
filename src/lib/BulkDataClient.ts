@@ -499,15 +499,18 @@ class BulkDataClient extends EventEmitter
                     return wait(poolDelay, this.abortController.signal).then(checkStatus)
                 }
                 else {
+                    const msg = `Unexpected status response ${res.statusCode} ${res.statusMessage}`
+                    
                     this.emit("exportError", {
                         body: res.body as any || null,
                         code: res.statusCode || null,
-                        message: `Unexpected status response ${res.statusCode} ${res.statusMessage}`
+                        message: msg
                     });
 
-                    // TODO: handle unexpected response
-                    throw new Error(`Unexpected status response ${res.statusCode} ${res.statusMessage}`)
-                    // this.emit("error", status)
+                    const error = new Error(msg)
+                    // @ts-ignore
+                    error.body = res.body as any || null
+                    throw error
                 }
             });
 
