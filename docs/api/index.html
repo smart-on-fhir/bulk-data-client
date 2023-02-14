@@ -155,6 +155,8 @@ Group-level export</p>
 </li>
 <li><p><em>object</em> <strong><code>log.metadata</code></strong> - Key/value pairs to be added to every log entry. Can be used to add useful information (for example which site imported this data).</p>
 </li>
+<li><p><em>number</em> <strong><code>retryAfterMSec</code></strong> - If the server does not provide <code>Retry-after</code> header use this number of milliseconds before checking the status again.</p>
+</li>
 </ul>
 
 <a href="#environment-variables" id="environment-variables" style="color: inherit; text-decoration: none;">
@@ -268,6 +270,11 @@ details are always shown or hidden and will avoid having to show question prompt
 <td><code>-c</code></td>
 <td><code>--custom</code></td>
 <td>Custom parameters to be passed to the kick-off endpoint. Example: <code>-c a=1 b=c</code></td>
+</tr>
+<tr>
+<td></td>
+<td><code>--status</code></td>
+<td>If a status request fails for some reason the client will exit. However, if the status endpoint is printed in the output, you can retry by passing it as <code>--status</code> option here</td>
 </tr>
 </tbody></table>
 
