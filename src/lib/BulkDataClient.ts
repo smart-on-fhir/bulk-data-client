@@ -240,7 +240,7 @@ class BulkDataClient extends EventEmitter
 
         if (accessToken) {
             _options.headers = {
-                ...options.headers,
+                ..._options.headers,
                 authorization: `Bearer ${ accessToken }`
             };
         }
