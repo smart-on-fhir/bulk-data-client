@@ -36,7 +36,6 @@ class DocumentReferenceHandler extends stream_1.Transform {
         }
         // If the url is relative then convert it to absolute on the same base
         const url = new url_1.URL(attachment.url, this.options.baseUrl);
-
         const res = await this.options.request({
             url,
             responseType: "buffer",
@@ -45,7 +44,6 @@ class DocumentReferenceHandler extends stream_1.Transform {
                 accept: attachment.contentType || "application/json+fhir"
             }
         });
-
         if (res.statusCode >= 400) {
             throw new errors_1.FileDownloadError({
                 fileUrl: attachment.url,
@@ -53,9 +51,7 @@ class DocumentReferenceHandler extends stream_1.Transform {
                 code: res.statusCode
             });
         }
-
         const contentType = res.headers["content-type"] || "";
-
         // We may have gotten back a Binary FHIR resource
         if (contentType.match(/\bapplication\/json(\+fhir)?\b/)) {
             const json = JSON.parse(res.body.toString("utf8"));
@@ -66,9 +62,7 @@ class DocumentReferenceHandler extends stream_1.Transform {
                 return { contentType, data: buffer };
             }
         }
-
         this.options.onDownloadComplete(attachment.url, res.body.byteLength);
-
         return {
             contentType: contentType || attachment.contentType || "",
             data: res.body

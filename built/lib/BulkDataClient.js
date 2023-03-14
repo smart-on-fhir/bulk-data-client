@@ -116,7 +116,7 @@ class BulkDataClient extends events_1.EventEmitter {
         const accessToken = await this.getAccessToken();
         if (accessToken) {
             _options.headers = {
-                ...options.headers,
+                ..._options.headers,
                 authorization: `Bearer ${accessToken}`
             };
         }
@@ -313,12 +313,14 @@ class BulkDataClient extends events_1.EventEmitter {
                     const retryAfter = String(res.headers["retry-after"] || "").trim();
                     const progressPct = parseInt(progress, 10);
                     let retryAfterMSec = this.options.retryAfterMSec;
-                    if (retryAfter.match(/\d+/)) {
-                        retryAfterMSec = parseInt(retryAfter, 10) * 1000;
-                    }
-                    else {
-                        let d = new Date(retryAfter);
-                        retryAfterMSec = Math.ceil(d.getTime() - now);
+                    if (retryAfter) {
+                        if (retryAfter.match(/\d+/)) {
+                            retryAfterMSec = parseInt(retryAfter, 10) * 1000;
+                        }
+                        else {
+                            let d = new Date(retryAfter);
+                            retryAfterMSec = Math.ceil(d.getTime() - now);
+                        }
                     }
                     const poolDelay = Math.min(Math.max(retryAfterMSec, 100), 1000 * 60 * 60 * 24);
                     Object.assign(status, {
