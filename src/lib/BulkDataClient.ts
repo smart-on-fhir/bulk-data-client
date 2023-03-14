@@ -471,11 +471,13 @@ class BulkDataClient extends EventEmitter
                     const progressPct = parseInt(progress, 10);
 
                     let retryAfterMSec = this.options.retryAfterMSec;
-                    if (retryAfter.match(/\d+/)) {
-                        retryAfterMSec = parseInt(retryAfter, 10) * 1000
-                    } else {
-                        let d = new Date(retryAfter);
-                        retryAfterMSec = Math.ceil(d.getTime() - now)
+                    if (retryAfter) {
+                        if (retryAfter.match(/\d+/)) {
+                            retryAfterMSec = parseInt(retryAfter, 10) * 1000
+                        } else {
+                            let d = new Date(retryAfter);
+                            retryAfterMSec = Math.ceil(d.getTime() - now)
+                        }
                     }
 
                     const poolDelay = Math.min(Math.max(retryAfterMSec, 100), 1000*60*60*24)
