@@ -322,7 +322,7 @@ class BulkDataClient extends events_1.EventEmitter {
                             retryAfterMSec = Math.ceil(d.getTime() - now);
                         }
                     }
-                    const poolDelay = Math.min(Math.max(retryAfterMSec, 100), 1000 * 60 * 60 * 24);
+                    const poolDelay = Math.min(Math.max(retryAfterMSec, 100), 1000 * 60);
                     Object.assign(status, {
                         percentComplete: isNaN(progressPct) ? -1 : progressPct,
                         nextCheckAfter: poolDelay,
