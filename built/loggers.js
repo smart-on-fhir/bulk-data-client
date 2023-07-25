@@ -15,7 +15,6 @@ function createLogger(options = {}) {
         transports: [
             new winston_1.transports.File({
                 filename: (0, path_1.resolve)(__dirname, '../downloads/log.ndjson'),
-                zippedArchive: true,
                 maxFiles: 5,
                 maxsize: 1024 * 1024,
                 tailable: true,

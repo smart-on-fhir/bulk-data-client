@@ -13,7 +13,6 @@ export function createLogger(options: BulkDataClient.LoggingOptions = {}) {
         transports: [
             new transports.File({
                 filename     : options.file || resolve(__dirname, "../../downloads/log.ndjson"),
-                zippedArchive: true,
                 maxFiles     : 5,
                 maxsize      : 1024 * 1024 * 50,
                 tailable     : true,
