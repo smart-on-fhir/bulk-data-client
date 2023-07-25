@@ -268,6 +268,9 @@ export function fhirInstant(input: any): string
         if (instant.isValid()) {
             return instant.format();
         }
+        else {
+          throw new Error(`Invalid fhirInstant: ${input}`);
+        }
     }
     return "";
 }
