@@ -176,7 +176,7 @@
      * as JSON. It is recommended to set a reasonable limit for the line
      * length so that a huge line does not consume the entire memory.
      */
-    ndjsonMaxLineLength: 1000000,
+    ndjsonMaxLineLength: 10000000,
 
     /**
      * If `true`, verifies that every single JSON object extracted for the
