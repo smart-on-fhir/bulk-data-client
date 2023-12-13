@@ -132,6 +132,17 @@ class BulkDataClient extends events_1.EventEmitter {
         });
     }
     /**
+     * Internal method for formatting response headers for some emitted events
+     * based on `options.errorDebuggingHeaders`
+     * @param headers
+     * @returns responseHeaders
+     */
+    formatResponseHeaders(headers) {
+        return (this.options.errorDebuggingHeaders === 'all'
+            ? headers
+            : (0, utils_1.filterResponseHeaders)(headers, this.options.errorDebuggingHeaders));
+    }
+    /**
      * Get an access token to be used as bearer in requests to the server.
      * The token is cached so that we don't have to authorize on every request.
      * If the token is expired (or will expire in the next 10 seconds), a new
@@ -217,6 +228,7 @@ class BulkDataClient extends events_1.EventEmitter {
             requestOptions.json = this.buildKickOffPayload();
         }
         else {
+            // @ts-ignore
             this.buildKickOffQuery(url.searchParams);
         }
         this.emit("kickOffStart", requestOptions);
@@ -240,11 +252,21 @@ class BulkDataClient extends events_1.EventEmitter {
             if (!location) {
                 throw new Error("The kick-off response did not include content-location header");
             }
-            this.emit("kickOffEnd", { response: res, capabilityStatement, requestParameters });
+            this.emit("kickOffEnd", {
+                response: res,
+                capabilityStatement,
+                requestParameters,
+                responseHeaders: this.formatResponseHeaders(res.headers),
+            });
             return location;
         })
             .catch(error => {
-            this.emit("kickOffEnd", { response: error.response || {}, capabilityStatement, requestParameters });
+            this.emit("kickOffEnd", {
+                response: error.response || {},
+                capabilityStatement,
+                requestParameters,
+                responseHeaders: this.formatResponseHeaders(error.response.headers),
+            });
             throw error;
         });
     }
@@ -300,7 +322,8 @@ class BulkDataClient extends events_1.EventEmitter {
                         this.emit("exportError", {
                             body: res.body || null,
                             code: res.statusCode || null,
-                            message: ex.message
+                            message: ex.message,
+                            responseHeaders: this.formatResponseHeaders(res.headers),
                         });
                         throw ex;
                     }
@@ -344,7 +367,8 @@ class BulkDataClient extends events_1.EventEmitter {
                     this.emit("exportError", {
                         body: res.body || null,
                         code: res.statusCode || null,
-                        message: msg
+                        message: msg,
+                        responseHeaders: this.formatResponseHeaders(res.headers),
                     });
                     const error = new Error(msg);
                     // @ts-ignore
@@ -486,7 +510,8 @@ class BulkDataClient extends events_1.EventEmitter {
                     body: null,
                     code: e.code || null,
                     fileUrl: e.fileUrl,
-                    message: String(e.message || "File download failed")
+                    message: String(e.message || "File download failed"),
+                    responseHeaders: this.formatResponseHeaders(e.responseHeaders),
                 });
             }
             throw e;
@@ -573,7 +598,8 @@ class BulkDataClient extends events_1.EventEmitter {
                 body: null,
                 code: e.code || null,
                 fileUrl: e.fileUrl || file.url,
-                message: String(e.message || "Downloading failed")
+                message: String(e.message || "Downloading failed"),
+                responseHeaders: this.formatResponseHeaders(e.responseHeaders),
             });
             throw e;
         }

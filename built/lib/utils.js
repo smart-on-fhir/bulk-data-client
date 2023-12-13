@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createDecompressor = exports.exit = exports.ask = exports.generateProgress = exports.fhirInstant = exports.assert = exports.humanFileSize = exports.getAccessTokenExpiration = exports.print = exports.formatDuration = exports.wait = exports.detectTokenUrl = exports.getTokenEndpointFromCapabilityStatement = exports.getTokenEndpointFromWellKnownSmartConfig = exports.getCapabilityStatement = exports.getWellKnownSmartConfig = void 0;
+exports.filterResponseHeaders = exports.createDecompressor = exports.exit = exports.ask = exports.generateProgress = exports.fhirInstant = exports.assert = exports.humanFileSize = exports.getAccessTokenExpiration = exports.print = exports.formatDuration = exports.wait = exports.detectTokenUrl = exports.getTokenEndpointFromCapabilityStatement = exports.getTokenEndpointFromWellKnownSmartConfig = exports.getCapabilityStatement = exports.getWellKnownSmartConfig = void 0;
 require("colors");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const url_1 = require("url");
@@ -368,3 +368,23 @@ function createDecompressor(res) {
     }
 }
 exports.createDecompressor = createDecompressor;
+/**
+ * Filter a Headers object down to a selected series of headers
+ * @param headers The object of headers to filter
+ * @param selectedHeaders The headers that should remain post-filter
+ * @returns Types.ResponseHeaders | {}
+ */
+function filterResponseHeaders(headers, selectedHeaders) {
+    // In the event the headers is undefined or null, just return undefined
+    if (!headers)
+        return undefined;
+    // NOTE: If an empty array of headers is specified, return none of them
+    return Object
+        .entries(headers)
+        .reduce((headers, [key, value]) => {
+        if (!selectedHeaders.includes(key))
+            return headers;
+        return { ...headers, [key]: value };
+    }, {});
+}
+exports.filterResponseHeaders = filterResponseHeaders;

@@ -48,7 +48,8 @@ class DocumentReferenceHandler extends stream_1.Transform {
             throw new errors_1.FileDownloadError({
                 fileUrl: attachment.url,
                 body: null,
-                code: res.statusCode
+                responseHeaders: res.headers,
+                code: res.statusCode,
             });
         }
         const contentType = res.headers["content-type"] || "";
