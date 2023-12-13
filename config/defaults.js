@@ -290,5 +290,13 @@
      * If the server does not provide `Retry-after` header use this number of
      * milliseconds before checking the status again
      */
-    retryAfterMSec: 200
+    retryAfterMSec: 200,
+
+    /**
+     * ResponseHeaders to include in error logs for debugging purposes
+     * When 'all' is specified, all responseHeaders are returned
+     * Otherwise, return all responseHeaders found in the logs
+     * NOTE: When an empty array is specified, an empty object of responseHeaders will be returned
+    */
+    errorDebuggingHeaders: 'all',
 }

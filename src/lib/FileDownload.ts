@@ -130,9 +130,10 @@ class FileDownload extends EventEmitter
                 // In case we get an error response ----------------------------
                 if (res.statusCode >= 400) {
                     return reject(new FileDownloadError({
-                        fileUrl: this.url,
-                        body: res.body,
-                        code: res.statusCode
+                        fileUrl         : this.url,
+                        body            : res.body,
+                        responseHeaders : res.headers,
+                        code            : res.statusCode
                     }))
                 }
 

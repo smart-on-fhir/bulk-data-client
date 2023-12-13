@@ -65,9 +65,10 @@ export default class DocumentReferenceHandler extends Transform
 
         if (res.statusCode >= 400) {
             throw new FileDownloadError({
-                fileUrl: attachment.url,
-                body   : null,
-                code   : res.statusCode
+                fileUrl         : attachment.url,
+                body            : null,
+                responseHeaders : res.headers,
+                code            : res.statusCode,
             });
         }
 

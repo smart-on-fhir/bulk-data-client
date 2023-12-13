@@ -8,7 +8,7 @@ import { HTTPError, Response }        from "got/dist/source"
 import zlib                           from "zlib"
 import request                        from "./request"
 import { Transform }                  from "stream"
-import { BulkDataClient, JsonObject } from "../.."
+import { BulkDataClient as Types, JsonObject } from "../.."
 
 
 const debug = util.debuglog("app")
@@ -208,7 +208,7 @@ export const print = (() => {
  * Note that this should only be used immediately after an access token is
  * received, otherwise the computed timestamp will be incorrect.
  */
-export function getAccessTokenExpiration(tokenResponse: BulkDataClient.TokenResponse): number
+export function getAccessTokenExpiration(tokenResponse: Types.TokenResponse): number
 {
     const now = Math.floor(Date.now() / 1000);
 
@@ -421,4 +421,22 @@ export function createDecompressor(res: Response): Transform
             }
         })
     }
+}
+
+/**
+ * Filter a Headers object down to a selected series of headers
+ * @param headers The object of headers to filter
+ * @param selectedHeaders The headers that should remain post-filter
+ * @returns Types.ResponseHeaders | {}
+ */
+export function filterResponseHeaders(headers: Types.ResponseHeaders, selectedHeaders: string[]) : Types.ResponseHeaders | {} | undefined { 
+    // In the event the headers is undefined or null, just return undefined
+    if (!headers) return undefined
+    // NOTE: If an empty array of headers is specified, return none of them
+    return Object
+        .entries(headers)
+        .reduce((headers, [key, value]) => {
+            if (!selectedHeaders.includes(key)) return headers
+            return {...headers, [key]: value}
+        }, {})
 }

@@ -110,7 +110,7 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
         const startTime = Date.now()
 
         // kickoff -----------------------------------------------------------------
-        client.on("kickOffEnd", ({ requestParameters, capabilityStatement, response }) => {
+        client.on("kickOffEnd", ({ requestParameters, capabilityStatement, response, responseHeaders }) => {
             logger.log("info", {
                 eventId: "kickoff",
                 eventDetail: {
@@ -121,7 +121,8 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
                     softwareVersion    : capabilityStatement.software?.version           || null,
                     softwareReleaseDate: capabilityStatement.software?.releaseDate       || null,
                     fhirVersion        : capabilityStatement.fhirVersion                 || null,
-                    requestParameters
+                    requestParameters, 
+                    responseHeaders,
                 }
             })
         })

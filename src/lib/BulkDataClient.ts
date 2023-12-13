@@ -21,11 +21,13 @@ import { FileDownloadError }            from "./errors"
 import {
     assert,
     fhirInstant,
+    filterResponseHeaders,
     formatDuration,
     getAccessTokenExpiration,
     getCapabilityStatement,
     wait
 } from "./utils"
+
 
 EventEmitter.defaultMaxListeners = 30;
 
@@ -56,6 +58,7 @@ export interface BulkDataClientEvents {
         response           : Response
         capabilityStatement: fhir4.CapabilityStatement
         requestParameters  : Record<string, any>
+        responseHeaders    : Types.ResponseHeaders | undefined
     }) => void;
     
     /**
@@ -71,9 +74,10 @@ export interface BulkDataClientEvents {
     "exportProgress": (this: BulkDataClient, status: Types.ExportStatus) => void;
 
     "exportError": (this: BulkDataClient, details: {
-        body: string | fhir4.OperationOutcome | null
-        code: number | null
-        message?: string
+        body             : string | fhir4.OperationOutcome | null
+        code             : number | null
+        message         ?: string
+        responseHeaders  : Types.ResponseHeaders | undefined
     }) => void;
     
     /**
@@ -103,10 +107,11 @@ export interface BulkDataClientEvents {
      * @event
      */
     "downloadError": (this: BulkDataClient, details: {
-        body: string | fhir4.OperationOutcome | null // Buffer
-        code: number | null
-        fileUrl: string
-        message?: string
+        body             : string | fhir4.OperationOutcome | null // Buffer
+        code             : number | null
+        fileUrl          : string
+        message         ?: string
+        responseHeaders  : Types.ResponseHeaders | undefined
     }) => void;
 
     /**
@@ -261,6 +266,19 @@ class BulkDataClient extends EventEmitter
     }
 
     /**
+     * Internal method for formatting response headers for some emitted events 
+     * based on `options.errorDebuggingHeaders`
+     * @param headers 
+     * @returns responseHeaders
+     */
+    private formatResponseHeaders(headers: Types.ResponseHeaders) : Types.ResponseHeaders | undefined { 
+        return (this.options.errorDebuggingHeaders === 'all' 
+            ?  headers
+            :  filterResponseHeaders(headers, this.options.errorDebuggingHeaders)
+        )
+    }
+
+    /**
      * Get an access token to be used as bearer in requests to the server.
      * The token is cached so that we don't have to authorize on every request.
      * If the token is expired (or will expire in the next 10 seconds), a new
@@ -359,6 +377,7 @@ class BulkDataClient extends EventEmitter
             requestOptions.method = "POST";
             requestOptions.json   = this.buildKickOffPayload();
         } else {
+            // @ts-ignore
             this.buildKickOffQuery(url.searchParams);
         }
 
@@ -386,11 +405,21 @@ class BulkDataClient extends EventEmitter
                 if (!location) {
                     throw new Error("The kick-off response did not include content-location header")
                 }
-                this.emit("kickOffEnd", { response: res, capabilityStatement, requestParameters })
+                this.emit("kickOffEnd", { 
+                    response: res, 
+                    capabilityStatement, 
+                    requestParameters, 
+                    responseHeaders: this.formatResponseHeaders(res.headers),
+                })
                 return location
             })
             .catch(error => {
-                this.emit("kickOffEnd", { response: error.response || {}, capabilityStatement, requestParameters })
+                this.emit("kickOffEnd", { 
+                    response: error.response || {}, 
+                    capabilityStatement, 
+                    requestParameters, 
+                    responseHeaders: this.formatResponseHeaders(error.response.headers),
+                })
                 throw error
             });
     }
@@ -454,7 +483,8 @@ class BulkDataClient extends EventEmitter
                         this.emit("exportError", {
                             body: res.body as any || null,
                             code: res.statusCode || null,
-                            message: (ex as Error).message
+                            message: (ex as Error).message,
+                            responseHeaders: this.formatResponseHeaders(res.headers),
                         });
                         throw ex
                     }
@@ -504,9 +534,10 @@ class BulkDataClient extends EventEmitter
                     const msg = `Unexpected status response ${res.statusCode} ${res.statusMessage}`
                     
                     this.emit("exportError", {
-                        body: res.body as any || null,
-                        code: res.statusCode || null,
-                        message: msg
+                        body            : res.body as any || null,
+                        code            : res.statusCode || null,
+                        message         : msg,
+                        responseHeaders : this.formatResponseHeaders(res.headers),
                     });
 
                     const error = new Error(msg)
@@ -689,10 +720,11 @@ class BulkDataClient extends EventEmitter
         .catch(e => {
             if (e instanceof FileDownloadError) {
                 this.emit("downloadError", {
-                    body: null, // Buffer
-                    code: e.code || null,
-                    fileUrl: e.fileUrl,
-                    message: String(e.message || "File download failed")
+                    body            : null, // Buffer
+                    code            : e.code || null,
+                    fileUrl         : e.fileUrl,
+                    message         : String(e.message || "File download failed"),
+                    responseHeaders : this.formatResponseHeaders(e.responseHeaders),
                 })
             }
             throw e
@@ -781,10 +813,11 @@ class BulkDataClient extends EventEmitter
         }
         catch (e: any) {
             this.emit("downloadError", {
-                body   : null,
-                code   : e.code || null,
-                fileUrl: e.fileUrl || file.url,
-                message: String(e.message || "Downloading failed")
+                body            : null,
+                code            : e.code || null,
+                fileUrl         : e.fileUrl || file.url,
+                message         : String(e.message || "Downloading failed"),
+                responseHeaders : this.formatResponseHeaders(e.responseHeaders),
             })
             throw e
         }
