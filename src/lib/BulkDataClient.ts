@@ -267,14 +267,14 @@ class BulkDataClient extends EventEmitter
 
     /**
      * Internal method for formatting response headers for some emitted events 
-     * based on `options.errorDebuggingHeaders`
+     * based on `options.logResponseHeaders`
      * @param headers 
      * @returns responseHeaders
      */
     private formatResponseHeaders(headers: Types.ResponseHeaders) : Types.ResponseHeaders | undefined { 
-        return (this.options.errorDebuggingHeaders === 'all' 
+        return (this.options.logResponseHeaders === 'all' 
             ?  headers
-            :  filterResponseHeaders(headers, this.options.errorDebuggingHeaders)
+            :  filterResponseHeaders(headers, this.options.logResponseHeaders)
         )
     }
 

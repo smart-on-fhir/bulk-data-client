@@ -43,7 +43,7 @@ describe('Logging', function () {
 
             mockServer.mock("/Patient/$export", { status: 404, body: "", headers: { "content-location": "x"}});
 
-            const { log } = await invoke({options: {errorDebuggingHeaders: []}})
+            const { log } = await invoke({options: {logResponseHeaders: []}})
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
             const entry = logs.find(l => l.eventId === "kickoff")
             
@@ -77,7 +77,7 @@ describe('Logging', function () {
 
             mockServer.mock("/Patient/$export", { status: 200, body: "" });
 
-            const { log } = await invoke({options: {errorDebuggingHeaders: []}})
+            const { log } = await invoke({options: {logResponseHeaders: []}})
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
             const entry = logs.find(l => l.eventId === "kickoff")
             
@@ -101,7 +101,7 @@ describe('Logging', function () {
 
             mockServer.mock("/Patient/$export", { status: 200, body: "" });
 
-            const { log } = await invoke({options: {errorDebuggingHeaders: []}})
+            const { log } = await invoke({options: {logResponseHeaders: []}})
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
             const entry = logs.find(l => l.eventId === "kickoff")
             
@@ -135,7 +135,7 @@ describe('Logging', function () {
 
             mockServer.mock("/Patient/$export", { status: 200 });
 
-            const { log } = await invoke({ args: ["--_since", "2020" ], options: {errorDebuggingHeaders: []}})
+            const { log } = await invoke({ args: ["--_since", "2020" ], options: {logResponseHeaders: []}})
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
             const entry = logs.find(l => l.eventId === "kickoff")
             expect(entry, "kickoff log entry not found").to.exist()
@@ -169,7 +169,7 @@ describe('Logging', function () {
                 body: ""
             });
 
-            const { log } = await invoke({ options: { errorDebuggingHeaders: 'all'} })
+            const { log } = await invoke({ options: { logResponseHeaders: 'all'} })
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
             const entry = logs.find(l => l.eventId === "kickoff")
             expect(entry, "kickoff log entry not found").to.exist()
@@ -178,7 +178,7 @@ describe('Logging', function () {
             expect(entry.eventDetail.responseHeaders).to.include({"x-debugging-header": "someValue"})
         })
 
-        it ("can filter responseHeaders of kickoff events with client's errorDebuggingHeaders option", async () => {
+        it ("can filter responseHeaders of kickoff events with client's logResponseHeaders option", async () => {
             mockServer.mock("/metadata", {
                 status: 200,
                 body: {
@@ -200,7 +200,7 @@ describe('Logging', function () {
                 body: ""
             });
 
-            const { log } = await invoke({ options: { errorDebuggingHeaders: ['x-debugging-header', 'content-location']} })
+            const { log } = await invoke({ options: { logResponseHeaders: ['x-debugging-header', 'content-location']} })
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
             const entry = logs.find(l => l.eventId === "kickoff")
             expect(entry, "kickoff log entry not found").to.exist()
@@ -281,7 +281,7 @@ describe('Logging', function () {
             expect(entry.eventDetail.responseHeaders).to.include({"x-debugging-header": "someValue"})
         })
 
-        it ("can filter responseHeaders of status_error events with client's errorDebuggingHeaders option", async () => {
+        it ("can filter responseHeaders of status_error events with client's logResponseHeaders option", async () => {
             this.timeout(10000);
 
             mockServer.mock("/metadata", { status: 200, body: {} });
@@ -300,7 +300,7 @@ describe('Logging', function () {
                 headers: {"x-debugging-header": "someValue"}
             })
 
-            const { log } = await invoke({options: { errorDebuggingHeaders: ['x-debugging-header']}})
+            const { log } = await invoke({options: { logResponseHeaders: ['x-debugging-header']}})
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
             const entry = logs.find(l => l.eventId === "status_error")
             expect(entry).to.exist()

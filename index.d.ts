@@ -224,7 +224,7 @@ export declare namespace BulkDataClient {
         * Otherwise, return all responseHeaders found in the logs
         * NOTE: When an empty array is specified, an empty object of responseHeaders will be returned
         */
-        errorDebuggingHeaders: string[] | 'all'
+        logResponseHeaders: string[] | 'all'
     }
 
     interface LoggingOptions
@@ -490,7 +490,7 @@ export declare namespace BulkDataClient {
         * Otherwise, return all responseHeaders found in the logs
         * NOTE: When an empty array is specified, an empty object of responseHeaders will be returned
         */
-        errorDebuggingHeaders: string[] | 'all'
+        logResponseHeaders: string[] | 'all'
     }
 
     interface JWK {

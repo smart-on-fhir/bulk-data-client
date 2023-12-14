@@ -298,5 +298,5 @@
      * Otherwise, return all responseHeaders found in the logs
      * NOTE: When an empty array is specified, an empty object of responseHeaders will be returned
     */
-    errorDebuggingHeaders: 'all',
+    logResponseHeaders: 'all',
 }
