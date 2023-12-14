@@ -55,10 +55,10 @@ export interface BulkDataClientEvents {
      * @event
      */
     "kickOffEnd": (this: BulkDataClient, data: {
-        response           : Response
-        capabilityStatement: fhir4.CapabilityStatement
-        requestParameters  : Record<string, any>
-        responseHeaders    : Types.ResponseHeaders | undefined
+        response            : Response
+        capabilityStatement : fhir4.CapabilityStatement
+        requestParameters   : Record<string, any>
+        responseHeaders    ?: Types.ResponseHeaders
     }) => void;
     
     /**
@@ -77,7 +77,7 @@ export interface BulkDataClientEvents {
         body             : string | fhir4.OperationOutcome | null
         code             : number | null
         message         ?: string
-        responseHeaders  : Types.ResponseHeaders | undefined
+        responseHeaders ?: Types.ResponseHeaders 
     }) => void;
     
     /**
@@ -111,7 +111,7 @@ export interface BulkDataClientEvents {
         code             : number | null
         fileUrl          : string
         message         ?: string
-        responseHeaders  : Types.ResponseHeaders | undefined
+        responseHeaders ?: Types.ResponseHeaders
     }) => void;
 
     /**
