@@ -293,10 +293,11 @@
     retryAfterMSec: 200,
 
     /**
-     * ResponseHeaders to include in error logs for debugging purposes
-     * When 'all' is specified, all responseHeaders are returned
-     * Otherwise, return all responseHeaders found in the logs
-     * NOTE: When an empty array is specified, an empty object of responseHeaders will be returned
+    * ResponseHeaders to include in error logs for debugging purposes
+    * When 'all' is specified, all responseHeaders are returned
+    * When 'none' is specified, no responseHeaders are returned
+    * Otherwise, log any responseHeaders matches against 1...* strings/regexp 
+    * NOTE: When an empty array is specified, an empty object of responseHeaders will be returned
     */
     logResponseHeaders: 'all',
 }
