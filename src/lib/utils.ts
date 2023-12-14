@@ -9,6 +9,7 @@ import zlib                           from "zlib"
 import request                        from "./request"
 import { Transform }                  from "stream"
 import { BulkDataClient as Types, JsonObject } from "../.."
+import { isRegExp } from "util/types"
 
 
 const debug = util.debuglog("app")
@@ -427,16 +428,19 @@ export function createDecompressor(res: Response): Transform
  * Filter a Headers object down to a selected series of headers
  * @param headers The object of headers to filter
  * @param selectedHeaders The headers that should remain post-filter
- * @returns Types.ResponseHeaders | {}
+ * @returns Types.ResponseHeaders | {} | undefined
  */
-export function filterResponseHeaders(headers: Types.ResponseHeaders, selectedHeaders: string[]) : Types.ResponseHeaders | {} | undefined { 
+export function filterResponseHeaders(headers: Types.ResponseHeaders, selectedHeaders: (string | RegExp)[]) : Types.ResponseHeaders | {} | undefined { 
     // In the event the headers is undefined or null, just return undefined
     if (!headers) return undefined
     // NOTE: If an empty array of headers is specified, return none of them
     return Object
         .entries(headers)
-        .reduce((headers, [key, value]) => {
-            if (!selectedHeaders.includes(key)) return headers
-            return {...headers, [key]: value}
+        .reduce((matchedHeaders, [key, value]) => {
+            // Each selectedHeader is either a RegExp, where we check for matches via RegExp.test
+            // or a string, where we check for matches with equality
+            if (selectedHeaders.find((h) => isRegExp(h) ? h.test(key) : h === key)) return { ...matchedHeaders, [key] : value}
+            // If we don't find a selectedHeader that matches this header, we move on
+            return matchedHeaders
         }, {})
 }

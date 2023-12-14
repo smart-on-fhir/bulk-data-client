@@ -271,11 +271,15 @@ class BulkDataClient extends EventEmitter
      * @param headers 
      * @returns responseHeaders
      */
-    private formatResponseHeaders(headers: Types.ResponseHeaders) : Types.ResponseHeaders | undefined { 
-        return (this.options.logResponseHeaders === 'all' 
-            ?  headers
-            :  filterResponseHeaders(headers, this.options.logResponseHeaders)
-        )
+    private formatResponseHeaders(headers: Types.ResponseHeaders) : Types.ResponseHeaders | undefined {
+        if (this.options.logResponseHeaders.toString().toLocaleLowerCase() === 'none') return undefined
+        if (this.options.logResponseHeaders.toString().toLocaleLowerCase() === 'all') return headers
+        // If not an array it must be a string or a RegExp 
+        if (!Array.isArray(this.options.logResponseHeaders)) {
+            return filterResponseHeaders(headers, [this.options.logResponseHeaders])
+        } 
+        // Else it must be an array
+        return filterResponseHeaders(headers, this.options.logResponseHeaders)
     }
 
     /**
