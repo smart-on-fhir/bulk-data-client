@@ -78,6 +78,7 @@ class FileDownload extends events_1.default {
                     return reject(new errors_1.FileDownloadError({
                         fileUrl: this.url,
                         body: res.body,
+                        responseHeaders: res.headers,
                         code: res.statusCode
                     }));
                 }

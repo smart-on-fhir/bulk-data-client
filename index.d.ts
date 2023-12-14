@@ -217,6 +217,15 @@ export declare namespace BulkDataClient {
          * milliseconds before checking the status again
          */
         retryAfterMSec?: number
+
+        /**
+        * ResponseHeaders to include in error logs for debugging purposes
+        * When 'all' is specified, all responseHeaders are returned
+        * When 'none' is specified, no responseHeaders are returned
+        * Otherwise, log any responseHeaders matches against 1...* strings/regexp 
+        * NOTE: When an empty array is specified, an empty object of responseHeaders will be returned
+        */
+        logResponseHeaders: "all" | "none" | string | RegExp | (string | RegExp)[]
     }
 
     interface LoggingOptions
@@ -475,6 +484,15 @@ export declare namespace BulkDataClient {
          * milliseconds before checking the status again
          */
         retryAfterMSec: number
+
+        /**
+        * ResponseHeaders to include in error logs for debugging purposes
+        * When 'all' is specified, all responseHeaders are returned
+        * When 'none' is specified, no responseHeaders are returned
+        * Otherwise, log any responseHeaders matches against 1...* strings/regexp 
+        * NOTE: When an empty array is specified, an empty object of responseHeaders will be returned
+        */
+        logResponseHeaders: "all" | "none" | string | RegExp | (string | RegExp)[]
     }
 
     interface JWK {
@@ -723,6 +741,10 @@ export declare namespace BulkDataClient {
         virtual         ?: boolean
         statusEndpoint   : string
     }
+    
+    interface ResponseHeaders {
+        [key: string]: string | string[] | undefined
+    } 
 }
 
 export interface JsonObject { [key: string]: JsonValue; }

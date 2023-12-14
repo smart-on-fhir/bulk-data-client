@@ -91,7 +91,7 @@ APP.action(async (args) => {
         const logger = (0, loggers_1.createLogger)(options.log);
         const startTime = Date.now();
         // kickoff -----------------------------------------------------------------
-        client.on("kickOffEnd", ({ requestParameters, capabilityStatement, response }) => {
+        client.on("kickOffEnd", ({ requestParameters, capabilityStatement, response, responseHeaders }) => {
             logger.log("info", {
                 eventId: "kickoff",
                 eventDetail: {
@@ -102,7 +102,8 @@ APP.action(async (args) => {
                     softwareVersion: capabilityStatement.software?.version || null,
                     softwareReleaseDate: capabilityStatement.software?.releaseDate || null,
                     fhirVersion: capabilityStatement.fhirVersion || null,
-                    requestParameters
+                    requestParameters,
+                    responseHeaders,
                 }
             });
         });

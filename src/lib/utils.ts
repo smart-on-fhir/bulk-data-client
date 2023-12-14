@@ -8,7 +8,8 @@ import { HTTPError, Response }        from "got/dist/source"
 import zlib                           from "zlib"
 import request                        from "./request"
 import { Transform }                  from "stream"
-import { BulkDataClient, JsonObject } from "../.."
+import { BulkDataClient as Types, JsonObject } from "../.."
+import { isRegExp } from "util/types"
 
 
 const debug = util.debuglog("app")
@@ -208,7 +209,7 @@ export const print = (() => {
  * Note that this should only be used immediately after an access token is
  * received, otherwise the computed timestamp will be incorrect.
  */
-export function getAccessTokenExpiration(tokenResponse: BulkDataClient.TokenResponse): number
+export function getAccessTokenExpiration(tokenResponse: Types.TokenResponse): number
 {
     const now = Math.floor(Date.now() / 1000);
 
@@ -421,4 +422,27 @@ export function createDecompressor(res: Response): Transform
             }
         })
     }
+}
+
+/**
+ * Filter a Headers object down to a selected series of headers
+ * @param headers The object of headers to filter
+ * @param selectedHeaders The headers that should remain post-filter
+ * @returns Types.ResponseHeaders | {} | undefined
+ */
+export function filterResponseHeaders(headers: Types.ResponseHeaders, selectedHeaders: (string | RegExp)[]) : Types.ResponseHeaders | {} | undefined { 
+    // In the event the headers is undefined or null, just return undefined
+    if (!headers) return undefined
+    // NOTE: If an empty array of headers is specified, return none of them
+    return Object
+        .entries(headers)
+        .reduce((matchedHeaders, [key, value]) => {
+            // These are usually normalized to lowercase by most libraries, but just to be sure
+            const lowercaseKey = key.toLocaleLowerCase()
+            // Each selectedHeader is either a RegExp, where we check for matches via RegExp.test
+            // or a string, where we check for matches with equality
+            if (selectedHeaders.find((h) => isRegExp(h) ? h.test(lowercaseKey) : h.toLocaleLowerCase() === lowercaseKey)) return { ...matchedHeaders, [key] : value}
+            // If we don't find a selectedHeader that matches this header, we move on
+            return matchedHeaders
+        }, {})
 }

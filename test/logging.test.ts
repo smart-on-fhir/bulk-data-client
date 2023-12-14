@@ -43,7 +43,7 @@ describe('Logging', function () {
 
             mockServer.mock("/Patient/$export", { status: 404, body: "", headers: { "content-location": "x"}});
 
-            const { log } = await invoke()
+            const { log } = await invoke({options: {logResponseHeaders: []}})
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
             const entry = logs.find(l => l.eventId === "kickoff")
             
@@ -56,7 +56,8 @@ describe('Logging', function () {
                 "softwareVersion": "Software Version",
                 "softwareReleaseDate": "01-02-03",
                 "fhirVersion": 100,
-                "requestParameters": {}
+                "requestParameters": {},
+                "responseHeaders": {}
             })
         })
 
@@ -76,7 +77,7 @@ describe('Logging', function () {
 
             mockServer.mock("/Patient/$export", { status: 200, body: "" });
 
-            const { log } = await invoke()
+            const { log } = await invoke({options: {logResponseHeaders: []}})
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
             const entry = logs.find(l => l.eventId === "kickoff")
             
@@ -89,7 +90,8 @@ describe('Logging', function () {
                 "softwareVersion": "Software Version",
                 "softwareReleaseDate": "01-02-03",
                 "fhirVersion": 100,
-                "requestParameters": {}
+                "requestParameters": {},
+                "responseHeaders": {},
             })
         })
 
@@ -99,7 +101,7 @@ describe('Logging', function () {
 
             mockServer.mock("/Patient/$export", { status: 200, body: "" });
 
-            const { log } = await invoke()
+            const { log } = await invoke({options: {logResponseHeaders: []}})
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
             const entry = logs.find(l => l.eventId === "kickoff")
             
@@ -112,7 +114,8 @@ describe('Logging', function () {
                 "softwareVersion": null,
                 "softwareReleaseDate": null,
                 "fhirVersion": null,
-                "requestParameters": {}
+                "requestParameters": {},
+                "responseHeaders": {}
             })
         })
 
@@ -132,10 +135,9 @@ describe('Logging', function () {
 
             mockServer.mock("/Patient/$export", { status: 200 });
 
-            const { log } = await invoke({ args: ["--_since", "2020" ]})
+            const { log } = await invoke({ args: ["--_since", "2020" ], options: {logResponseHeaders: []}})
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
             const entry = logs.find(l => l.eventId === "kickoff")
-            
             expect(entry, "kickoff log entry not found").to.exist()
             expect(entry.eventDetail).to.be.an.object()
             expect(entry.eventDetail.exportUrl).to.be.a.string()
@@ -144,7 +146,73 @@ describe('Logging', function () {
             expect(entry.eventDetail.requestParameters).to.be.an.object()
             expect(entry.eventDetail.requestParameters._since).to.exist()
         })
+
+        it ("includes responseHeaders in kickoff log entries", async () => {
+            mockServer.mock("/metadata", {
+                status: 200,
+                body: {
+                    fhirVersion: 100,
+                    software: {
+                        name: "Software Name",
+                        version: "Software Version",
+                        releaseDate: "01-02-03"
+                    }
+                }
+            });
+            // NOTE: Request endpoint is invalid without the "\\"
+            mockServer.mock("/Patient/\\$export", {
+                status: 200,
+                headers: {
+                    "content-location": mockServer.baseUrl + "/status",
+                    "x-debugging-header": "someValue",
+                },
+                body: ""
+            });
+
+            const { log } = await invoke({ options: { logResponseHeaders: 'all'} })
+            const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
+            const entry = logs.find(l => l.eventId === "kickoff")
+            expect(entry, "kickoff log entry not found").to.exist()
+            expect(entry.eventDetail).to.be.an.object()
+            expect(entry.eventDetail.responseHeaders).to.be.an.object()
+            expect(entry.eventDetail.responseHeaders).to.include({"x-debugging-header": "someValue"})
+        })
+
+        it ("can filter responseHeaders of kickoff events with client's logResponseHeaders option", async () => {
+            mockServer.mock("/metadata", {
+                status: 200,
+                body: {
+                    fhirVersion: 100,
+                    software: {
+                        name: "Software Name",
+                        version: "Software Version",
+                        releaseDate: "01-02-03"
+                    }
+                }
+            });
+            // NOTE: Request endpoint is invalid without the "\\"
+            mockServer.mock("/Patient/\\$export", {
+                status: 200,
+                headers: {
+                    "content-location": mockServer.baseUrl + "/status",
+                    "x-debugging-header": "someValue",
+                },
+                body: ""
+            });
+
+            const { log } = await invoke({ options: { logResponseHeaders: ['x-debugging-header', 'content-location']} })
+            const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
+            const entry = logs.find(l => l.eventId === "kickoff")
+            expect(entry, "kickoff log entry not found").to.exist()
+            expect(entry.eventDetail).to.be.an.object()
+            expect(entry.eventDetail.responseHeaders).to.be.an.object()
+            expect(entry.eventDetail.responseHeaders).to.equal({
+                "content-location": mockServer.baseUrl + "/status",
+                "x-debugging-header": "someValue",
+            })
+        })
     })
+
 
     describe('status events', () => {
 
@@ -197,7 +265,11 @@ describe('Logging', function () {
                 body: ""
             });
 
-            mockServer.mock("/status", { status: 404, body: "Status endpoint not found" })
+            mockServer.mock("/status", { 
+                status: 404, 
+                body: "Status endpoint not found", 
+                headers: {"x-debugging-header": "someValue"} 
+            })
 
             const { log } = await invoke()
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
@@ -205,6 +277,37 @@ describe('Logging', function () {
             expect(entry).to.exist()
             expect(entry.eventDetail.code).to.equal(404)
             expect(entry.eventDetail.body).to.equal("Status endpoint not found")
+            // Check response headers of status_error events
+            expect(entry.eventDetail.responseHeaders).to.include({"x-debugging-header": "someValue"})
+        })
+
+        it ("can filter responseHeaders of status_error events with client's logResponseHeaders option", async () => {
+            this.timeout(10000);
+
+            mockServer.mock("/metadata", { status: 200, body: {} });
+
+            mockServer.mock("/Patient/\\$export", {
+                status: 200,
+                headers: {
+                    "content-location": mockServer.baseUrl + "/status"
+                },
+                body: ""
+            });
+
+            mockServer.mock("/status", { 
+                status: 404, 
+                body: "Status endpoint not found", 
+                headers: {"x-debugging-header": "someValue"}
+            })
+
+            const { log } = await invoke({options: { logResponseHeaders: ['x-debugging-header']}})
+            const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
+            const entry = logs.find(l => l.eventId === "status_error")
+            expect(entry).to.exist()
+            expect(entry.eventDetail.code).to.equal(404)
+            expect(entry.eventDetail.body).to.equal("Status endpoint not found")
+            // Check response headers of status_error events
+            expect(entry.eventDetail.responseHeaders).to.equal({"x-debugging-header": "someValue"})
         })
 
         it ("logs status_complete events", async () => {
@@ -493,8 +596,15 @@ describe('Logging', function () {
                     url : mockServer.baseUrl + "/downloads/file1.json",
                     type: "Patient"
                 }],
-                error: []
+                error: [],
             }})
+
+            // Simulate 404 for downloads/file1.json with some response headers
+            mockServer.mock("/downloads/file1.json", { 
+                status: 404, 
+                body: '',
+                headers: {"x-debugging-header": "someValue"}
+            })
 
             const { log } = await invoke()
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
@@ -506,6 +616,8 @@ describe('Logging', function () {
             expect(entry.eventDetail.message).to.equal(
                 `Downloading the file from ${mockServer.baseUrl}/downloads/file1.json returned HTTP status code 404.`
             )
+            expect(entry.eventDetail.responseHeaders).to.be.object()
+            expect(entry.eventDetail.responseHeaders).to.include({"x-debugging-header": "someValue"})
         })
 
         it ("logs download_error events on invalid file contents", async () => {
@@ -539,7 +651,6 @@ describe('Logging', function () {
             const { log } = await invoke()
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
             const entry = logs.find(l => l.eventId === "download_error")
-
             expect(entry).to.exist()
             expect(entry.eventDetail.fileUrl).to.equal(mockServer.baseUrl + "/downloads/file1")
             expect(entry.eventDetail.body).to.equal(null)
@@ -581,7 +692,6 @@ describe('Logging', function () {
             const { log } = await invoke()
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
             const entry = logs.find(l => l.eventId === "download_error")
-
             expect(entry).to.exist()
             expect(entry.eventDetail.fileUrl).to.equal(mockServer.baseUrl + "/downloads/file1")
             expect(entry.eventDetail.body).to.equal(null)
@@ -628,19 +738,18 @@ describe('Logging', function () {
                 }
             })
 
-            mockServer.mock("/document.pdf", { status: 500 })
+            mockServer.mock("/document.pdf", { status: 500, headers: {'x-debugging-header': "someValue"} })
 
             const { log } = await invoke()
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
-            // console.log(logs)
             const entry = logs.find(l => l.eventId === "download_error")
-
             expect(entry).to.exist()
             expect(entry.eventDetail.fileUrl).to.equal(mockServer.baseUrl + "/document.pdf")
             expect(entry.eventDetail.body).to.equal(null)
             expect(entry.eventDetail.message).to.equal(
                 `Downloading the file from ${mockServer.baseUrl}/document.pdf returned HTTP status code 500.`
             )
+            expect(entry.eventDetail.responseHeaders).to.include({"x-debugging-header": "someValue"})
         })  
     })
 })
