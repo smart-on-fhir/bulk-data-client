@@ -14,6 +14,7 @@ const source_1 = require("got/dist/source");
 const zlib_1 = __importDefault(require("zlib"));
 const request_1 = __importDefault(require("./request"));
 const stream_1 = require("stream");
+const types_1 = require("util/types");
 const debug = util_1.default.debuglog("app");
 const HTTP_CACHE = new Map();
 /**
@@ -372,7 +373,7 @@ exports.createDecompressor = createDecompressor;
  * Filter a Headers object down to a selected series of headers
  * @param headers The object of headers to filter
  * @param selectedHeaders The headers that should remain post-filter
- * @returns Types.ResponseHeaders | {}
+ * @returns Types.ResponseHeaders | {} | undefined
  */
 function filterResponseHeaders(headers, selectedHeaders) {
     // In the event the headers is undefined or null, just return undefined
@@ -381,10 +382,15 @@ function filterResponseHeaders(headers, selectedHeaders) {
     // NOTE: If an empty array of headers is specified, return none of them
     return Object
         .entries(headers)
-        .reduce((headers, [key, value]) => {
-        if (!selectedHeaders.includes(key))
-            return headers;
-        return { ...headers, [key]: value };
+        .reduce((matchedHeaders, [key, value]) => {
+        // These are usually normalized to lowercase by most libraries, but just to be sure
+        const lowercaseKey = key.toLocaleLowerCase();
+        // Each selectedHeader is either a RegExp, where we check for matches via RegExp.test
+        // or a string, where we check for matches with equality
+        if (selectedHeaders.find((h) => (0, types_1.isRegExp)(h) ? h.test(lowercaseKey) : h.toLocaleLowerCase() === lowercaseKey))
+            return { ...matchedHeaders, [key]: value };
+        // If we don't find a selectedHeader that matches this header, we move on
+        return matchedHeaders;
     }, {});
 }
 exports.filterResponseHeaders = filterResponseHeaders;

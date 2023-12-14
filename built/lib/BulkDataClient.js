@@ -133,14 +133,21 @@ class BulkDataClient extends events_1.EventEmitter {
     }
     /**
      * Internal method for formatting response headers for some emitted events
-     * based on `options.errorDebuggingHeaders`
+     * based on `options.logResponseHeaders`
      * @param headers
      * @returns responseHeaders
      */
     formatResponseHeaders(headers) {
-        return (this.options.errorDebuggingHeaders === 'all'
-            ? headers
-            : (0, utils_1.filterResponseHeaders)(headers, this.options.errorDebuggingHeaders));
+        if (this.options.logResponseHeaders.toString().toLocaleLowerCase() === 'none')
+            return undefined;
+        if (this.options.logResponseHeaders.toString().toLocaleLowerCase() === 'all')
+            return headers;
+        // If not an array it must be a string or a RegExp 
+        if (!Array.isArray(this.options.logResponseHeaders)) {
+            return (0, utils_1.filterResponseHeaders)(headers, [this.options.logResponseHeaders]);
+        }
+        // Else it must be an array
+        return (0, utils_1.filterResponseHeaders)(headers, this.options.logResponseHeaders);
     }
     /**
      * Get an access token to be used as bearer in requests to the server.
