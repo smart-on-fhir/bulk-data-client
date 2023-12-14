@@ -59,6 +59,17 @@ describe('Utils Library', function () {
       expect(filterResponseHeaders(headers, ['new', new RegExp('header'), new RegExp('foot.*')])).to.equal(headers)
       expect(filterResponseHeaders(headers, ['newish', new RegExp('footer.+')])).to.equal({})
     })
-
+    it ("uses case-insensitive checks for string matching", () => { 
+      const headers = {
+        'header': 'value',
+        'header2': 'value2',
+        'NEW': 'string',
+        'footer': 'random',
+      }
+      // SelectedHeader is case-insensitive
+      expect(filterResponseHeaders(headers, ['HEADER'])).to.equal({'header': 'value'})
+      // source responseHeader is also case-insensitive in check; preserves case in result
+      expect(filterResponseHeaders(headers, ['new'])).to.equal({'NEW': 'string'})
+    })
   })
 })
