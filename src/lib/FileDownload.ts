@@ -2,7 +2,7 @@ import util                   from "util"
 import { Readable }           from "stream"
 import EventEmitter           from "events"
 import request                from "./request"
-import { createDecompressor } from "./utils"
+import { createDecompressor, wait } from "./utils"
 import { FileDownloadError }  from "./errors"
 import {
     Options,
@@ -14,6 +14,7 @@ import {
 const debug = util.debuglog("app-request")
 
 export interface FileDownloadState {
+    numTries         : number
     requestOptions   : Options
     response        ?: Response
     downloadedChunks : number
@@ -50,6 +51,7 @@ class FileDownload extends EventEmitter
         super()
         this.url = url
         this.state = {
+            numTries         : 0,
             downloadedChunks : 0,
             downloadedBytes  : 0,
             uncompressedBytes: 0,
@@ -73,7 +75,7 @@ class FileDownload extends EventEmitter
     public run(options: FileDownloadOptions = {}): Promise<Readable>
     {
         const { signal, accessToken, requestOptions = {} } = options;
-
+        this.state.numTries += 1
         return new Promise((resolve, reject) => {
             
             const options: any = {
@@ -115,6 +117,8 @@ class FileDownload extends EventEmitter
             // In case the request itself fails --------------------------------
             // downloadRequest.on("error", reject)
             downloadRequest.on("error", error => {
+                console.log('error in FD')
+
                 this.state.error = error
                 reject(error)
             })
@@ -126,9 +130,14 @@ class FileDownload extends EventEmitter
 
             // Everything else happens after we get a response -----------------
             downloadRequest.on("response", res => {
+                console.log('response')
                 
                 // In case we get an error response ----------------------------
                 if (res.statusCode >= 400) {
+                    console.log('error code: ', res.statusCode)
+                    if (res.statusCode === 500 && this.state.numTries < 3) { 
+                        return wait(500, signal).then(() => this.run())
+                    }
                     return reject(new FileDownloadError({
                         fileUrl         : this.url,
                         body            : res.body,

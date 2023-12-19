@@ -14,6 +14,7 @@ class FileDownload extends events_1.default {
         super();
         this.url = url;
         this.state = {
+            numTries: 0,
             downloadedChunks: 0,
             downloadedBytes: 0,
             uncompressedBytes: 0,
@@ -33,6 +34,7 @@ class FileDownload extends events_1.default {
      */
     run(options = {}) {
         const { signal, accessToken, requestOptions = {} } = options;
+        this.state.numTries += 1;
         return new Promise((resolve, reject) => {
             const options = {
                 ...requestOptions,
@@ -64,6 +66,7 @@ class FileDownload extends events_1.default {
             // In case the request itself fails --------------------------------
             // downloadRequest.on("error", reject)
             downloadRequest.on("error", error => {
+                console.log('error in FD');
                 this.state.error = error;
                 reject(error);
             });
@@ -73,8 +76,13 @@ class FileDownload extends events_1.default {
             });
             // Everything else happens after we get a response -----------------
             downloadRequest.on("response", res => {
+                console.log('response');
                 // In case we get an error response ----------------------------
                 if (res.statusCode >= 400) {
+                    console.log('error code: ', res.statusCode);
+                    if (res.statusCode === 500 && this.state.numTries < 3) {
+                        return (0, utils_1.wait)(500, signal).then(() => this.run());
+                    }
                     return reject(new errors_1.FileDownloadError({
                         fileUrl: this.url,
                         body: res.body,
