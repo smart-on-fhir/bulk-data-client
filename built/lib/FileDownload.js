@@ -27,6 +27,9 @@ class FileDownload extends events_1.default {
     emit(eventName, ...args) {
         return super.emit(eventName, this.getState(), ...args);
     }
+    shouldRetry(res) {
+        return res.statusCode === 500 && this.state.numTries < 3;
+    }
     /**
      * The actual request will be made immediately but the returned stream will
      * be in paused state. Pipe it to some destination and unpause to actually
@@ -66,7 +69,6 @@ class FileDownload extends events_1.default {
             // In case the request itself fails --------------------------------
             // downloadRequest.on("error", reject)
             downloadRequest.on("error", error => {
-                console.log('error in FD');
                 this.state.error = error;
                 reject(error);
             });
@@ -79,9 +81,18 @@ class FileDownload extends events_1.default {
                 console.log('response');
                 // In case we get an error response ----------------------------
                 if (res.statusCode >= 400) {
-                    console.log('error code: ', res.statusCode);
-                    if (res.statusCode === 500 && this.state.numTries < 3) {
-                        return (0, utils_1.wait)(500, signal).then(() => this.run());
+                    if (this.shouldRetry(res)) {
+                        //////////////////// 
+                        //TEMP 
+                        console.log('RETRYING for: ', this.url);
+                        console.log('this.state.numTries', this.state.numTries);
+                        //TEMP 
+                        ////////////////////
+                        return resolve((0, utils_1.wait)(2000, signal).then(() => {
+                            // Destroy this current request before making another one
+                            downloadRequest.destroy();
+                            return this.run();
+                        }));
                     }
                     return reject(new errors_1.FileDownloadError({
                         fileUrl: this.url,
@@ -95,6 +106,7 @@ class FileDownload extends events_1.default {
                 res.pipe(decompress);
                 // Count uncompressed bytes ------------------------------------
                 decompress.on("data", (data) => {
+                    console.log("data");
                     this.state.uncompressedBytes += data.length;
                     this.emit("progress");
                 });

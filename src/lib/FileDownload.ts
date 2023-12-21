@@ -67,6 +67,10 @@ class FileDownload extends EventEmitter
         return super.emit(eventName, this.getState(), ...args)
     }
 
+    private shouldRetry(res) {
+        return res.statusCode === 500 && this.state.numTries < 3
+    }
+
     /**
      * The actual request will be made immediately but the returned stream will
      * be in paused state. Pipe it to some destination and unpause to actually
@@ -117,8 +121,6 @@ class FileDownload extends EventEmitter
             // In case the request itself fails --------------------------------
             // downloadRequest.on("error", reject)
             downloadRequest.on("error", error => {
-                console.log('error in FD')
-
                 this.state.error = error
                 reject(error)
             })
@@ -134,9 +136,18 @@ class FileDownload extends EventEmitter
                 
                 // In case we get an error response ----------------------------
                 if (res.statusCode >= 400) {
-                    console.log('error code: ', res.statusCode)
-                    if (res.statusCode === 500 && this.state.numTries < 3) { 
-                        return wait(500, signal).then(() => this.run())
+                    if (this.shouldRetry(res)) {
+                        //////////////////// 
+                        //TEMP 
+                        console.log('RETRYING for: ', this.url)
+                        console.log('this.state.numTries', this.state.numTries)
+                        //TEMP 
+                        ////////////////////
+                        return resolve(wait(2000, signal).then(() => {
+                            // Destroy this current request before making another one
+                            downloadRequest.destroy()
+                            return this.run()
+                        }))
                     }
                     return reject(new FileDownloadError({
                         fileUrl         : this.url,
@@ -152,6 +163,7 @@ class FileDownload extends EventEmitter
                 
                 // Count uncompressed bytes ------------------------------------
                 decompress.on("data", (data: string) => {
+                    console.log("data")
                     this.state.uncompressedBytes += data.length
                     this.emit("progress")
                 });
