@@ -314,4 +314,16 @@
     * NOTE: When an empty array is specified, an empty object of responseHeaders will be returned
     */
     logResponseHeaders: 'all',
+
+    /**
+     * Maximum number of times a file download will be retried 
+     * Applies to FileDownloads and to bulk-client's attachment downloads
+     */
+    fileDownloadMaxRetries: 3,
+
+    /**
+     * How long to wait in between file download attempts, in milliseconds
+     * Applies to FileDownloads and to bulk-client's attachment downloads
+     */
+    fileDownloadRetryAfterMSec: 1000,
 }

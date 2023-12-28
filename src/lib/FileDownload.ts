@@ -2,12 +2,12 @@ import util                   from "util"
 import { Readable }           from "stream"
 import EventEmitter           from "events"
 import request                from "./request"
-import { createDecompressor, wait } from "./utils"
+import { createDecompressor, fileDownloadDelay, wait } from "./utils"
 import { FileDownloadError }  from "./errors"
 import {
     Options,
     OptionsOfUnknownResponseBody,
-    Response
+    Response,
 } from "got/dist/source"
 
 
@@ -24,9 +24,11 @@ export interface FileDownloadState {
 }
 
 export interface FileDownloadOptions {
-    signal        ?: AbortSignal
-    accessToken   ?: string
-    requestOptions?: OptionsOfUnknownResponseBody
+    signal          ?: AbortSignal
+    accessToken     ?: string
+    requestOptions  ?: OptionsOfUnknownResponseBody
+    maxRetries      ?: number,
+    retryAfterMSec  ?: number,
 }
 
 export interface FileDownloadEvents {
@@ -67,8 +69,21 @@ class FileDownload extends EventEmitter
         return super.emit(eventName, this.getState(), ...args)
     }
 
-    private shouldRetry(res) {
-        return res.statusCode === 500 && this.state.numTries < 3
+    private shouldRetry(res: Response, maxRetries: number) {
+        // Lifted from Got https://github.com/sindresorhus/got/blob/2b1482ca847867cbf24abde4d68e8063611e50d1/source/index.ts#L18
+        const STATUSES_TO_RETRY = [
+            408,
+            413,
+            429,
+            500,
+            502,
+            503,
+            504,
+            521,
+            522,
+            524
+        ]
+        return this.state.numTries < maxRetries && STATUSES_TO_RETRY.includes(res.statusCode)
     }
 
     /**
@@ -78,7 +93,7 @@ class FileDownload extends EventEmitter
      */
     public run(options: FileDownloadOptions = {}): Promise<Readable>
     {
-        const { signal, accessToken, requestOptions = {} } = options;
+        const { signal, accessToken, requestOptions = {}, maxRetries = 3, retryAfterMSec = 100} = options;
         this.state.numTries += 1
         return new Promise((resolve, reject) => {
             
@@ -132,18 +147,11 @@ class FileDownload extends EventEmitter
 
             // Everything else happens after we get a response -----------------
             downloadRequest.on("response", res => {
-                console.log('response')
-                
                 // In case we get an error response ----------------------------
                 if (res.statusCode >= 400) {
-                    if (this.shouldRetry(res)) {
-                        //////////////////// 
-                        //TEMP 
-                        console.log('RETRYING for: ', this.url)
-                        console.log('this.state.numTries', this.state.numTries)
-                        //TEMP 
-                        ////////////////////
-                        return resolve(wait(2000, signal).then(() => {
+                    if (this.shouldRetry(res, maxRetries)) {
+                        // Time to wait is a function of the number of tries and the config-defined time to wait
+                        return resolve(wait(fileDownloadDelay(this.state.numTries, retryAfterMSec), signal).then(() => {
                             // Destroy this current request before making another one
                             downloadRequest.destroy()
                             return this.run()
@@ -163,7 +171,6 @@ class FileDownload extends EventEmitter
                 
                 // Count uncompressed bytes ------------------------------------
                 decompress.on("data", (data: string) => {
-                    console.log("data")
                     this.state.uncompressedBytes += data.length
                     this.emit("progress")
                 });
@@ -177,7 +184,6 @@ class FileDownload extends EventEmitter
 
                 resolve(decompress)
             });
-
             downloadRequest.resume();
         })
     }

@@ -21,6 +21,7 @@ import { FileDownloadError }            from "./errors"
 import {
     assert,
     fhirInstant,
+    fileDownloadDelay,
     filterResponseHeaders,
     formatDuration,
     getAccessTokenExpiration,
@@ -718,8 +719,10 @@ class BulkDataClient extends EventEmitter
         // Start the download (the stream will be paused though)
         let downloadStream: Readable = await download.run({
             accessToken,
-            signal: this.abortController.signal,
-            requestOptions: this.options.requests
+            signal          : this.abortController.signal,
+            requestOptions  : this.options.requests,
+            maxRetries      : this.options.fileDownloadMaxRetries, 
+            retryAfterMSec  : this.options.fileDownloadRetryAfterMSec,
         })
         .catch(e => {
             if (e instanceof FileDownloadError) {
@@ -769,7 +772,14 @@ class BulkDataClient extends EventEmitter
                         itemType    : "attachment",
                         resourceType: null
                     })
-                    return this.request(options, "Attachment")
+                    return this.request({
+                        ...options, 
+                        // Define custom retry args based on config file
+                        retry: {
+                            limit: this.options.fileDownloadMaxRetries,
+                            calculateDelay: ({attemptCount}) => fileDownloadDelay(attemptCount, this.options.fileDownloadRetryAfterMSec)
+                        } 
+                    }, "Attachment")
                 },
                 onDownloadComplete: (url, byteSize) => {
                     this.emit("downloadComplete", {

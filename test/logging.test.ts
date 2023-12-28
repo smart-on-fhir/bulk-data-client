@@ -662,7 +662,6 @@ describe('Logging', function () {
 
             const { log } = await invoke()
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
-            // console.log(logs)
             const entries = logs.filter(e => e.eventId === "download_request" && e.eventDetail.fileUrl === mockServer.baseUrl + "/downloads/file1")
             expect(
                 entries.length,
@@ -793,7 +792,7 @@ describe('Logging', function () {
 
             mockServer.mock("/document.pdf", { status: 500, headers: {'x-debugging-header': "someValue"} })
 
-            const { log } = await invoke()
+            const { log } = await invoke({options: {fileDownloadRetryAfterMSec: 100, fileDownloadMaxRetries: 2}})
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
             const entry = logs.find(l => l.eventId === "download_error")
             expect(entry).to.exist()

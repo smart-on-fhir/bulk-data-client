@@ -446,3 +446,13 @@ export function filterResponseHeaders(headers: Types.ResponseHeaders, selectedHe
             return matchedHeaders
         }, {})
 }
+
+/**
+ * An exponential backoff delay function for file-download retries
+ * @param attemptCount The number attempt we're on
+ * @param delay Minimum time to wait between requests
+ * @returns the number of milliseconds to wait before the next request
+ */
+export function fileDownloadDelay(attemptCount: number, delay: number = 1000) {
+    return delay * Math.pow(2, attemptCount - 1) + Math.random() * 100
+}

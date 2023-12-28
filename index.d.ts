@@ -493,6 +493,18 @@ export declare namespace BulkDataClient {
         * NOTE: When an empty array is specified, an empty object of responseHeaders will be returned
         */
         logResponseHeaders: "all" | "none" | string | RegExp | (string | RegExp)[]
+
+        /**
+         * Maximum number of times a file download will be retried 
+         * Applies to FileDownloads and to bulk-client's attachment downloads
+         */
+        fileDownloadMaxRetries: number,
+
+        /**
+         * How long to wait in between file download attempts, in milliseconds
+         * Applies to FileDownloads and to bulk-client's attachment downloads
+         */
+        fileDownloadRetryAfterMSec: number,
     }
 
     interface JWK {

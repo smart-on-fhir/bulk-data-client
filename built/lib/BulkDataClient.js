@@ -509,7 +509,9 @@ class BulkDataClient extends events_1.EventEmitter {
         let downloadStream = await download.run({
             accessToken,
             signal: this.abortController.signal,
-            requestOptions: this.options.requests
+            requestOptions: this.options.requests,
+            maxRetries: this.options.fileDownloadMaxRetries,
+            retryAfterMSec: this.options.fileDownloadRetryAfterMSec,
         })
             .catch(e => {
             if (e instanceof errors_1.FileDownloadError) {
@@ -561,7 +563,14 @@ class BulkDataClient extends events_1.EventEmitter {
                         itemType: "attachment",
                         resourceType: null
                     });
-                    return this.request(options, "Attachment");
+                    return this.request({
+                        ...options,
+                        // Define custom retry args based on config file
+                        retry: {
+                            limit: this.options.fileDownloadMaxRetries,
+                            calculateDelay: ({ attemptCount }) => (0, utils_1.fileDownloadDelay)(attemptCount, this.options.fileDownloadRetryAfterMSec)
+                        }
+                    }, "Attachment");
                 },
                 onDownloadComplete: (url, byteSize) => {
                     this.emit("downloadComplete", {
