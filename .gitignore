@@ -108,3 +108,4 @@ config/*
 !.gitkeep
 !config/defaults.js
 .DS_Store
+.vscode
