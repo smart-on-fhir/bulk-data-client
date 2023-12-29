@@ -646,11 +646,15 @@ describe('Logging', function () {
                     numTries += 1 
                     // Simulate 404 for downloads/file1.json with some response headers
                     if (numTries <= 1) { 
+                        console.log('failure')
+                        console.log(numTries)
                         res.status(404)
                         res.set("x-debugging-header", "someValue")
                         res.end('')
                     } else { 
                         // Succeed on the second request
+                        console.log('success')
+                        console.log(numTries)
                         res.status(200)
                         res.set("x-debugging-header", "someValue")
                         res.set("content-type", "application/fhir+ndjson")
@@ -662,14 +666,24 @@ describe('Logging', function () {
 
             const { log } = await invoke()
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
-            const entries = logs.filter(e => e.eventId === "download_request" && e.eventDetail.fileUrl === mockServer.baseUrl + "/downloads/file1")
+            console.log(logs)
+            const entries = logs.filter(e => e.eventId === "download_request" && e.eventDetail.fileUrl === mockServer.baseUrl + "/downloads/file1.json")
             expect(
                 entries.length,
-                'download_request should be logged once for "/downloads/file1"'
-            ).to.equal(1)
-            expect(entries[0].eventDetail.fileUrl).to.equal(mockServer.baseUrl + "/downloads/file1")
-            expect(entries[0].eventDetail.itemType).to.equal("output")
-            expect(entries[0].eventDetail.resourceType).to.equal("Patient")
+                'download_request should be logged twice for "/downloads/file1.json"'
+            ).to.equal(2)
+            // FAILURE
+            expect(entries[0].eventDetail.fileUrl).to.equal(mockServer.baseUrl + "/downloads/file1.json")
+            expect(entries[0].eventDetail.body).to.equal(null)
+            expect(entries[0].eventDetail.message).to.equal(
+                `Downloading the file from ${mockServer.baseUrl}/downloads/file1.json returned HTTP status code 404.`
+            )
+            expect(entries[0].eventDetail.responseHeaders).to.be.object()
+            expect(entries[0].eventDetail.responseHeaders).to.include({"x-debugging-header": "someValue"})
+            // SUCCESS 
+            expect(entries[1].eventDetail.fileUrl).to.equal(mockServer.baseUrl + "/downloads/file1.json")
+            expect(entries[1].eventDetail.itemType).to.equal("output")
+            expect(entries[1].eventDetail.resourceType).to.equal("Patient")
         })
 
         it ("logs download_error events on invalid file contents", async () => {
