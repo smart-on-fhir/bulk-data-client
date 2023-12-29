@@ -133,7 +133,11 @@ The Bulk Data Client uses `js` configuration files, but you can think of them as
 - *string* **`log.file`** - Path to the log file. Absolute, or relative to process CWD. If not provided, the file will be called log.ndjson and will be stored in the downloads folder.
 - *object* **`log.metadata`** - Key/value pairs to be added to every log entry. Can be used to add useful information (for example which site imported this data).
 - *number* **`retryAfterMSec`** - If the server does not provide `Retry-after` header use this number of milliseconds before checking the status again.
-
+- *complex* **`logResponseHeaders`** - ResponseHeaders to include in error logs for debugging purposes.     
+  - As for the complex type, valid values are `"all" | "none" | string | RegExp | (string | RegExp)[]`
+  - When `"all"` is specified, all responseHeaders are returned. When `"none"` is specified, no responseHeaders are returned. Otherwise, log any responseHeaders matches against 1...* strings/regexp 
+- *number* **`fileDownloadMaxRetries`** - Maximum number of times a file download will be retried 
+- *number* **`fileDownloadRetryAfterMSec`** - How long to wait in between file download attempts, in milliseconds
 
 ### Environment Variables
 There are two environment that can be passed to the client to modify it's behavior.
