@@ -19,7 +19,7 @@
     /**
      * The Bulk Data server token URL ("none" for open servers)
      */
-    tokenUrl: "",
+    tokenUrl: "none",
  
     /**
      * The private key (JWK) used to sign authentication tokens. This is not
