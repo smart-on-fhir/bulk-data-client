@@ -29,7 +29,7 @@ node . --_since 2010-03 --_type Patient, Observations
 
 Patient-level export with debugging information printed to the console
 ```sh
-NODE_DEBUG=app-request; node . -f https://builk-data.smarthealthit.org/fhir 
+export NODE_DEBUG=app-request; node . -f https://builk-data.smarthealthit.org/fhir 
 ```
 
 For more options see the CLI parameters and configuration options below.
