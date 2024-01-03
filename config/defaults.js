@@ -306,10 +306,4 @@
      * Applies to FileDownloads and to bulk-client's attachment downloads
      */
     fileDownloadMaxRetries: 3,
-
-    /**
-     * How long to wait in between file download attempts, in milliseconds
-     * Applies to FileDownloads and to bulk-client's attachment downloads
-    */
-    fileDownloadRetryAfterMSec: 1000,
 }

@@ -511,7 +511,6 @@ class BulkDataClient extends events_1.EventEmitter {
             signal: this.abortController.signal,
             requestOptions: this.options.requests,
             maxRetries: this.options.fileDownloadMaxRetries,
-            retryAfterMSec: this.options.fileDownloadRetryAfterMSec,
         })
             .catch(e => {
             if (e instanceof errors_1.FileDownloadError) {
@@ -567,8 +566,8 @@ class BulkDataClient extends events_1.EventEmitter {
                         ...options,
                         // Define custom retry args based on config file
                         retry: {
+                            // TODO: Merge with any options.retry 
                             limit: this.options.fileDownloadMaxRetries,
-                            calculateDelay: ({ attemptCount }) => (0, utils_1.fileDownloadDelay)(attemptCount, this.options.fileDownloadRetryAfterMSec)
                         }
                     }, "Attachment");
                 },

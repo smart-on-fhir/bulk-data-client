@@ -70,20 +70,8 @@ class FileDownload extends EventEmitter
     }
 
     private shouldRetry(res: Response, maxRetries: number) {
-        // Lifted from Got https://github.com/sindresorhus/got/blob/2b1482ca847867cbf24abde4d68e8063611e50d1/source/index.ts#L18
-        const STATUSES_TO_RETRY = [
-            408,
-            413,
-            429,
-            500,
-            502,
-            503,
-            504,
-            521,
-            522,
-            524
-        ]
-        return this.state.numTries < maxRetries && STATUSES_TO_RETRY.includes(res.statusCode)
+        const { statusCodes } = res.request.options.retry
+        return this.state.numTries < maxRetries && statusCodes.includes(res.statusCode)
     }
 
     /**
@@ -147,16 +135,17 @@ class FileDownload extends EventEmitter
 
             // Everything else happens after we get a response -----------------
             downloadRequest.on("response", res => {
+                // If the response should trigger a retry
+                if (this.shouldRetry(res, maxRetries)) {
+                    // Time to wait is a function of the number of tries and the config-defined time to wait
+                    return resolve(wait(fileDownloadDelay(this.state.numTries, retryAfterMSec), signal).then(() => {
+                        // Destroy this current request before making another one
+                        downloadRequest.destroy()
+                        return this.run()
+                    }))
+                }
                 // In case we get an error response ----------------------------
                 if (res.statusCode >= 400) {
-                    if (this.shouldRetry(res, maxRetries)) {
-                        // Time to wait is a function of the number of tries and the config-defined time to wait
-                        return resolve(wait(fileDownloadDelay(this.state.numTries, retryAfterMSec), signal).then(() => {
-                            // Destroy this current request before making another one
-                            downloadRequest.destroy()
-                            return this.run()
-                        }))
-                    }
                     return reject(new FileDownloadError({
                         fileUrl         : this.url,
                         body            : res.body,

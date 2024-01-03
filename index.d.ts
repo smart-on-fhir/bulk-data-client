@@ -499,12 +499,6 @@ export declare namespace BulkDataClient {
          * Applies to FileDownloads and to bulk-client's attachment downloads
          */
         fileDownloadMaxRetries: number,
-
-        /**
-         * How long to wait in between file download attempts, in milliseconds
-         * Applies to FileDownloads and to bulk-client's attachment downloads
-         */
-        fileDownloadRetryAfterMSec: number,
     }
 
     interface JWK {

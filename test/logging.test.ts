@@ -798,7 +798,7 @@ describe('Logging', function () {
 
             mockServer.mock("/document.pdf", { status: 502, headers: {'x-debugging-header': "someValue"} })
 
-            const { log } = await invoke({options: {fileDownloadRetryAfterMSec: 100, fileDownloadMaxRetries: 2}})
+            const { log } = await invoke({options: {fileDownloadMaxRetries: 2}})
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
             const entry = logs.find(l => l.eventId === "download_error")
             expect(entry).to.exist()

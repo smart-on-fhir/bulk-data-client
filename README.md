@@ -142,7 +142,6 @@ The Bulk Data Client uses `js` configuration files, but you can think of them as
   - As for the complex type, valid values are `"all" | "none" | string | RegExp | (string | RegExp)[]`
   - When `"all"` is specified, all responseHeaders are returned. When `"none"` is specified, no responseHeaders are returned. Otherwise, log any responseHeaders matches against 1...* strings/regexp 
 - *number* **`fileDownloadMaxRetries`** - Maximum number of times a file download will be retried 
-- *number* **`fileDownloadRetryAfterMSec`** - How long to wait in between file download attempts, in milliseconds
 
 ### Environment Variables
 There are two environment that can be passed to the client to modify it's behavior.
