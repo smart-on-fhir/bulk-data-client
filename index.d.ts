@@ -1,4 +1,4 @@
-import { OptionsOfUnknownResponseBody } from "got/dist/source";
+import { OptionsOfUnknownResponseBody, RequiredRetryOptions } from "got/dist/source";
 import { Algorithm } from "jsonwebtoken"
 import jose from "node-jose"
 
@@ -225,7 +225,16 @@ export declare namespace BulkDataClient {
         * Otherwise, log any responseHeaders matches against 1...* strings/regexp 
         * NOTE: When an empty array is specified, an empty object of responseHeaders will be returned
         */
-        logResponseHeaders: "all" | "none" | string | RegExp | (string | RegExp)[]
+        logResponseHeaders: "all" | "none" | string | RegExp | (string | RegExp)[],
+
+        /**
+         * A got retry configuration object, determining retry behavior when downloading files. 
+         * For most scenarios, an object with only a `limit`: `number` property will be sufficient. 
+         * This determines how many times a file download will be retried before failing. 
+         * Each subsequent attempt will delay using exponential backoff.
+         * For more options and details, see [https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md](https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md).
+         */
+        fileDownloadRetry: Partial<RequiredRetryOptions>,
     }
 
     interface LoggingOptions
@@ -495,10 +504,13 @@ export declare namespace BulkDataClient {
         logResponseHeaders: "all" | "none" | string | RegExp | (string | RegExp)[]
 
         /**
-         * Maximum number of times a file download will be retried 
-         * Applies to FileDownloads and to bulk-client's attachment downloads
+         * A got retry configuration object, determining retry behavior when downloading files. 
+         * For most scenarios, an object with only a `limit`: `number` property will be sufficient. 
+         * This determines how many times a file download will be retried before failing. 
+         * Each subsequent attempt will delay using exponential backoff.
+         * For more options and details, see [https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md](https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md).
          */
-        fileDownloadMaxRetries: number,
+        fileDownloadRetry: Partial<RequiredRetryOptions>,
     }
 
     interface JWK {

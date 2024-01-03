@@ -302,8 +302,11 @@
     logResponseHeaders: 'all',
 
     /**
-     * Maximum number of times a file download will be retried 
+     * Retry argument for file download
+     * // TODO FIX
      * Applies to FileDownloads and to bulk-client's attachment downloads
      */
-    fileDownloadMaxRetries: 3,
+    fileDownloadRetry: {
+        limit: 3,
+    },
 }

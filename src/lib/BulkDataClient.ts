@@ -719,9 +719,9 @@ class BulkDataClient extends EventEmitter
         // Start the download (the stream will be paused though)
         let downloadStream: Readable = await download.run({
             accessToken,
-            signal          : this.abortController.signal,
-            requestOptions  : this.options.requests,
-            maxRetries      : this.options.fileDownloadMaxRetries, 
+            signal              : this.abortController.signal,
+            requestOptions      : this.options.requests,
+            fileDownloadRetry   : this.options.fileDownloadRetry,
         })
         .catch(e => {
             if (e instanceof FileDownloadError) {
@@ -774,10 +774,7 @@ class BulkDataClient extends EventEmitter
                     return this.request({
                         ...options, 
                         // Define custom retry args based on config file
-                        retry: {
-                            // TODO: Merge with any options.retry 
-                            limit: this.options.fileDownloadMaxRetries,
-                        } 
+                        retry: this.options.fileDownloadRetry,
                     }, "Attachment")
                 },
                 onDownloadComplete: (url, byteSize) => {

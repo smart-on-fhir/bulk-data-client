@@ -646,15 +646,11 @@ describe('Logging', function () {
                     numTries += 1 
                     // Simulate 502 for downloads/file1.json with some response headers
                     if (numTries <= 1) { 
-                        console.log('failure')
-                        console.log(numTries)
                         res.status(502)
                         res.set("x-debugging-header", "someValue")
                         res.end('')
                     } else { 
                         // Succeed on the second request
-                        console.log('success')
-                        console.log(numTries)
                         res.status(200)
                         res.set("x-debugging-header", "someValue")
                         res.set("content-type", "application/fhir+ndjson")
@@ -798,14 +794,14 @@ describe('Logging', function () {
 
             mockServer.mock("/document.pdf", { status: 502, headers: {'x-debugging-header': "someValue"} })
 
-            const { log } = await invoke({options: {fileDownloadMaxRetries: 2}})
+            const { log } = await invoke({options: {fileDownloadRetry: {limit: 2}}})
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
             const entry = logs.find(l => l.eventId === "download_error")
             expect(entry).to.exist()
             expect(entry.eventDetail.fileUrl).to.equal(mockServer.baseUrl + "/document.pdf")
             expect(entry.eventDetail.body).to.equal(null)
             expect(entry.eventDetail.message).to.equal(
-                `Downloading the file from ${mockServer.baseUrl}/document.pdf returned HTTP status code 500.`
+                `Downloading the file from ${mockServer.baseUrl}/document.pdf returned HTTP status code 502.`
             )
             expect(entry.eventDetail.responseHeaders).to.include({"x-debugging-header": "someValue"})
         })  

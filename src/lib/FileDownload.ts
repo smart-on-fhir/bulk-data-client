@@ -24,10 +24,10 @@ export interface FileDownloadState {
 }
 
 export interface FileDownloadOptions {
-    signal          ?: AbortSignal
-    accessToken     ?: string
-    requestOptions  ?: OptionsOfUnknownResponseBody
-    maxRetries      ?: number,
+    signal              ?: AbortSignal
+    accessToken         ?: string
+    requestOptions      ?: OptionsOfUnknownResponseBody
+    fileDownloadRetry   ?: object,
 }
 
 export interface FileDownloadEvents {
@@ -68,9 +68,9 @@ class FileDownload extends EventEmitter
         return super.emit(eventName, this.getState(), ...args)
     }
 
-    private shouldRetry(res: Response, maxRetries: number) {
-        const { statusCodes } = res.request.options.retry
-        return this.state.numTries < maxRetries && statusCodes.includes(res.statusCode)
+    private shouldRetry(res: Response) {
+        const { limit, statusCodes } = res.request.options.retry
+        return this.state.numTries < limit && statusCodes.includes(res.statusCode)
     }
 
     /**
@@ -80,12 +80,22 @@ class FileDownload extends EventEmitter
      */
     public run(options: FileDownloadOptions = {}): Promise<Readable>
     {
-        const { signal, accessToken, requestOptions = {}, maxRetries = 3} = options;
+        const { signal, accessToken, requestOptions = {}, fileDownloadRetry} = options;
         this.state.numTries += 1
         return new Promise((resolve, reject) => {
-            
-            const options: any = {
+            // To merge requestOptions.retry and fileDownloadRetry, we handle the cases where options could be 
+            // a number or an object
+            let retryOption = requestOptions.retry
+            if (typeof(retryOption) === "number") {
+                // When the retry option is a number, always go with the fileDownloadRetry value
+                retryOption = fileDownloadRetry
+            } else { 
+                // When retry is an object, we should merge the two, with fileDownloadReady taking precedence
+                retryOption = { ...retryOption, ...fileDownloadRetry}
+            }
+            const localOptions: any = {
                 ...requestOptions,
+                retry: retryOption,
                 decompress: false,
                 responseType: "buffer",
                 throwHttpErrors: false,
@@ -96,14 +106,14 @@ class FileDownload extends EventEmitter
             }
 
             if (accessToken) {
-                options.headers.authorization = `Bearer ${accessToken}`
+                localOptions.headers.authorization = `Bearer ${accessToken}`
             }
 
-            this.state.requestOptions = { ...options, url: this.url }
+            this.state.requestOptions = { ...localOptions, url: this.url }
 
             this.emit("start")
 
-            const downloadRequest = request.stream(this.url, options)
+            const downloadRequest = request.stream(this.url, localOptions)
 
             if (signal) {
                 const abort = () => {
@@ -133,21 +143,24 @@ class FileDownload extends EventEmitter
             });
 
             // Everything else happens after we get a response -----------------
-            downloadRequest.on("response", res => {
+            downloadRequest.on("response", (res: Response) => {
                 // If the response should trigger a retry
-                if (this.shouldRetry(res, maxRetries)) {
-                    // Time to wait is a function of the number of tries and the config-defined time to wait
-                    // TODO: USE RETRY CALCULATE DELAY FN?
-                    return resolve(wait(fileDownloadDelay(this.state.numTries), signal).then(() => {
+                if (this.shouldRetry(res)) {
+                    // TODO: USE RETRY CALCULATE DELAY FN? Find a better way of calculating this
+                    // const { calculateDelay } = res.request.options.retry
+                    const delay = fileDownloadDelay(this.state.numTries)
+                    debug(`delay: ${delay}`)
+                    return resolve(wait(delay, signal).then(() => {
                         // Destroy this current request before making another one
                         downloadRequest.destroy()
-                        return this.run()
+                        return this.run(options)
                     }))
                 }
                 // In case we get an error response ----------------------------
                 if (res.statusCode >= 400) {
                     return reject(new FileDownloadError({
                         fileUrl         : this.url,
+                        // @ts-ignore
                         body            : res.body,
                         responseHeaders : res.headers,
                         code            : res.statusCode
