@@ -37,7 +37,7 @@ class FileDownload extends events_1.default {
      * "consume" the downloaded data.
      */
     run(options = {}) {
-        const { signal, accessToken, requestOptions = {}, maxRetries = 3, retryAfterMSec = 100 } = options;
+        const { signal, accessToken, requestOptions = {}, maxRetries = 3 } = options;
         this.state.numTries += 1;
         return new Promise((resolve, reject) => {
             const options = {
@@ -82,7 +82,8 @@ class FileDownload extends events_1.default {
                 // If the response should trigger a retry
                 if (this.shouldRetry(res, maxRetries)) {
                     // Time to wait is a function of the number of tries and the config-defined time to wait
-                    return resolve((0, utils_1.wait)((0, utils_1.fileDownloadDelay)(this.state.numTries, retryAfterMSec), signal).then(() => {
+                    // TODO: USE RETRY CALCULATE DELAY FN?
+                    return resolve((0, utils_1.wait)((0, utils_1.fileDownloadDelay)(this.state.numTries), signal).then(() => {
                         // Destroy this current request before making another one
                         downloadRequest.destroy();
                         return this.run();

@@ -28,7 +28,6 @@ export interface FileDownloadOptions {
     accessToken     ?: string
     requestOptions  ?: OptionsOfUnknownResponseBody
     maxRetries      ?: number,
-    retryAfterMSec  ?: number,
 }
 
 export interface FileDownloadEvents {
@@ -81,7 +80,7 @@ class FileDownload extends EventEmitter
      */
     public run(options: FileDownloadOptions = {}): Promise<Readable>
     {
-        const { signal, accessToken, requestOptions = {}, maxRetries = 3, retryAfterMSec = 100} = options;
+        const { signal, accessToken, requestOptions = {}, maxRetries = 3} = options;
         this.state.numTries += 1
         return new Promise((resolve, reject) => {
             
@@ -138,7 +137,8 @@ class FileDownload extends EventEmitter
                 // If the response should trigger a retry
                 if (this.shouldRetry(res, maxRetries)) {
                     // Time to wait is a function of the number of tries and the config-defined time to wait
-                    return resolve(wait(fileDownloadDelay(this.state.numTries, retryAfterMSec), signal).then(() => {
+                    // TODO: USE RETRY CALCULATE DELAY FN?
+                    return resolve(wait(fileDownloadDelay(this.state.numTries), signal).then(() => {
                         // Destroy this current request before making another one
                         downloadRequest.destroy()
                         return this.run()
