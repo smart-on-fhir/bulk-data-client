@@ -302,11 +302,13 @@
     logResponseHeaders: 'all',
 
     /**
-     * Retry argument for file download
-     * // TODO FIX
-     * Applies to FileDownloads and to bulk-client's attachment downloads
+     * A got retry configuration object, determining retry behavior when downloading files. 
+     * For most scenarios, an object with only a `limit`: `number` property will be sufficient. 
+     * This determines how many times a file download will be retried before failing. 
+     * Each subsequent attempt will delay using exponential backoff.
+     * For more options and details, see [https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md](https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md).
      */
     fileDownloadRetry: {
-        limit: 3,
+        limit: 5,
     },
 }
