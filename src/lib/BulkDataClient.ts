@@ -21,7 +21,6 @@ import { FileDownloadError }            from "./errors"
 import {
     assert,
     fhirInstant,
-    fileDownloadDelay,
     filterResponseHeaders,
     formatDuration,
     getAccessTokenExpiration,
