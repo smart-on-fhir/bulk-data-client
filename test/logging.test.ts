@@ -794,6 +794,7 @@ describe('Logging', function () {
 
             mockServer.mock("/document.pdf", { status: 500, headers: {'x-debugging-header': "someValue"} })
 
+            // Default limit of 5 attempts will run up against 10sec maximum execution time for test
             const { log } = await invoke({options: {fileDownloadRetry: {limit: 2}}})
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
             const entry = logs.find(l => l.eventId === "download_error")
