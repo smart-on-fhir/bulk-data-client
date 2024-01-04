@@ -772,7 +772,7 @@ class BulkDataClient extends EventEmitter
                     })
                     return this.request({
                         ...options, 
-                        // Define custom retry args based on config file
+                        // Retry behavior should be the same as the fileDownloadRetry behavior
                         retry: this.options.fileDownloadRetry,
                     }, "Attachment")
                 },
