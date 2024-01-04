@@ -1,4 +1,4 @@
-import { OptionsOfUnknownResponseBody, RequiredRetryOptions } from "got/dist/source";
+import { OptionsOfUnknownResponseBody } from "got/dist/source";
 import { Algorithm } from "jsonwebtoken"
 import jose from "node-jose"
 
@@ -228,13 +228,18 @@ export declare namespace BulkDataClient {
         logResponseHeaders: "all" | "none" | string | RegExp | (string | RegExp)[],
 
         /**
-         * A got retry configuration object, determining retry behavior when downloading files. 
+         * A subset of got retry configuration object, determining retry behavior when downloading files. 
          * For most scenarios, an object with only a `limit`: `number` property will be sufficient. 
          * This determines how many times a file download will be retried before failing. 
-         * Each subsequent attempt will delay using exponential backoff.
+         * Each subsequent attempt will delay using an exponential backoff.
          * For more options and details, see [https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md](https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md).
          */
-        fileDownloadRetry: Partial<RequiredRetryOptions>,
+        fileDownloadRetry: {
+            limit?: number;         // The number of times to retry
+            methods?: Method[];     // The HTTP methods on which we should retry 
+            statusCodes?: number[]; // The status codes to retry on 
+            maxRetryAfter?: number; // The maximum amount of time we should wait to retry
+        },
     }
 
     interface LoggingOptions
@@ -504,13 +509,18 @@ export declare namespace BulkDataClient {
         logResponseHeaders: "all" | "none" | string | RegExp | (string | RegExp)[]
 
         /**
-         * A got retry configuration object, determining retry behavior when downloading files. 
+         * A subset of got retry configuration object, determining retry behavior when downloading files. 
          * For most scenarios, an object with only a `limit`: `number` property will be sufficient. 
          * This determines how many times a file download will be retried before failing. 
-         * Each subsequent attempt will delay using exponential backoff.
+         * Each subsequent attempt will delay using an exponential backoff.
          * For more options and details, see [https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md](https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md).
          */
-        fileDownloadRetry: Partial<RequiredRetryOptions>,
+        fileDownloadRetry: {
+            limit?: number;         // The number of times to retry
+            methods?: Method[];     // The HTTP methods on which we should retry 
+            statusCodes?: number[]; // The status codes to retry on 
+            maxRetryAfter?: number; // The maximum amount of time we should wait to retry
+        },
     }
 
     interface JWK {

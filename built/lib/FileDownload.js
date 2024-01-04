@@ -27,9 +27,36 @@ class FileDownload extends events_1.default {
     emit(eventName, ...args) {
         return super.emit(eventName, this.getState(), ...args);
     }
-    shouldRetry(res) {
-        const { limit, statusCodes } = res.request.options.retry;
-        return this.state.numTries < limit && statusCodes.includes(res.statusCode);
+    /**
+     * An exponential backoff delay function for file-download retries
+     * Based on got/dist/source/core/calculate-retry-delay.js
+     * This is only needed because GOT's support for stream retrying isn't working as needed for our version
+     * This may change with future versions of GOT
+     * @returns the number of milliseconds to wait before the next request; 0 if no retry is needed
+     */
+    // @ts-ignore
+    calculateRetryDelay({ attemptCount, retryOptions, response, retryAfter }) {
+        if (attemptCount > retryOptions.limit) {
+            return 0;
+        }
+        const hasMethod = retryOptions.methods.includes(response.request.options.method);
+        const hasStatusCode = retryOptions.statusCodes.includes(response.statusCode);
+        if (!hasMethod || !hasStatusCode) {
+            return 0;
+        }
+        if (retryAfter) {
+            if (retryOptions.maxRetryAfter === undefined || retryAfter > retryOptions.maxRetryAfter) {
+                return 0;
+            }
+            return retryAfter;
+        }
+        // 413 CONTENT TOO LARGE: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/413 
+        // No use in retrying, the server can't handle a request this large 
+        if (response.statusCode === 413) {
+            return 0;
+        }
+        const noise = Math.random() * 100;
+        return ((2 ** (attemptCount - 1)) * 1000) + noise;
     }
     /**
      * The actual request will be made immediately but the returned stream will
@@ -91,12 +118,12 @@ class FileDownload extends events_1.default {
             });
             // Everything else happens after we get a response -----------------
             downloadRequest.on("response", (res) => {
-                // If the response should trigger a retry
-                if (this.shouldRetry(res)) {
-                    // TODO: USE RETRY CALCULATE DELAY FN? Find a better way of calculating this
-                    // const { calculateDelay } = res.request.options.retry
-                    const delay = (0, utils_1.fileDownloadDelay)(this.state.numTries);
-                    debug(`delay: ${delay}`);
+                const delay = this.calculateRetryDelay({
+                    attemptCount: this.state.numTries,
+                    retryOptions: res.request.options.retry,
+                    response: res
+                });
+                if (delay > 0) {
                     return resolve((0, utils_1.wait)(delay, signal).then(() => {
                         // Destroy this current request before making another one
                         downloadRequest.destroy();

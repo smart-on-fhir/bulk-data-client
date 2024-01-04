@@ -4,7 +4,7 @@ import { URL }                        from "url"
 import moment                         from "moment"
 import prompt                         from "prompt-sync"
 import util                           from "util"
-import { HTTPError, Response }        from "got/dist/source"
+import { HTTPError, Response, RetryObject }        from "got/dist/source"
 import zlib                           from "zlib"
 import request                        from "./request"
 import { Transform }                  from "stream"
@@ -445,14 +445,4 @@ export function filterResponseHeaders(headers: Types.ResponseHeaders, selectedHe
             // If we don't find a selectedHeader that matches this header, we move on
             return matchedHeaders
         }, {})
-}
-
-/**
- * An exponential backoff delay function for file-download retries
- * @param attemptCount The number attempt we're on
- * @param delay Minimum time to wait between requests
- * @returns the number of milliseconds to wait before the next request
- */
-export function fileDownloadDelay(attemptCount: number, delay: number = 1000) {
-    return delay * Math.pow(2, attemptCount - 1) + Math.random() * 100
 }

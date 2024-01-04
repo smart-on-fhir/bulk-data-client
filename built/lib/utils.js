@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fileDownloadDelay = exports.filterResponseHeaders = exports.createDecompressor = exports.exit = exports.ask = exports.generateProgress = exports.fhirInstant = exports.assert = exports.humanFileSize = exports.getAccessTokenExpiration = exports.print = exports.formatDuration = exports.wait = exports.detectTokenUrl = exports.getTokenEndpointFromCapabilityStatement = exports.getTokenEndpointFromWellKnownSmartConfig = exports.getCapabilityStatement = exports.getWellKnownSmartConfig = void 0;
+exports.filterResponseHeaders = exports.createDecompressor = exports.exit = exports.ask = exports.generateProgress = exports.fhirInstant = exports.assert = exports.humanFileSize = exports.getAccessTokenExpiration = exports.print = exports.formatDuration = exports.wait = exports.detectTokenUrl = exports.getTokenEndpointFromCapabilityStatement = exports.getTokenEndpointFromWellKnownSmartConfig = exports.getCapabilityStatement = exports.getWellKnownSmartConfig = void 0;
 require("colors");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const url_1 = require("url");
@@ -394,13 +394,3 @@ function filterResponseHeaders(headers, selectedHeaders) {
     }, {});
 }
 exports.filterResponseHeaders = filterResponseHeaders;
-/**
- * An exponential backoff delay function for file-download retries
- * @param attemptCount The number attempt we're on
- * @param delay Minimum time to wait between requests
- * @returns the number of milliseconds to wait before the next request
- */
-function fileDownloadDelay(attemptCount, delay = 1000) {
-    return delay * Math.pow(2, attemptCount - 1) + Math.random() * 100;
-}
-exports.fileDownloadDelay = fileDownloadDelay;
