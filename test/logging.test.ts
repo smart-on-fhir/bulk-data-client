@@ -792,7 +792,7 @@ describe('Logging', function () {
                 }
             })
 
-            mockServer.mock("/document.pdf", { status: 502, headers: {'x-debugging-header': "someValue"} })
+            mockServer.mock("/document.pdf", { status: 500, headers: {'x-debugging-header': "someValue"} })
 
             const { log } = await invoke({options: {fileDownloadRetry: {limit: 2}}})
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
@@ -801,7 +801,7 @@ describe('Logging', function () {
             expect(entry.eventDetail.fileUrl).to.equal(mockServer.baseUrl + "/document.pdf")
             expect(entry.eventDetail.body).to.equal(null)
             expect(entry.eventDetail.message).to.equal(
-                `Downloading the file from ${mockServer.baseUrl}/document.pdf returned HTTP status code 502.`
+                `Downloading the file from ${mockServer.baseUrl}/document.pdf returned HTTP status code 500.`
             )
             expect(entry.eventDetail.responseHeaders).to.include({"x-debugging-header": "someValue"})
         })  
