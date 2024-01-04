@@ -34,7 +34,6 @@ class FileDownload extends events_1.default {
      * This may change with future versions of GOT
      * @returns the number of milliseconds to wait before the next request; 0 if no retry is needed
      */
-    // @ts-ignore
     calculateRetryDelay({ attemptCount, retryOptions, response, retryAfter }) {
         if (attemptCount > retryOptions.limit) {
             return 0;

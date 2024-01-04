@@ -77,7 +77,6 @@ class FileDownload extends EventEmitter
      * This may change with future versions of GOT
      * @returns the number of milliseconds to wait before the next request; 0 if no retry is needed
      */
-    // @ts-ignore
     private calculateRetryDelay({
         attemptCount, 
         retryOptions, 
