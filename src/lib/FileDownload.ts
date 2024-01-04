@@ -7,6 +7,7 @@ import { FileDownloadError }  from "./errors"
 import {
     Options,
     OptionsOfUnknownResponseBody,
+    RequiredRetryOptions,
     Response,
 } from "got/dist/source"
 
@@ -27,7 +28,7 @@ export interface FileDownloadOptions {
     signal              ?: AbortSignal
     accessToken         ?: string
     requestOptions      ?: OptionsOfUnknownResponseBody
-    fileDownloadRetry   ?: object,
+    fileDownloadRetry   ?: Partial<RequiredRetryOptions>,
 }
 
 export interface FileDownloadEvents {

@@ -141,7 +141,7 @@ The Bulk Data Client uses `js` configuration files, but you can think of them as
 - *complex* **`logResponseHeaders`** - ResponseHeaders to include in error logs for debugging purposes.     
   - As for the complex type, valid values are `"all" | "none" | string | RegExp | (string | RegExp)[]`
   - When `"all"` is specified, all responseHeaders are returned. When `"none"` is specified, no responseHeaders are returned. Otherwise, log any responseHeaders matches against 1...* strings/regexp 
-- *number* **`fileDownloadRetry`** - A got retry configuration object, determining retry behavior when downloading files. 
+- *object* **`fileDownloadRetry`** - A got retry configuration object, determining retry behavior when downloading files. 
   - For most scenarios, an object with only a `limit`: `number` property will be sufficient. This determines how many times a file download will be retried before failing. Each subsequent attempt will delay using exponential backoff.
   - For more options and details, see [https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md](https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md).
 
