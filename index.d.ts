@@ -1,4 +1,4 @@
-import { OptionsOfUnknownResponseBody } from "got/dist/source";
+import { Method, OptionsOfUnknownResponseBody } from "got/dist/source";
 import { Algorithm } from "jsonwebtoken"
 import jose from "node-jose"
 
