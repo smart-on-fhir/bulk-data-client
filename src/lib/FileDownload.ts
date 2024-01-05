@@ -188,11 +188,11 @@ class FileDownload extends EventEmitter
                     response: res
                 })
                 if (delay > 0) {
-                    return resolve(wait(delay, signal).then(() => {
+                    return wait(delay, signal).then(() => {
                         // Destroy this current request before making another one
                         downloadRequest.destroy()
                         return this.run(options)
-                    }))
+                    }).then(resolve,reject)
                 }
                 // In case we get an error response ----------------------------
                 if (res.statusCode >= 400) {

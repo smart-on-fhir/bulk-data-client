@@ -123,11 +123,11 @@ class FileDownload extends events_1.default {
                     response: res
                 });
                 if (delay > 0) {
-                    return resolve((0, utils_1.wait)(delay, signal).then(() => {
+                    return (0, utils_1.wait)(delay, signal).then(() => {
                         // Destroy this current request before making another one
                         downloadRequest.destroy();
                         return this.run(options);
-                    }));
+                    }).then(resolve, reject);
                 }
                 // In case we get an error response ----------------------------
                 if (res.statusCode >= 400) {
