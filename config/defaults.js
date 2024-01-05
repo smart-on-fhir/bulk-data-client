@@ -20,7 +20,7 @@
      * The Bulk Data server token URL ("none" for open servers)
      */
     tokenUrl: "none",
-
+ 
     /**
      * The private key (JWK) used to sign authentication tokens. This is not
      * needed for open servers
@@ -300,4 +300,15 @@
     * NOTE: When an empty array is specified, an empty object of responseHeaders will be returned
     */
     logResponseHeaders: 'all',
+
+    /**
+     * A subset of got retry configuration object, determining retry behavior when downloading files. 
+     * For most scenarios, an object with only a `limit`: `number` property will be sufficient. 
+     * This determines how many times a file download will be retried before failing. 
+     * Each subsequent attempt will delay using an exponential backoff.
+     * For more details on options, see [https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md](https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md).
+     */
+    fileDownloadRetry: {
+        limit: 5,
+    },
 }

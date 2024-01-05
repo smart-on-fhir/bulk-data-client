@@ -619,6 +619,60 @@ describe('Logging', function () {
             expect(entry.eventDetail.responseHeaders).to.be.object()
             expect(entry.eventDetail.responseHeaders).to.include({"x-debugging-header": "someValue"})
         })
+        
+        it ("retries downloading even if initial download fails", async () => {
+            
+            mockServer.mock("/metadata", { status: 200, body: {} });
+
+            mockServer.mock("/Patient/\\$export", {
+                status: 200,
+                headers: {
+                    "content-location": mockServer.baseUrl + "/status"
+                }
+            });
+
+            mockServer.mock("/status", { status: 200, body: {
+                transactionTime: new Date().toISOString(),
+                output: [{
+                    url : mockServer.baseUrl + "/downloads/file1.json",
+                    type: "Patient"
+                }],
+                error: [],
+            }})
+
+            let numTries = 0
+            mockServer.mock("/downloads/file1.json", {
+                handler(req, res) {
+                    numTries += 1 
+                    // Simulate 502 for downloads/file1.json with some response headers
+                    if (numTries <= 1) { 
+                        res.status(502)
+                        res.set("x-debugging-header", "someValue")
+                        res.end('')
+                    } else { 
+                        // Succeed on the second request
+                        res.status(200)
+                        res.set("x-debugging-header", "someValue")
+                        res.set("content-type", "application/fhir+ndjson")
+                        res.set("Content-Disposition", "attachment")
+                        res.end('{"resourceType":"Patient"}\n{"resourceType":"Patient"}')
+                    }
+                }
+            })
+
+            const { log } = await invoke()
+            const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
+            const entries = logs.filter(e => e.eventId === "download_request" && e.eventDetail.fileUrl === mockServer.baseUrl + "/downloads/file1.json")
+            expect(
+                entries.length,
+                'download_request should be logged twice for "/downloads/file1.json"'
+            ).to.equal(1)
+            expect(entries[0].eventDetail.fileUrl).to.equal(mockServer.baseUrl + "/downloads/file1.json")
+            expect(entries[0].eventDetail.itemType).to.equal("output")
+            expect(entries[0].eventDetail.resourceType).to.equal("Patient")
+            // Evidence of Failure 
+            expect(numTries).to.equal(2)
+        })
 
         it ("logs download_error events on invalid file contents", async () => {
             
@@ -740,7 +794,8 @@ describe('Logging', function () {
 
             mockServer.mock("/document.pdf", { status: 500, headers: {'x-debugging-header': "someValue"} })
 
-            const { log } = await invoke()
+            // Default limit of 5 attempts will run up against 10sec maximum execution time for test
+            const { log } = await invoke({options: {fileDownloadRetry: {limit: 2}}})
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
             const entry = logs.find(l => l.eventId === "download_error")
             expect(entry).to.exist()

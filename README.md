@@ -27,6 +27,11 @@ Group-level export
 node . --_since 2010-03 --_type Patient, Observations
 ```
 
+Patient-level export with debugging information printed to the console
+```sh
+export NODE_DEBUG=app-request; node . -f https://builk-data.smarthealthit.org/fhir 
+```
+
 For more options see the CLI parameters and configuration options below.
 
 ## Installation
@@ -133,7 +138,12 @@ The Bulk Data Client uses `js` configuration files, but you can think of them as
 - *string* **`log.file`** - Path to the log file. Absolute, or relative to process CWD. If not provided, the file will be called log.ndjson and will be stored in the downloads folder.
 - *object* **`log.metadata`** - Key/value pairs to be added to every log entry. Can be used to add useful information (for example which site imported this data).
 - *number* **`retryAfterMSec`** - If the server does not provide `Retry-after` header use this number of milliseconds before checking the status again.
-
+- *complex* **`logResponseHeaders`** - ResponseHeaders to include in error logs for debugging purposes.     
+  - As for the complex type, valid values are `"all" | "none" | string | RegExp | (string | RegExp)[]`
+  - When `"all"` is specified, all responseHeaders are returned. When `"none"` is specified, no responseHeaders are returned. Otherwise, log any responseHeaders matches against 1...* strings/regexp 
+- *object* **`fileDownloadRetry`** - A subset of got retry configuration object, determining retry behavior when downloading files. 
+  - For most scenarios, an object with only a `limit`: `number` property will be sufficient. This determines how many times a file download will be retried before failing. Each subsequent attempt will delay using an exponential backoff.
+  - For more details on options, see [https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md](https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md).
 
 ### Environment Variables
 There are two environment that can be passed to the client to modify it's behavior.

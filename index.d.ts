@@ -1,4 +1,4 @@
-import { OptionsOfUnknownResponseBody } from "got/dist/source";
+import { Method, OptionsOfUnknownResponseBody } from "got/dist/source";
 import { Algorithm } from "jsonwebtoken"
 import jose from "node-jose"
 
@@ -225,7 +225,21 @@ export declare namespace BulkDataClient {
         * Otherwise, log any responseHeaders matches against 1...* strings/regexp 
         * NOTE: When an empty array is specified, an empty object of responseHeaders will be returned
         */
-        logResponseHeaders: "all" | "none" | string | RegExp | (string | RegExp)[]
+        logResponseHeaders: "all" | "none" | string | RegExp | (string | RegExp)[],
+
+        /**
+         * A subset of got retry configuration object, determining retry behavior when downloading files. 
+         * For most scenarios, an object with only a `limit`: `number` property will be sufficient. 
+         * This determines how many times a file download will be retried before failing. 
+         * Each subsequent attempt will delay using an exponential backoff.
+         * For more details on options, see [https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md](https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md).
+         */
+        fileDownloadRetry: {
+            limit?: number;         // The number of times to retry
+            methods?: Method[];     // The HTTP methods on which we should retry 
+            statusCodes?: number[]; // The status codes to retry on 
+            maxRetryAfter?: number; // The maximum amount of time we should wait to retry
+        },
     }
 
     interface LoggingOptions
@@ -493,6 +507,20 @@ export declare namespace BulkDataClient {
         * NOTE: When an empty array is specified, an empty object of responseHeaders will be returned
         */
         logResponseHeaders: "all" | "none" | string | RegExp | (string | RegExp)[]
+
+        /**
+         * A subset of got retry configuration object, determining retry behavior when downloading files. 
+         * For most scenarios, an object with only a `limit`: `number` property will be sufficient. 
+         * This determines how many times a file download will be retried before failing. 
+         * Each subsequent attempt will delay using an exponential backoff.
+         * For more details on options, see [https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md](https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md).
+         */
+        fileDownloadRetry: {
+            limit?: number;         // The number of times to retry
+            methods?: Method[];     // The HTTP methods on which we should retry 
+            statusCodes?: number[]; // The status codes to retry on 
+            maxRetryAfter?: number; // The maximum amount of time we should wait to retry
+        },
     }
 
     interface JWK {

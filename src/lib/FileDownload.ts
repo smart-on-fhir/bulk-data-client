@@ -2,18 +2,21 @@ import util                   from "util"
 import { Readable }           from "stream"
 import EventEmitter           from "events"
 import request                from "./request"
-import { createDecompressor } from "./utils"
+import { createDecompressor, wait } from "./utils"
+import { BulkDataClient as Types } from "../.."
 import { FileDownloadError }  from "./errors"
 import {
     Options,
     OptionsOfUnknownResponseBody,
-    Response
+    RequiredRetryOptions,
+    Response,
 } from "got/dist/source"
 
 
 const debug = util.debuglog("app-request")
 
 export interface FileDownloadState {
+    numTries         : number
     requestOptions   : Options
     response        ?: Response
     downloadedChunks : number
@@ -23,9 +26,10 @@ export interface FileDownloadState {
 }
 
 export interface FileDownloadOptions {
-    signal        ?: AbortSignal
-    accessToken   ?: string
-    requestOptions?: OptionsOfUnknownResponseBody
+    signal              ?: AbortSignal
+    accessToken         ?: string
+    requestOptions      ?: OptionsOfUnknownResponseBody
+    fileDownloadRetry   ?: Types.ConfigFileOptions["fileDownloadRetry"]
 }
 
 export interface FileDownloadEvents {
@@ -50,6 +54,7 @@ class FileDownload extends EventEmitter
         super()
         this.url = url
         this.state = {
+            numTries         : 0,
             downloadedChunks : 0,
             downloadedBytes  : 0,
             uncompressedBytes: 0,
@@ -66,18 +71,69 @@ class FileDownload extends EventEmitter
     }
 
     /**
+     * An exponential backoff delay function for file-download retries
+     * Based on got/dist/source/core/calculate-retry-delay.js
+     * This is only needed because GOT's support for stream retrying isn't working as needed for our version 
+     * This may change with future versions of GOT
+     * @returns the number of milliseconds to wait before the next request; 0 if no retry is needed
+     */
+    private calculateRetryDelay({
+        attemptCount, 
+        retryOptions, 
+        response, 
+        retryAfter 
+    } : {
+        attemptCount: number, 
+        retryOptions: RequiredRetryOptions, 
+        response: Response, 
+        retryAfter?: number}
+    ) {
+        if (attemptCount > retryOptions.limit) {
+            return 0;
+        }
+        const hasMethod = retryOptions.methods.includes(response.request.options.method);
+        const hasStatusCode = retryOptions.statusCodes.includes(response.statusCode);
+        if (!hasMethod || !hasStatusCode) {
+            return 0;
+        }
+        if (retryAfter) {
+            if (retryOptions.maxRetryAfter === undefined || retryAfter > retryOptions.maxRetryAfter) {
+                return 0;
+            }
+            return retryAfter;
+        }
+        // 413 CONTENT TOO LARGE: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/413 
+        // No use in retrying, the server can't handle a request this large 
+        if (response.statusCode === 413) {
+            return 0;
+        }
+        const noise = Math.random() * 100;
+        return ((2 ** (attemptCount - 1)) * 1000) + noise;
+    }
+
+    /**
      * The actual request will be made immediately but the returned stream will
      * be in paused state. Pipe it to some destination and unpause to actually
      * "consume" the downloaded data.
      */
     public run(options: FileDownloadOptions = {}): Promise<Readable>
     {
-        const { signal, accessToken, requestOptions = {} } = options;
-
+        const { signal, accessToken, requestOptions = {}, fileDownloadRetry} = options;
+        this.state.numTries += 1
         return new Promise((resolve, reject) => {
-            
-            const options: any = {
+            // To merge requestOptions.retry and fileDownloadRetry, we handle the cases where options could be 
+            // a number or an object
+            let retryOption = requestOptions.retry
+            if (typeof(retryOption) === "number") {
+                // When the retry option is a number, always go with the fileDownloadRetry value
+                retryOption = fileDownloadRetry
+            } else { 
+                // When retry is an object, we should merge the two, with fileDownloadReady taking precedence
+                retryOption = { ...retryOption, ...fileDownloadRetry}
+            }
+            const localOptions: any = {
                 ...requestOptions,
+                retry: retryOption,
                 decompress: false,
                 responseType: "buffer",
                 throwHttpErrors: false,
@@ -88,14 +144,14 @@ class FileDownload extends EventEmitter
             }
 
             if (accessToken) {
-                options.headers.authorization = `Bearer ${accessToken}`
+                localOptions.headers.authorization = `Bearer ${accessToken}`
             }
 
-            this.state.requestOptions = { ...options, url: this.url }
+            this.state.requestOptions = { ...localOptions, url: this.url }
 
             this.emit("start")
 
-            const downloadRequest = request.stream(this.url, options)
+            const downloadRequest = request.stream(this.url, localOptions)
 
             if (signal) {
                 const abort = () => {
@@ -125,12 +181,24 @@ class FileDownload extends EventEmitter
             });
 
             // Everything else happens after we get a response -----------------
-            downloadRequest.on("response", res => {
-                
+            downloadRequest.on("response", (res: Response) => {
+                const delay = this.calculateRetryDelay({
+                    attemptCount: this.state.numTries,
+                    retryOptions: res.request.options.retry,
+                    response: res
+                })
+                if (delay > 0) {
+                    return wait(delay, signal).then(() => {
+                        // Destroy this current request before making another one
+                        downloadRequest.destroy()
+                        return this.run(options)
+                    }).then(resolve,reject)
+                }
                 // In case we get an error response ----------------------------
                 if (res.statusCode >= 400) {
                     return reject(new FileDownloadError({
                         fileUrl         : this.url,
+                        // @ts-ignore
                         body            : res.body,
                         responseHeaders : res.headers,
                         code            : res.statusCode
@@ -156,7 +224,6 @@ class FileDownload extends EventEmitter
 
                 resolve(decompress)
             });
-
             downloadRequest.resume();
         })
     }
