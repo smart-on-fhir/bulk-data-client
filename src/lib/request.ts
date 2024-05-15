@@ -11,6 +11,19 @@ const debug = util.debuglog("app-request")
 
 
 export default got.extend({
+    retry: {
+        errorCodes: [
+            'ETIMEDOUT',
+            'ECONNRESET',
+            'EADDRINUSE',
+            'ECONNREFUSED',
+            'EPIPE',
+            'ENOTFOUND',
+            'ENETUNREACH',
+            'EAI_AGAIN',
+            'EAGAIN'
+        ],
+    },
     hooks: {
         beforeRequest: [
             options => {
@@ -19,7 +32,6 @@ export default got.extend({
         ],        
         afterResponse: [
             (response, retryWithMergedOptions) => {
-
                 const { options } = response.request;
 
                 const payload = options.body || options.form || options.json
