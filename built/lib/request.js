@@ -12,6 +12,19 @@ const package_json_1 = __importDefault(require("../../package.json"));
 require("colors");
 const debug = util_1.default.debuglog("app-request");
 exports.default = source_1.default.extend({
+    retry: {
+        errorCodes: [
+            'ETIMEDOUT',
+            'ECONNRESET',
+            'EADDRINUSE',
+            'ECONNREFUSED',
+            'EPIPE',
+            'ENOTFOUND',
+            'ENETUNREACH',
+            'EAI_AGAIN',
+            'EAGAIN'
+        ],
+    },
     hooks: {
         beforeRequest: [
             options => {
