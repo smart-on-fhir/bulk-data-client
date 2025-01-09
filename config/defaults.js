@@ -132,6 +132,15 @@
     group: "",
 
     /**
+     * When provided, a server with support for the parameter MAY return a
+     * portion of bulk data output files to a client prior to all output files
+     * being available and/or MAY distribute bulk data output files among
+     * multiple manifests and provide links for clients to page through the
+     * manifests.
+     */
+    allowPartialManifests: false,
+
+    /**
      * If true, adds `handling=lenient` to the `prefer` request header. This may
      * enable a "retry" option after certain errors. It can also be used to
      * signal the server to silently ignore unsupported parameters.
