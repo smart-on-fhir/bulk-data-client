@@ -12,6 +12,7 @@ import                         "colors"
 export default function CLIReporter(client: BulkDataClient)
 {
     let downloadStart: number;
+    let manifestPages = 0;
 
     function onKickOffStart() {
         console.log("Kick-off started")
@@ -26,19 +27,26 @@ export default function CLIReporter(client: BulkDataClient)
     }
 
     function onExportStart(status: Types.ExportStatus) {
-        console.log(status.message)
-        console.log(`Status endpoint: ${status.statusEndpoint}`)
+        if (!downloadStart) {
+            print(status.message)
+        }
+    }
+
+    function onExportPage(page: Types.ExportManifest, url: string) {
+        manifestPages++
     }
 
     function onExportProgress(status: Types.ExportStatus) {
-        print(status.message)
+        if (!downloadStart) {
+            print(status.message)
+        }
     }
 
-    function onExportComplete(manifest: Types.ExportManifest) {
-        // console.log("Export manifest: ", manifest)
-        // console.log("")
-        print.commit()
-    }
+    // function onExportComplete(manifest: Types.ExportManifest) {
+    //     // console.log("Export manifest: ", manifest)
+    //     // console.log("")
+    //     print.commit()
+    // }
 
     function onDownloadStart() {
         if (!downloadStart) downloadStart = Date.now()
@@ -72,6 +80,7 @@ export default function CLIReporter(client: BulkDataClient)
             `            FHIR Resources: ${resources.toLocaleString()}`,
             `               Attachments: ${totalAttachments.toLocaleString()}${client.options.downloadAttachments === false ? " (attachments skipped)" : ""}`,
             `           Downloaded Size: ${humanFileSize(downloadedBytes)}`,
+            `            Manifest Pages: ${manifestPages}`,
         ]
 
         if (uncompressedBytes != downloadedBytes) {
@@ -99,7 +108,8 @@ export default function CLIReporter(client: BulkDataClient)
     client.on("kickOffEnd"          , onKickOffEnd      )
     client.on("exportStart"         , onExportStart     )
     client.on("exportProgress"      , onExportProgress  )
-    client.on("exportComplete"      , onExportComplete  )
+    client.on("exportPage"          , onExportPage      )
+    // client.on("exportComplete"      , onExportComplete  )
     client.on("downloadStart"       , onDownloadStart   )
     client.on("downloadProgress"    , onDownloadProgress)
     client.on("allDownloadsComplete", onDownloadComplete)
@@ -112,7 +122,8 @@ export default function CLIReporter(client: BulkDataClient)
             client.off("kickOffEnd"          , onKickOffEnd      )
             client.off("exportStart"         , onExportStart     )
             client.off("exportProgress"      , onExportProgress  )
-            client.off("exportComplete"      , onExportComplete  )
+            client.off("exportPage"          , onExportPage      )
+            // client.off("exportComplete"      , onExportComplete  )
             client.off("downloadStart"       , onDownloadStart   )
             client.off("downloadProgress"    , onDownloadProgress)
             client.off("allDownloadsComplete", onDownloadComplete)
