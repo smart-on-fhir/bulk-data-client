@@ -211,11 +211,8 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
         console.error(error)
         process.exit(1);
     })
-    
-    const statusEndpoint = options.status || await client.kickOff()
-    const manifest = await client.waitForExport(statusEndpoint)
-    const downloads = await client.downloadAllFiles(manifest)
-    // console.log(downloads)
+
+    await client.run(options.status)
     
     if (options.reporter === "cli") {
         const answer = prompt()("Do you want to signal the server that this export can be removed? [Y/n]".cyan);

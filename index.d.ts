@@ -709,11 +709,6 @@ export declare namespace BulkDataClient {
         readonly type: string
 
         /**
-         * `true` if the file is currently being downloaded
-         */
-        running: boolean
-
-        /**
          * `true` if the file has been fully downloaded
          */
         completed: boolean

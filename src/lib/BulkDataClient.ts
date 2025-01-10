@@ -18,6 +18,7 @@ import StringifyNDJSON                  from "../streams/StringifyNDJSON"
 import DocumentReferenceHandler         from "../streams/DocumentReferenceHandler"
 import { BulkDataClient as Types }      from "../.."
 import { FileDownloadError }            from "./errors"
+import DownloadQueue                    from "./DownloadQueue"
 import {
     assert,
     fhirInstant,
@@ -80,6 +81,12 @@ export interface BulkDataClientEvents {
         responseHeaders ?: Types.ResponseHeaders 
     }) => void;
     
+    /**
+     * Emitted when the export is completed
+     * @event
+     */
+    "exportPage": (this: BulkDataClient, page: Types.ExportManifest, url: string) => void;
+
     /**
      * Emitted when the export is completed
      * @event
@@ -194,6 +201,9 @@ class BulkDataClient extends EventEmitter
      * token's expiration time.
      */
     private accessTokenExpiresAt: number = 0;
+
+    readonly downloadQueue: DownloadQueue;
+
     /**
      * Available after the kick-of is completed
      */
@@ -215,6 +225,15 @@ class BulkDataClient extends EventEmitter
         this.abortController.signal.addEventListener("abort", () => {
             this.emit("abort")
         });
+        this.downloadQueue = new DownloadQueue({
+            parallelJobs: this.options.parallelDownloads,
+            onProgress: (jobs) => {
+                this.emit("downloadProgress", jobs.map(j => j.status).filter(Boolean))
+            },
+            onComplete: (jobs) => {
+                this.emit("allDownloadsComplete", jobs.map(j => j.status).filter(Boolean))
+            }
+        })
     }
 
     /**
@@ -594,7 +613,7 @@ class BulkDataClient extends EventEmitter
         return checkStatus(statusEndpoint)
     }
 
-    public async downloadAllFiles(manifest: Types.ExportManifest): Promise<Types.FileDownload[]>
+    public async downloadAllFiles(manifest: Types.ExportManifest, index = 0): Promise<Types.FileDownload[]>
     {
         
         return new Promise((resolve, reject) => {
@@ -603,16 +622,20 @@ class BulkDataClient extends EventEmitter
             // is needed if the forceStandardFileNames option is true
             const fileCounts: { [key: string]: number } = {}
 
+            const folder = this.options.allowPartialManifests ? index + "" : ""
+
             const createDownloadJob = (f: Types.ExportManifestFile, initialState: Partial<Types.FileDownload> = {}) => {
 
-                if (!(f.type in fileCounts)) {
-                    fileCounts[f.type] = 0;
+                const type = f.type || "output"
+
+                if (!(type in fileCounts)) {
+                    fileCounts[type] = 0;
                 }
-                fileCounts[f.type]++;
+                fileCounts[type]++;
 
                 let fileName = basename(f.url)
                 if (this.options.forceStandardFileNames) {
-                    fileName = `${fileCounts[f.type]}.${f.type}.ndjson`
+                    fileName = `${fileCounts[type]}.${type}.ndjson`
                 }
 
                 const status: Types.FileDownload = {
@@ -624,7 +647,6 @@ class BulkDataClient extends EventEmitter
                     uncompressedBytes: 0,
                     resources        : 0,
                     attachments      : 0,
-                    running          : false,
                     completed        : false,
                     exportType       : "output",
                     error            : null,
@@ -635,75 +657,39 @@ class BulkDataClient extends EventEmitter
                     status,
                     descriptor: f,
                     worker: async () => {
-                        status.running = true
-                        status.completed = false
-                        await this.downloadFile({
-                            file: f,
-                            fileName,
-                            onProgress: state => {
-                                Object.assign(status, state)
-                                this.emit("downloadProgress", downloadJobs.map(j => j.status))
-                            },
-                            authorize: manifest.requiresAccessToken,
-                            subFolder: status.exportType == "output" ? "" : status.exportType,
-                            exportType: status.exportType
-                        })
-
-                        status.running = false
-                        status.completed = true
+                        let subFolder = join(folder, status.exportType == "output" ? "" : status.exportType)
 
                         if (this.options.addDestinationToManifest) {
                             // @ts-ignore
-                            f.destination = join(this.options.destination, fileName)
+                            f.destination = join(this.options.destination, subFolder, fileName)
                         }
 
-                        tick()
+                        await this.downloadFile({
+                            file: f,
+                            fileName,
+                            onProgress: state => Object.assign(status, state),
+                            authorize: manifest.requiresAccessToken,
+                            subFolder,
+                            exportType: status.exportType
+                        })
+                        
+                        status.completed = true
                     }
                 };
             };
 
-            const downloadJobs = [
-                ...(manifest.output  || []).map(f => createDownloadJob(f, { exportType: "output"  })),
-                ...(manifest.deleted || []).map(f => createDownloadJob(f, { exportType: "deleted" })),
-                ...(manifest.error   || []).map(f => createDownloadJob(f, { exportType: "error"   }))
-            ];
+            this.downloadQueue.addJob(...(manifest.output  || []).map(f => createDownloadJob(f, { exportType: "output"  })))
+            this.downloadQueue.addJob(...(manifest.deleted || []).map(f => createDownloadJob(f, { exportType: "deleted" })))
+            this.downloadQueue.addJob(...(manifest.error   || []).map(f => createDownloadJob(f, { exportType: "error"   })))
 
-            const tick = () => {
-                
-                let completed = 0
-                let running   = 0
-                for (const job of downloadJobs) {
-                    if (job.status.completed) {
-                        completed += 1
-                        continue
-                    }
-                    if (job.status.running) {
-                        running += 1
-                        continue
-                    }
-                    if (running < this.options.parallelDownloads) {
-                        running += 1
-                        job.worker()
-                    }
-                }
-
-                this.emit("downloadProgress", downloadJobs.map(j => j.status))
-
-                if (completed === downloadJobs.length) {
-                    const downloads = downloadJobs.map(j => j.status)
-                    this.emit("allDownloadsComplete", downloads)
-                    if (this.options.saveManifest) {
+            if (this.options.saveManifest) {
+                this.downloadQueue.addJob({
+                    worker: async() => {
                         const readable = Readable.from(JSON.stringify(manifest, null, 4));
-                        pipeline(readable, this.createDestinationStream("manifest.json")).then(() => {
-                            resolve(downloads)
-                        });
-                    } else {
-                        resolve(downloads)
+                        return pipeline(readable, this.createDestinationStream("manifest.json", folder));
                     }
-                }
-            };
-
-            tick()
+                })
+            }
         })
     }
 
@@ -825,8 +811,8 @@ class BulkDataClient extends EventEmitter
                 inlineAttachmentTypes: this.options.inlineDocRefAttachmentTypes,
                 pdfToText            : this.options.pdfToText,
                 baseUrl              : this.options.fhirUrl,
-                save: (name: string, stream: Readable, subFolder: string) => {
-                    return pipeline(stream, this.createDestinationStream(name, subFolder))
+                save: (name: string, stream: Readable, sub: string) => {
+                    return pipeline(stream, this.createDestinationStream(name, subFolder + "/" + sub))
                 },
             })
     
@@ -1129,6 +1115,26 @@ class BulkDataClient extends EventEmitter
             url: statusEndpoint,
             responseType: "json"
         });
+    }
+
+    public async run(statusEndpoint?: string) {
+
+        if (!statusEndpoint) {
+            statusEndpoint = await this.kickOff()
+        }
+
+        await new Promise((resolve, reject) => {
+            this.once("allDownloadsComplete", resolve)
+            let page = 0
+            this.waitForExport({
+                statusEndpoint: statusEndpoint as string,
+                onPage: (res) => {
+                    this.downloadAllFiles(res.body, page++)
+                }
+            })
+            .then(() => this.downloadQueue.finalize())
+            .catch(reject)
+        })
     }
 }
 
