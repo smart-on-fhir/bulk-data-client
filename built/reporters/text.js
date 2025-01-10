@@ -19,11 +19,16 @@ function TextReporter(client) {
         console.log(`Status endpoint: ${status.statusEndpoint}`);
     }
     function onExportProgress(status) {
-        console.log(status.message);
+        if (!downloadStart) {
+            console.log(status.message);
+        }
     }
-    function onExportComplete(manifest) {
-        console.log("Received export manifest");
+    function onExportPage(page, url) {
+        console.log(`Received manifest page from ${url}`);
     }
+    // function onExportComplete(manifest: Types.ExportManifest) {
+    //     console.log("Received all export manifest pages")
+    // }
     function onDownloadStart() {
         if (!downloadStart) {
             console.log("Begin file downloads...");
@@ -61,7 +66,8 @@ function TextReporter(client) {
     client.on("kickOffEnd", onKickOffEnd);
     client.on("exportStart", onExportStart);
     client.on("exportProgress", onExportProgress);
-    client.on("exportComplete", onExportComplete);
+    client.on("exportPage", onExportPage);
+    // client.on("exportComplete"      , onExportComplete  )
     client.on("downloadStart", onDownloadStart);
     client.on("downloadProgress", onDownloadProgress);
     client.on("allDownloadsComplete", onDownloadComplete);
@@ -73,7 +79,8 @@ function TextReporter(client) {
             client.off("kickOffEnd", onKickOffEnd);
             client.off("exportStart", onExportStart);
             client.off("exportProgress", onExportProgress);
-            client.off("exportComplete", onExportComplete);
+            client.off("exportPage", onExportPage);
+            // client.off("exportComplete"      , onExportComplete  )
             client.off("downloadStart", onDownloadStart);
             client.off("downloadProgress", onDownloadProgress);
             client.off("allDownloadsComplete", onDownloadComplete);

@@ -28,6 +28,7 @@ class ParseNDJSON extends stream_1.Transform {
          * Object (resource) counter
          */
         this._count = 0;
+        this._headersCount = 0;
         this.options = {
             maxLineLength: 1000000,
             expectedResourceType: "",
@@ -90,15 +91,19 @@ class ParseNDJSON extends stream_1.Transform {
                 return next(error);
             }
         }
-        if (this.options.expectedCount > -1 && this._count !== this.options.expectedCount) {
-            return next(new Error(`Expected ${this.options.expectedCount} resources but found ${this._count}`));
+        const resourceCount = this._count - this._headersCount;
+        if (this.options.expectedCount > -1 && resourceCount !== this.options.expectedCount) {
+            return next(new Error(`Expected ${this.options.expectedCount} resources but found ${resourceCount}`));
         }
         next();
     }
     processLine(line) {
         try {
             const json = JSON.parse(line);
-            if (this.options.expectedResourceType &&
+            if (json.resourceType === "Parameters") {
+                this._headersCount += 1;
+            }
+            else if (this.options.expectedResourceType &&
                 json.resourceType !== this.options.expectedResourceType) {
                 throw new Error(`Expected each resource to have a "${this.options.expectedResourceType}" resourceType but found "${json.resourceType}"`);
             }

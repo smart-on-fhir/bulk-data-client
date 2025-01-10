@@ -180,14 +180,11 @@ APP.action(async (args) => {
         console.error(error);
         process.exit(1);
     });
-    const statusEndpoint = options.status || await client.kickOff();
-    const manifest = await client.waitForExport(statusEndpoint);
-    const downloads = await client.downloadAllFiles(manifest);
-    // console.log(downloads)
+    await client.run(options.status);
     if (options.reporter === "cli") {
         const answer = (0, prompt_sync_1.default)()("Do you want to signal the server that this export can be removed? [Y/n]".cyan);
         if (!answer || answer.toLowerCase() === 'y') {
-            client.cancelExport(statusEndpoint).then(() => console.log("\nThe server was asked to remove this export!".green.bold));
+            client.cancelExport(client.statusEndpoint).then(() => console.log("\nThe server was asked to remove this export!".green.bold));
         }
     }
 });

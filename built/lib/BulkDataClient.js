@@ -40,6 +40,7 @@ const ParseNDJSON_1 = __importDefault(require("../streams/ParseNDJSON"));
 const StringifyNDJSON_1 = __importDefault(require("../streams/StringifyNDJSON"));
 const DocumentReferenceHandler_1 = __importDefault(require("../streams/DocumentReferenceHandler"));
 const errors_1 = require("./errors");
+const DownloadQueue_1 = __importDefault(require("./DownloadQueue"));
 const utils_1 = require("./utils");
 events_1.EventEmitter.defaultMaxListeners = 30;
 const debug = (0, util_1.debuglog)("app-request");
@@ -83,6 +84,18 @@ class BulkDataClient extends events_1.EventEmitter {
         this.abortController.signal.addEventListener("abort", () => {
             this.emit("abort");
         });
+        this.downloadQueue = new DownloadQueue_1.default({
+            parallelJobs: this.options.parallelDownloads,
+            onProgress: (jobs) => {
+                this.emit("downloadProgress", jobs.map(j => j.status).filter(Boolean));
+            },
+            onComplete: (jobs) => {
+                this.emit("allDownloadsComplete", jobs.map(j => j.status).filter(Boolean));
+            }
+        });
+    }
+    get statusEndpoint() {
+        return this._statusEndpoint;
     }
     /**
      * Abort any current asynchronous task. This may include:
@@ -265,6 +278,7 @@ class BulkDataClient extends events_1.EventEmitter {
                 requestParameters,
                 responseHeaders: this.formatResponseHeaders(res.headers),
             });
+            this._statusEndpoint = location;
             return location;
         })
             .catch(error => {
@@ -287,7 +301,7 @@ class BulkDataClient extends events_1.EventEmitter {
      * not sooner than 1 second and not later than 10 seconds from now.
      * Otherwise, the default pooling frequency is 1 second.
      */
-    async waitForExport(statusEndpoint) {
+    async waitForExport({ statusEndpoint, onPage }) {
         const status = {
             startedAt: Date.now(),
             completedAt: -1,
@@ -300,105 +314,125 @@ class BulkDataClient extends events_1.EventEmitter {
             statusEndpoint
         };
         this.emit("exportStart", status);
-        const checkStatus = async () => {
-            return this.request({
-                url: statusEndpoint,
+        const pages = new Set();
+        // @ts-ignore
+        const checkStatus = async (url) => {
+            const res = await this.request({
+                url,
                 throwHttpErrors: false,
                 responseType: "json",
                 headers: {
                     accept: "application/json"
                 }
-            }, "status request").then(res => {
-                const now = Date.now();
-                const elapsedTime = now - status.startedAt;
-                status.elapsedTime = elapsedTime;
-                // Export is complete
-                if (res.statusCode == 200) {
-                    status.completedAt = now;
-                    status.percentComplete = 100;
-                    status.nextCheckAfter = -1;
-                    status.message = `Bulk Data export completed in ${(0, utils_1.formatDuration)(elapsedTime)}`;
-                    this.emit("exportProgress", { ...status, virtual: true });
-                    try {
-                        (0, code_1.expect)(res.body, "No export manifest returned").to.exist();
-                        (0, code_1.expect)(res.body.output, "The export manifest output is not an array").to.be.an.array();
-                        (0, code_1.expect)(res.body.output, "The export manifest output contains no files").to.not.be.empty();
-                        this.emit("exportComplete", res.body);
-                    }
-                    catch (ex) {
-                        this.emit("exportError", {
-                            body: res.body || null,
-                            code: res.statusCode || null,
-                            message: ex.message,
-                            responseHeaders: this.formatResponseHeaders(res.headers),
-                        });
-                        throw ex;
-                    }
-                    return res.body;
+            }, "status request");
+            const now = Date.now();
+            const elapsedTime = now - status.startedAt;
+            status.elapsedTime = elapsedTime;
+            const { statusCode, statusMessage, headers, body } = res;
+            const nextUrl = Array.isArray(body?.link) ? body.link.find(l => l.relation === "next")?.url : "";
+            const shouldContinue = statusCode === 202 || nextUrl;
+            const isLastPage = statusCode === 200 && !nextUrl;
+            // -----------------------------------------------------------------
+            // Received a manifest page
+            // -----------------------------------------------------------------
+            if ((nextUrl || isLastPage) && body && !pages.has(url)) {
+                pages.add(url);
+                this.emit("exportPage", body, url);
+                onPage?.(res);
+            }
+            // -----------------------------------------------------------------
+            // Export is complete
+            // -----------------------------------------------------------------
+            if (isLastPage) {
+                status.completedAt = now;
+                status.percentComplete = 100;
+                status.nextCheckAfter = -1;
+                status.message = `Bulk Data export completed in ${(0, utils_1.formatDuration)(elapsedTime)}`;
+                this.emit("exportProgress", { ...status, virtual: true });
+                try {
+                    (0, code_1.expect)(body, "No export manifest returned").to.exist();
+                    (0, code_1.expect)(body.output, "The export manifest output is not an array").to.be.an.array();
+                    // expect(body.output, "The export manifest output contains no files").to.not.be.empty()
+                    this.emit("exportComplete", body);
                 }
-                // Export is in progress
-                if (res.statusCode == 202) {
-                    const now = Date.now();
-                    const progress = String(res.headers["x-progress"] || "").trim();
-                    const retryAfter = String(res.headers["retry-after"] || "").trim();
-                    const progressPct = parseInt(progress, 10);
-                    let retryAfterMSec = this.options.retryAfterMSec;
-                    if (retryAfter) {
-                        if (retryAfter.match(/\d+/)) {
-                            retryAfterMSec = parseInt(retryAfter, 10) * 1000;
-                        }
-                        else {
-                            let d = new Date(retryAfter);
-                            retryAfterMSec = Math.ceil(d.getTime() - now);
-                        }
-                    }
-                    const poolDelay = Math.min(Math.max(retryAfterMSec, 100), 1000 * 60);
-                    Object.assign(status, {
-                        percentComplete: isNaN(progressPct) ? -1 : progressPct,
-                        nextCheckAfter: poolDelay,
-                        message: isNaN(progressPct) ?
-                            `Bulk Data export: in progress for ${(0, utils_1.formatDuration)(elapsedTime)}${progress ? ". Server message: " + progress : ""}` :
-                            `Bulk Data export: ${progressPct}% complete in ${(0, utils_1.formatDuration)(elapsedTime)}`
-                    });
-                    this.emit("exportProgress", {
-                        ...status,
-                        retryAfterHeader: retryAfter,
-                        xProgressHeader: progress,
-                        body: res.body
-                    });
-                    // debug("%o", status)
-                    return (0, utils_1.wait)(poolDelay, this.abortController.signal).then(checkStatus);
-                }
-                else {
-                    const msg = `Unexpected status response ${res.statusCode} ${res.statusMessage}`;
+                catch (ex) {
                     this.emit("exportError", {
-                        body: res.body || null,
-                        code: res.statusCode || null,
-                        message: msg,
-                        responseHeaders: this.formatResponseHeaders(res.headers),
+                        body: body || null,
+                        code: statusCode || null,
+                        message: ex.message,
+                        responseHeaders: this.formatResponseHeaders(headers),
                     });
-                    const error = new Error(msg);
-                    // @ts-ignore
-                    error.body = res.body || null;
-                    throw error;
+                    throw ex;
                 }
+                return body;
+            }
+            // -----------------------------------------------------------------
+            // Export is in progress
+            // -----------------------------------------------------------------
+            if (shouldContinue) {
+                const now = Date.now();
+                const progress = String(headers["x-progress"] || "").trim();
+                const retryAfter = String(headers["retry-after"] || "").trim();
+                const progressPct = parseInt(progress, 10);
+                let retryAfterMSec = this.options.retryAfterMSec;
+                if (retryAfter) {
+                    if (retryAfter.match(/\d+/)) {
+                        retryAfterMSec = parseInt(retryAfter, 10) * 1000;
+                    }
+                    else {
+                        let d = new Date(retryAfter);
+                        retryAfterMSec = Math.ceil(d.getTime() - now);
+                    }
+                }
+                const poolDelay = Math.min(Math.max(retryAfterMSec, 100), 1000 * 60);
+                Object.assign(status, {
+                    percentComplete: isNaN(progressPct) ? -1 : progressPct,
+                    nextCheckAfter: poolDelay,
+                    message: isNaN(progressPct) ?
+                        `Bulk Data export: in progress for ${(0, utils_1.formatDuration)(elapsedTime)}${progress ? ". Server message: " + progress : ""}` :
+                        `Bulk Data export: ${progressPct}% complete in ${(0, utils_1.formatDuration)(elapsedTime)}`
+                });
+                this.emit("exportProgress", {
+                    ...status,
+                    retryAfterHeader: retryAfter,
+                    xProgressHeader: progress,
+                    body
+                });
+                // debug("%o", status)
+                await (0, utils_1.wait)(poolDelay, this.abortController.signal);
+                return checkStatus(nextUrl || url);
+            }
+            // -----------------------------------------------------------------
+            // ERROR
+            // -----------------------------------------------------------------
+            const msg = `Unexpected status response ${statusCode} ${statusMessage}`;
+            this.emit("exportError", {
+                body: body || null,
+                code: statusCode || null,
+                message: msg,
+                responseHeaders: this.formatResponseHeaders(headers),
             });
+            const error = new Error(msg);
+            error.body = body || null;
+            throw error;
         };
-        return checkStatus();
+        return checkStatus(statusEndpoint);
     }
-    async downloadAllFiles(manifest) {
+    async downloadAllFiles(manifest, index = 0) {
         return new Promise((resolve, reject) => {
             // Count how many files we have gotten for each ResourceType. This
             // is needed if the forceStandardFileNames option is true
             const fileCounts = {};
+            const folder = this.options.allowPartialManifests ? index + "" : "";
             const createDownloadJob = (f, initialState = {}) => {
-                if (!(f.type in fileCounts)) {
-                    fileCounts[f.type] = 0;
+                const type = f.type || "output";
+                if (!(type in fileCounts)) {
+                    fileCounts[type] = 0;
                 }
-                fileCounts[f.type]++;
+                fileCounts[type]++;
                 let fileName = (0, path_1.basename)(f.url);
                 if (this.options.forceStandardFileNames) {
-                    fileName = `${fileCounts[f.type]}.${f.type}.ndjson`;
+                    fileName = `${fileCounts[type]}.${type}.ndjson`;
                 }
                 const status = {
                     url: f.url,
@@ -409,7 +443,6 @@ class BulkDataClient extends events_1.EventEmitter {
                     uncompressedBytes: 0,
                     resources: 0,
                     attachments: 0,
-                    running: false,
                     completed: false,
                     exportType: "output",
                     error: null,
@@ -419,67 +452,34 @@ class BulkDataClient extends events_1.EventEmitter {
                     status,
                     descriptor: f,
                     worker: async () => {
-                        status.running = true;
-                        status.completed = false;
+                        let subFolder = (0, path_1.join)(folder, status.exportType == "output" ? "" : status.exportType);
+                        if (this.options.addDestinationToManifest) {
+                            // @ts-ignore
+                            f.destination = (0, path_1.join)(this.options.destination, subFolder, fileName);
+                        }
                         await this.downloadFile({
                             file: f,
                             fileName,
-                            onProgress: state => {
-                                Object.assign(status, state);
-                                this.emit("downloadProgress", downloadJobs.map(j => j.status));
-                            },
+                            onProgress: state => Object.assign(status, state),
                             authorize: manifest.requiresAccessToken,
-                            subFolder: status.exportType == "output" ? "" : status.exportType,
+                            subFolder,
                             exportType: status.exportType
                         });
-                        status.running = false;
                         status.completed = true;
-                        if (this.options.addDestinationToManifest) {
-                            // @ts-ignore
-                            f.destination = (0, path_1.join)(this.options.destination, fileName);
-                        }
-                        tick();
                     }
                 };
             };
-            const downloadJobs = [
-                ...(manifest.output || []).map(f => createDownloadJob(f, { exportType: "output" })),
-                ...(manifest.deleted || []).map(f => createDownloadJob(f, { exportType: "deleted" })),
-                ...(manifest.error || []).map(f => createDownloadJob(f, { exportType: "error" }))
-            ];
-            const tick = () => {
-                let completed = 0;
-                let running = 0;
-                for (const job of downloadJobs) {
-                    if (job.status.completed) {
-                        completed += 1;
-                        continue;
-                    }
-                    if (job.status.running) {
-                        running += 1;
-                        continue;
-                    }
-                    if (running < this.options.parallelDownloads) {
-                        running += 1;
-                        job.worker();
-                    }
-                }
-                this.emit("downloadProgress", downloadJobs.map(j => j.status));
-                if (completed === downloadJobs.length) {
-                    const downloads = downloadJobs.map(j => j.status);
-                    this.emit("allDownloadsComplete", downloads);
-                    if (this.options.saveManifest) {
+            this.downloadQueue.addJob(...(manifest.output || []).map(f => createDownloadJob(f, { exportType: "output" })));
+            this.downloadQueue.addJob(...(manifest.deleted || []).map(f => createDownloadJob(f, { exportType: "deleted" })));
+            this.downloadQueue.addJob(...(manifest.error || []).map(f => createDownloadJob(f, { exportType: "error" })));
+            if (this.options.saveManifest) {
+                this.downloadQueue.addJob({
+                    worker: async () => {
                         const readable = stream_1.Readable.from(JSON.stringify(manifest, null, 4));
-                        (0, promises_1.pipeline)(readable, this.createDestinationStream("manifest.json")).then(() => {
-                            resolve(downloads);
-                        });
+                        return (0, promises_1.pipeline)(readable, this.createDestinationStream("manifest.json", folder));
                     }
-                    else {
-                        resolve(downloads);
-                    }
-                }
-            };
-            tick();
+                });
+            }
         });
     }
     async downloadFile({ file, fileName, onProgress, authorize = false, subFolder = "", exportType = "output" }) {
@@ -579,8 +579,8 @@ class BulkDataClient extends events_1.EventEmitter {
                 inlineAttachmentTypes: this.options.inlineDocRefAttachmentTypes,
                 pdfToText: this.options.pdfToText,
                 baseUrl: this.options.fhirUrl,
-                save: (name, stream, subFolder) => {
-                    return (0, promises_1.pipeline)(stream, this.createDestinationStream(name, subFolder));
+                save: (name, stream, sub) => {
+                    return (0, promises_1.pipeline)(stream, this.createDestinationStream(name, subFolder + "/" + sub));
                 },
             });
             docRefProcessor.on("attachment", () => _state.attachments += 1);
@@ -685,7 +685,7 @@ class BulkDataClient extends events_1.EventEmitter {
         if (subFolder) {
             path = (0, path_1.join)(path, subFolder);
             if (!fs_1.default.existsSync(path)) {
-                (0, fs_1.mkdirSync)(path);
+                (0, fs_1.mkdirSync)(path, { recursive: true });
             }
         }
         return fs_1.default.createWriteStream((0, path_1.join)(path, fileName));
@@ -720,6 +720,9 @@ class BulkDataClient extends events_1.EventEmitter {
         }
         if (this.options.allowPartialManifests) {
             params.append("allowPartialManifests", !!this.options.allowPartialManifests + "");
+        }
+        if (this.options.organizeOutputBy) {
+            params.append("organizeOutputBy", this.options.organizeOutputBy);
         }
         if (Array.isArray(this.options.custom)) {
             this.options.custom.forEach(p => {
@@ -787,6 +790,13 @@ class BulkDataClient extends events_1.EventEmitter {
                 valueBoolean: this.options.allowPartialManifests
             });
         }
+        // organizeOutputBy ----------------------------------------------------
+        if (this.options.organizeOutputBy) {
+            parameters.push({
+                name: "organizeOutputBy",
+                valueString: this.options.organizeOutputBy
+            });
+        }
         // Custom parameters ---------------------------------------------------
         if (Array.isArray(this.options.custom)) {
             this.options.custom.forEach(p => {
@@ -822,6 +832,23 @@ class BulkDataClient extends events_1.EventEmitter {
             method: "DELETE",
             url: statusEndpoint,
             responseType: "json"
+        });
+    }
+    async run(statusEndpoint) {
+        if (!statusEndpoint) {
+            statusEndpoint = await this.kickOff();
+        }
+        await new Promise((resolve, reject) => {
+            this.once("allDownloadsComplete", resolve);
+            let page = 0;
+            this.waitForExport({
+                statusEndpoint: statusEndpoint,
+                onPage: (res) => {
+                    this.downloadAllFiles(res.body, page++);
+                }
+            })
+                .then(() => this.downloadQueue.finalize())
+                .catch(reject);
         });
     }
 }

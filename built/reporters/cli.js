@@ -4,6 +4,7 @@ const utils_1 = require("../lib/utils");
 require("colors");
 function CLIReporter(client) {
     let downloadStart;
+    let manifestPages = 0;
     function onKickOffStart() {
         console.log("Kick-off started");
     }
@@ -14,17 +15,23 @@ function CLIReporter(client) {
         (0, utils_1.print)("Got new access token").commit();
     }
     function onExportStart(status) {
-        console.log(status.message);
-        console.log(`Status endpoint: ${status.statusEndpoint}`);
+        if (!downloadStart) {
+            (0, utils_1.print)(status.message);
+        }
+    }
+    function onExportPage(page, url) {
+        manifestPages++;
     }
     function onExportProgress(status) {
-        (0, utils_1.print)(status.message);
+        if (!downloadStart) {
+            (0, utils_1.print)(status.message);
+        }
     }
-    function onExportComplete(manifest) {
-        // console.log("Export manifest: ", manifest)
-        // console.log("")
-        utils_1.print.commit();
-    }
+    // function onExportComplete(manifest: Types.ExportManifest) {
+    //     // console.log("Export manifest: ", manifest)
+    //     // console.log("")
+    //     print.commit()
+    // }
     function onDownloadStart() {
         if (!downloadStart)
             downloadStart = Date.now();
@@ -54,6 +61,7 @@ function CLIReporter(client) {
             `            FHIR Resources: ${resources.toLocaleString()}`,
             `               Attachments: ${totalAttachments.toLocaleString()}${client.options.downloadAttachments === false ? " (attachments skipped)" : ""}`,
             `           Downloaded Size: ${(0, utils_1.humanFileSize)(downloadedBytes)}`,
+            `            Manifest Pages: ${manifestPages}`,
         ];
         if (uncompressedBytes != downloadedBytes) {
             lines.push(`         Uncompressed Size: ${(0, utils_1.humanFileSize)(uncompressedBytes)}`, `         Compression ratio: 1/${(uncompressedBytes && downloadedBytes ? Math.round(uncompressedBytes / downloadedBytes) : 1)}`);
@@ -72,7 +80,8 @@ function CLIReporter(client) {
     client.on("kickOffEnd", onKickOffEnd);
     client.on("exportStart", onExportStart);
     client.on("exportProgress", onExportProgress);
-    client.on("exportComplete", onExportComplete);
+    client.on("exportPage", onExportPage);
+    // client.on("exportComplete"      , onExportComplete  )
     client.on("downloadStart", onDownloadStart);
     client.on("downloadProgress", onDownloadProgress);
     client.on("allDownloadsComplete", onDownloadComplete);
@@ -84,7 +93,8 @@ function CLIReporter(client) {
             client.off("kickOffEnd", onKickOffEnd);
             client.off("exportStart", onExportStart);
             client.off("exportProgress", onExportProgress);
-            client.off("exportComplete", onExportComplete);
+            client.off("exportPage", onExportPage);
+            // client.off("exportComplete"      , onExportComplete  )
             client.off("downloadStart", onDownloadStart);
             client.off("downloadProgress", onDownloadProgress);
             client.off("allDownloadsComplete", onDownloadComplete);
