@@ -642,6 +642,11 @@ export declare namespace BulkDataClient {
          * the server MAY process the request instead of returning an error.
          */
         outputOrganizedBy?: string
+
+        /**
+         * Next link in case of paginated response
+         */
+        link?: [{ relation: "next"; url: string }]
     }
 
     interface ExportManifestFile<Type = string> {

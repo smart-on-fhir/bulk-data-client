@@ -194,6 +194,14 @@ class BulkDataClient extends EventEmitter
      * token's expiration time.
      */
     private accessTokenExpiresAt: number = 0;
+    /**
+     * Available after the kick-of is completed
+     */
+    private _statusEndpoint?: string;
+
+    get statusEndpoint() {
+        return this._statusEndpoint;
+    }
 
     /**
      * Nothing special is done here - just remember the options and create
@@ -415,6 +423,7 @@ class BulkDataClient extends EventEmitter
                     requestParameters, 
                     responseHeaders: this.formatResponseHeaders(res.headers),
                 })
+                this._statusEndpoint = location
                 return location
             })
             .catch(error => {
@@ -946,7 +955,7 @@ class BulkDataClient extends EventEmitter
         if (subFolder) {
             path = join(path, subFolder)
             if (!FS.existsSync(path)) {
-                mkdirSync(path)
+                mkdirSync(path, { recursive: true })
             }
         }
 

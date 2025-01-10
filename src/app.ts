@@ -220,7 +220,7 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
     if (options.reporter === "cli") {
         const answer = prompt()("Do you want to signal the server that this export can be removed? [Y/n]".cyan);
         if (!answer || answer.toLowerCase() === 'y') {
-            client.cancelExport(statusEndpoint).then(
+            client.cancelExport(client.statusEndpoint!).then(
                 () => console.log("\nThe server was asked to remove this export!".green.bold)
             )
         }
