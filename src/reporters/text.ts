@@ -27,12 +27,18 @@ export default function TextReporter(client: BulkDataClient)
     }
 
     function onExportProgress(status: Types.ExportStatus) {
-        console.log(status.message)
+        if (!downloadStart) {
+            console.log(status.message)
+        }
     }
 
-    function onExportComplete(manifest: Types.ExportManifest) {
-        console.log("Received export manifest")
+    function onExportPage(page: Types.ExportManifest, url: string) {
+        console.log(`Received manifest page from ${url}`)
     }
+
+    // function onExportComplete(manifest: Types.ExportManifest) {
+    //     console.log("Received all export manifest pages")
+    // }
 
     function onDownloadStart() {
         if (!downloadStart) {
@@ -79,7 +85,8 @@ export default function TextReporter(client: BulkDataClient)
     client.on("kickOffEnd"          , onKickOffEnd      )
     client.on("exportStart"         , onExportStart     )
     client.on("exportProgress"      , onExportProgress  )
-    client.on("exportComplete"      , onExportComplete  )
+    client.on("exportPage"          , onExportPage      )
+    // client.on("exportComplete"      , onExportComplete  )
     client.on("downloadStart"       , onDownloadStart   )
     client.on("downloadProgress"    , onDownloadProgress)
     client.on("allDownloadsComplete", onDownloadComplete)
@@ -92,7 +99,8 @@ export default function TextReporter(client: BulkDataClient)
             client.off("kickOffEnd"          , onKickOffEnd      )
             client.off("exportStart"         , onExportStart     )
             client.off("exportProgress"      , onExportProgress  )
-            client.off("exportComplete"      , onExportComplete  )
+            client.off("exportPage"          , onExportPage      )
+            // client.off("exportComplete"      , onExportComplete  )
             client.off("downloadStart"       , onDownloadStart   )
             client.off("downloadProgress"    , onDownloadProgress)
             client.off("allDownloadsComplete", onDownloadComplete)
