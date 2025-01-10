@@ -438,7 +438,13 @@ class BulkDataClient extends EventEmitter
      * not sooner than 1 second and not later than 10 seconds from now.
      * Otherwise, the default pooling frequency is 1 second.
      */
-    public async waitForExport(statusEndpoint: string): Promise<Types.ExportManifest>
+    public async waitForExport({
+        statusEndpoint,
+        onPage
+    }: {
+        statusEndpoint: string
+        onPage?: (response: Response<Types.ExportManifest>) => void
+    }): Promise<Types.ExportManifest>
     {
         const status = {
             startedAt       : Date.now(),
@@ -453,107 +459,130 @@ class BulkDataClient extends EventEmitter
         };
 
         this.emit("exportStart", status)
+        
+        const pages = new Set()
 
-        const checkStatus: () => Promise<Types.ExportManifest> = async () => {
+        // @ts-ignore
+        const checkStatus: (url: string) => Promise<Types.ExportManifest> = async (url: string) => {
             
-            return this.request<Types.ExportManifest>({
-                url: statusEndpoint,
+            const res = await this.request<Types.ExportManifest>({
+                url,
                 throwHttpErrors: false,
                 responseType: "json",
                 headers: {
                     accept: "application/json"
                 }
-            }, "status request").then(res => {
-                const now = Date.now();
-                const elapsedTime = now - status.startedAt
-                
-                status.elapsedTime = elapsedTime
+            }, "status request")
 
-                // Export is complete
-                if (res.statusCode == 200) {
-                    status.completedAt = now
-                    status.percentComplete = 100
-                    status.nextCheckAfter = -1
-                    status.message = `Bulk Data export completed in ${formatDuration(elapsedTime)}`
+            const now = Date.now();
+            const elapsedTime = now - status.startedAt
+            
+            status.elapsedTime = elapsedTime
 
-                    this.emit("exportProgress", { ...status, virtual: true })
+            const { statusCode, statusMessage, headers, body } = res
+            const nextUrl        = Array.isArray(body?.link) ?  body.link.find(l => l.relation === "next")?.url : "";
+            const shouldContinue = statusCode === 202 || nextUrl;
+            const isLastPage     = statusCode === 200 && !nextUrl;
 
-                    try {
-                        expect(res.body, "No export manifest returned").to.exist()
-                        expect(res.body.output, "The export manifest output is not an array").to.be.an.array();
-                        expect(res.body.output, "The export manifest output contains no files").to.not.be.empty()
-                        this.emit("exportComplete", res.body)
-                    } catch (ex) {
-                        this.emit("exportError", {
-                            body: res.body as any || null,
-                            code: res.statusCode || null,
-                            message: (ex as Error).message,
-                            responseHeaders: this.formatResponseHeaders(res.headers),
-                        });
-                        throw ex
-                    }
 
-                    return res.body
-                }
+            // -----------------------------------------------------------------
+            // Received a manifest page
+            // -----------------------------------------------------------------
+            if ((nextUrl || isLastPage) && body && !pages.has(url)) {
+                pages.add(url)
+                this.emit("exportPage", body, url)
+                onPage?.(res)
+            }
+            
+            
+            // -----------------------------------------------------------------
+            // Export is complete
+            // -----------------------------------------------------------------
+            if (isLastPage) {
+                status.completedAt = now
+                status.percentComplete = 100
+                status.nextCheckAfter = -1
+                status.message = `Bulk Data export completed in ${formatDuration(elapsedTime)}`
 
-                // Export is in progress
-                if (res.statusCode == 202) {
-                    const now = Date.now();
+                this.emit("exportProgress", { ...status, virtual: true })
 
-                    const progress    = String(res.headers["x-progress" ] || "").trim();
-                    const retryAfter  = String(res.headers["retry-after"] || "").trim();
-                    const progressPct = parseInt(progress, 10);
-
-                    let retryAfterMSec = this.options.retryAfterMSec;
-                    if (retryAfter) {
-                        if (retryAfter.match(/\d+/)) {
-                            retryAfterMSec = parseInt(retryAfter, 10) * 1000
-                        } else {
-                            let d = new Date(retryAfter);
-                            retryAfterMSec = Math.ceil(d.getTime() - now)
-                        }
-                    }
-
-                    const poolDelay = Math.min(Math.max(retryAfterMSec, 100), 1000*60)
-
-                    Object.assign(status, {
-                        percentComplete: isNaN(progressPct) ? -1 : progressPct,
-                        nextCheckAfter: poolDelay,
-                        message: isNaN(progressPct) ?
-                            `Bulk Data export: in progress for ${formatDuration(elapsedTime)}${progress ? ". Server message: " + progress : ""}`:
-                            `Bulk Data export: ${progressPct}% complete in ${formatDuration(elapsedTime)}`
-                    });
-
-                    this.emit("exportProgress", {
-                        ...status,
-                        retryAfterHeader: retryAfter,
-                        xProgressHeader : progress,
-                        body            : res.body
-                    })
-                    // debug("%o", status)
-                    
-                    return wait(poolDelay, this.abortController.signal).then(checkStatus)
-                }
-                else {
-                    const msg = `Unexpected status response ${res.statusCode} ${res.statusMessage}`
-                    
+                try {
+                    expect(body, "No export manifest returned").to.exist()
+                    expect(body.output, "The export manifest output is not an array").to.be.an.array();
+                    // expect(body.output, "The export manifest output contains no files").to.not.be.empty()
+                    this.emit("exportComplete", body)
+                } catch (ex) {
                     this.emit("exportError", {
-                        body            : res.body as any || null,
-                        code            : res.statusCode || null,
-                        message         : msg,
-                        responseHeaders : this.formatResponseHeaders(res.headers),
+                        body: body as any || null,
+                        code: statusCode || null,
+                        message: (ex as Error).message,
+                        responseHeaders: this.formatResponseHeaders(headers),
                     });
-
-                    const error = new Error(msg)
-                    // @ts-ignore
-                    error.body = res.body as any || null
-                    throw error
+                    throw ex
                 }
-            });
 
+                return body
+            }
+
+            // -----------------------------------------------------------------
+            // Export is in progress
+            // -----------------------------------------------------------------
+            if (shouldContinue) {
+                const now = Date.now();
+
+                const progress    = String(headers["x-progress" ] || "").trim();
+                const retryAfter  = String(headers["retry-after"] || "").trim();
+                const progressPct = parseInt(progress, 10);
+                
+
+                let retryAfterMSec = this.options.retryAfterMSec;
+                if (retryAfter) {
+                    if (retryAfter.match(/\d+/)) {
+                        retryAfterMSec = parseInt(retryAfter, 10) * 1000
+                    } else {
+                        let d = new Date(retryAfter);
+                        retryAfterMSec = Math.ceil(d.getTime() - now)
+                    }
+                }
+
+                const poolDelay = Math.min(Math.max(retryAfterMSec, 100), 1000*60)
+
+                Object.assign(status, {
+                    percentComplete: isNaN(progressPct) ? -1 : progressPct,
+                    nextCheckAfter: poolDelay,
+                    message: isNaN(progressPct) ?
+                        `Bulk Data export: in progress for ${formatDuration(elapsedTime)}${progress ? ". Server message: " + progress : ""}`:
+                        `Bulk Data export: ${progressPct}% complete in ${formatDuration(elapsedTime)}`
+                });
+
+                this.emit("exportProgress", {
+                    ...status,
+                    retryAfterHeader: retryAfter,
+                    xProgressHeader : progress,
+                    body
+                })
+                // debug("%o", status)
+
+                await wait(poolDelay, this.abortController.signal)
+                return checkStatus(nextUrl || url)
+            }
+
+            // -----------------------------------------------------------------
+            // ERROR
+            // -----------------------------------------------------------------
+            const msg = `Unexpected status response ${statusCode} ${statusMessage}`
+            this.emit("exportError", {
+                body            : body as any || null,
+                code            : statusCode || null,
+                message         : msg,
+                responseHeaders : this.formatResponseHeaders(headers),
+            });
+            const error = new Error(msg);
+            (error as any).body = body as any || null
+            throw error
         };
         
-        return checkStatus()
+        return checkStatus(statusEndpoint)
     }
 
     public async downloadAllFiles(manifest: Types.ExportManifest): Promise<Types.FileDownload[]>
