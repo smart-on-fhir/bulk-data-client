@@ -37,7 +37,7 @@ describe('status', () => {
             mockServer.mock("/status", { status: 200, body: { output: [{}] }});
             // @ts-ignore
             const client = new BulkDataClient({ ...baseSettings, fhirUrl: mockServer.baseUrl })
-            await client.waitForExport(mockServer.baseUrl + "/status")
+            await client.run(mockServer.baseUrl + "/status")
         })
     })
 
@@ -58,7 +58,7 @@ describe('status', () => {
                 }
             })
 
-            await client.waitForExport(mockServer.baseUrl + "/status")
+            await client.run(mockServer.baseUrl + "/status")
             .then(
                 () => {
                     throw new Error("The test should have failed")

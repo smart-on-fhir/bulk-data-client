@@ -9,14 +9,14 @@ import { join } from "path"
 describe('download', function() {
     this.timeout(60000)
 
-    after(async () => {
+    after(() => {
         emptyFolder(__dirname + "/tmp/downloads/attachments")
         emptyFolder(__dirname + "/tmp/downloads/error")
         emptyFolder(__dirname + "/tmp/downloads/deleted")
         emptyFolder(__dirname + "/tmp/downloads")
     });
     
-    afterEach(async () => {
+    afterEach(() => {
         if (existsSync(__dirname + "/tmp/log.ndjson")) {
             rmSync(__dirname + "/tmp/log.ndjson")
         }
@@ -115,7 +115,7 @@ describe('download', function() {
             body: {
                 transactionTime: new Date().toISOString(),
                 request : mockServer.baseUrl + "/Patient/$export",
-                requiresAccessToken: true,
+                requiresAccessToken: false,
                 output: [{
                     type: "DocumentReference",
                     url : mockServer.baseUrl + "/output/file_1.ndjson"
@@ -165,7 +165,7 @@ describe('download', function() {
 
         // verify that 1.DocumentReference.ndjson is downloaded
         const documentReferencePath = join(result.config.destination, "1.DocumentReference.ndjson")
-        expect(isFile(documentReferencePath)).to.equal(true)
+        expect(isFile(documentReferencePath), documentReferencePath + " should be downloaded").to.equal(true)
         
         // parse 1.DocumentReference.ndjson and get its url property
         const json = JSON.parse(readFileSync(documentReferencePath, "utf8"));

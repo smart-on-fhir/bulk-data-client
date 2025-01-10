@@ -27,8 +27,9 @@ afterEach(async () => {
     mockServer.clear();
 })
 
-export function isFile(path: string) {
-    return statSync(path).isFile()
+export function isFile(path: string): boolean {
+    const stat = statSync(path, { throwIfNoEntry: false })
+    return !!(stat && stat.isFile())
 }
 
 export function emptyFolder(path: string) {
@@ -93,6 +94,10 @@ export async function invoke({
                 file: logFile
             }
         };
+
+        if (!isFile(logFile)) {
+            writeFileSync(logFile, "")
+        }
 
         const configPath  = join(__dirname, "tmp/config.js")
 

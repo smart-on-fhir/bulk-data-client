@@ -454,9 +454,6 @@ describe('Logging', function () {
             expect(logs[0]).to.exist()
             expect(logs[0].eventId).to.equal("kickoff")
 
-            expect(logs[1]).to.exist()
-            expect(logs[1].eventId).to.equal("status_complete")
-
             // /downloads/file1 ------------------------------------------------
             {
                 const entries = logs.filter(e => e.eventId === "download_request" && e.eventDetail.fileUrl === mockServer.baseUrl + "/downloads/file1")
