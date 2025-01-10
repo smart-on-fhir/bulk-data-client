@@ -66,6 +66,7 @@ export declare namespace BulkDataClient {
         includeAssociatedData?: string
         _typeFilter?: string
         allowPartialManifests?: boolean
+        organizeOutputBy?: string
 
         /**
          * If true, adds `handling=lenient` to the `prefer` request header. This may
@@ -276,7 +277,8 @@ export declare namespace BulkDataClient {
         patient?: string
         includeAssociatedData?: string
         _typeFilter?: string
-        allowPartialManifests: boolean
+        allowPartialManifests?: boolean
+        organizeOutputBy?: string
         custom?: string[]
 
         post?: boolean
@@ -328,6 +330,7 @@ export declare namespace BulkDataClient {
         _typeFilter?: string
         custom?: string[]
         allowPartialManifests: boolean
+        organizeOutputBy: string
         global: boolean
         group: string
         post: boolean
@@ -680,6 +683,7 @@ export declare namespace BulkDataClient {
         includeAssociatedData?: string | string[]
         _typeFilter          ?: string | string[]
         allowPartialManifests?: boolean
+        organizeOutputBy     ?: string
     }
 
     interface FileDownload {

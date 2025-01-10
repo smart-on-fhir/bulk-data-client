@@ -35,6 +35,8 @@ export default class ParseNDJSON extends Transform
      */
     private _count = 0;
 
+    private _headersCount = 0;
+
     private options: ParseNDJSONOptions = {
         maxLineLength: 1000000,
         expectedResourceType: "",
@@ -122,9 +124,9 @@ export default class ParseNDJSON extends Transform
             }
         }
         
-        if (this.options.expectedCount > -1 && this._count !== this.options.expectedCount) {
-            return next(new Error(`Expected ${this.options.expectedCount
-            } resources but found ${this._count}`))
+        const resourceCount = this._count - this._headersCount
+        if (this.options.expectedCount > -1 && resourceCount !== this.options.expectedCount) {
+            return next(new Error(`Expected ${this.options.expectedCount} resources but found ${resourceCount}`))
         }
         
         next()
@@ -134,7 +136,11 @@ export default class ParseNDJSON extends Transform
         try {
             const json = JSON.parse(line);
 
-            if (this.options.expectedResourceType &&
+            if (json.resourceType === "Parameters") {
+                this._headersCount += 1
+            }
+
+            else if (this.options.expectedResourceType &&
                 json.resourceType !== this.options.expectedResourceType) {
                 throw new Error(`Expected each resource to have a "${
                     this.options.expectedResourceType

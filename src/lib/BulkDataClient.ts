@@ -963,6 +963,10 @@ class BulkDataClient extends EventEmitter
             params.append("allowPartialManifests", !!this.options.allowPartialManifests + "");
         }
 
+        if (this.options.organizeOutputBy) {
+            params.append("organizeOutputBy", this.options.organizeOutputBy);
+        }
+
         if (Array.isArray(this.options.custom)) {
             this.options.custom.forEach(p => {
                 const [name, value] = p.trim().split("=")
@@ -1037,6 +1041,14 @@ class BulkDataClient extends EventEmitter
             parameters.push({
                 name: "allowPartialManifests",
                 valueBoolean: this.options.allowPartialManifests
+            });
+        }
+
+        // organizeOutputBy ----------------------------------------------------
+        if (this.options.organizeOutputBy) {
+            parameters.push({
+                name: "organizeOutputBy",
+                valueString: this.options.organizeOutputBy
             });
         }
 

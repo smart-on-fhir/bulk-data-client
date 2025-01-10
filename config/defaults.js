@@ -141,6 +141,21 @@
     allowPartialManifests: false,
 
     /**
+     * When provided, a server with support for the parameter SHALL organize the
+     * resources in output files by instances of the specified resource type,
+     * including a header for each resource of the type specified in the
+     * parameter, followed by the resource and resources in the output that
+     * contain references to that resource. When omitted, servers SHALL organize
+     * each output file with resources of only single type.
+     * 
+     * A server unable to structure output by the requested organizeOutputBy
+     * resource SHOULD return an error and FHIR OperationOutcome resource. When
+     * a Prefer: handling=lenient header is included in the request, the server
+     * MAY process the request instead of returning an error.
+     */
+    organizeOutputBy: "",
+
+    /**
      * If true, adds `handling=lenient` to the `prefer` request header. This may
      * enable a "retry" option after certain errors. It can also be used to
      * signal the server to silently ignore unsupported parameters.
@@ -302,12 +317,12 @@
     retryAfterMSec: 200,
 
     /**
-    * ResponseHeaders to include in error logs for debugging purposes
-    * When 'all' is specified, all responseHeaders are returned
-    * When 'none' is specified, no responseHeaders are returned
-    * Otherwise, log any responseHeaders matches against 1...* strings/regexp 
-    * NOTE: When an empty array is specified, an empty object of responseHeaders will be returned
-    */
+     * ResponseHeaders to include in error logs for debugging purposes
+     * When 'all' is specified, all responseHeaders are returned
+     * When 'none' is specified, no responseHeaders are returned
+     * Otherwise, log any responseHeaders matches against 1...* strings/regexp 
+     * NOTE: When an empty array is specified, an empty object of responseHeaders will be returned
+     */
     logResponseHeaders: 'all',
 
     /**
