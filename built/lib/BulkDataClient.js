@@ -329,31 +329,37 @@ class BulkDataClient extends events_1.EventEmitter {
             const elapsedTime = now - status.startedAt;
             status.elapsedTime = elapsedTime;
             const { statusCode, statusMessage, headers, body } = res;
-            const nextUrl = Array.isArray(body?.link) ? body.link.find(l => l.relation === "next")?.url : "";
+            const isManifest = body && typeof body === "object" && !("resourceType" in body);
+            const manifest = isManifest ? body : null;
+            const nextUrl = manifest && Array.isArray(manifest.link) ? manifest.link.find(l => l.relation === "next")?.url || "" : "";
             const shouldContinue = statusCode === 202 || nextUrl;
             const isLastPage = statusCode === 200 && !nextUrl;
             // -----------------------------------------------------------------
-            // Received a manifest page
+            // Export is complete on the server
             // -----------------------------------------------------------------
-            if ((nextUrl || isLastPage) && body && !pages.has(url)) {
-                pages.add(url);
-                this.emit("exportPage", body, url);
-                onPage?.(res);
-            }
-            // -----------------------------------------------------------------
-            // Export is complete
-            // -----------------------------------------------------------------
-            if (isLastPage) {
+            if (statusCode === 200 && status.percentComplete < 100) {
                 status.completedAt = now;
                 status.percentComplete = 100;
                 status.nextCheckAfter = -1;
                 status.message = `Bulk Data export completed in ${(0, utils_1.formatDuration)(elapsedTime)}`;
                 this.emit("exportProgress", { ...status, virtual: true });
+                this.emit("exportComplete", manifest);
+            }
+            // -----------------------------------------------------------------
+            // Received a manifest page
+            // -----------------------------------------------------------------
+            if ((nextUrl || isLastPage) && manifest && !pages.has(url)) {
                 try {
-                    (0, code_1.expect)(body, "No export manifest returned").to.exist();
-                    (0, code_1.expect)(body.output, "The export manifest output is not an array").to.be.an.array();
-                    // expect(body.output, "The export manifest output contains no files").to.not.be.empty()
-                    this.emit("exportComplete", body);
+                    (0, code_1.expect)(manifest, "No export manifest returned").to.exist();
+                    (0, code_1.expect)(manifest.output, "The export manifest output is not an array").to.be.an.array();
+                    // expect(manifest.output, "The export manifest output contains no files").to.not.be.empty()
+                    pages.add(url);
+                    this.emit("exportPage", manifest, url);
+                    onPage?.(res);
+                    if (isLastPage) {
+                        this.emit("manifestComplete", manifest.transactionTime);
+                        return;
+                    }
                 }
                 catch (ex) {
                     this.emit("exportError", {
@@ -364,7 +370,6 @@ class BulkDataClient extends events_1.EventEmitter {
                     });
                     throw ex;
                 }
-                return body;
             }
             // -----------------------------------------------------------------
             // Export is in progress
@@ -396,7 +401,7 @@ class BulkDataClient extends events_1.EventEmitter {
                     ...status,
                     retryAfterHeader: retryAfter,
                     xProgressHeader: progress,
-                    body
+                    body: isManifest ? null : body
                 });
                 // debug("%o", status)
                 await (0, utils_1.wait)(poolDelay, this.abortController.signal);
@@ -416,7 +421,7 @@ class BulkDataClient extends events_1.EventEmitter {
             error.body = body || null;
             throw error;
         };
-        return checkStatus(statusEndpoint);
+        await checkStatus(statusEndpoint);
     }
     async downloadAllFiles(manifest, index = 0) {
         return new Promise((resolve, reject) => {
@@ -838,7 +843,7 @@ class BulkDataClient extends events_1.EventEmitter {
         if (!statusEndpoint) {
             statusEndpoint = await this.kickOff();
         }
-        await new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             this.once("allDownloadsComplete", resolve);
             let page = 0;
             this.waitForExport({
