@@ -109,7 +109,12 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
         const logger = createLogger(options.log)
         const startTime = Date.now()
 
-        // kickoff -----------------------------------------------------------------
+        let totalOutputFileCount  = 0
+        let totalDeletedFileCount = 0
+        let totalErrorFileCount   = 0
+        let totalManifests        = 0
+
+        // kickoff -------------------------------------------------------------
         client.on("kickOffEnd", ({ requestParameters, capabilityStatement, response, responseHeaders }) => {
             logger.log("info", {
                 eventId: "kickoff",
@@ -127,7 +132,7 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
             })
         })
 
-        // status_progress ---------------------------------------------------------
+        // status_progress -----------------------------------------------------
         client.on("exportProgress", e => {
             if (!e.virtual) { // skip the artificially triggered 100% event
                 logger.log("info", {
@@ -141,7 +146,7 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
             }
         })
 
-        // status_error ------------------------------------------------------------
+        // status_error --------------------------------------------------------
         client.on("exportError", eventDetail => {
             logger.log("error", {
                 eventId: "status_error",
@@ -149,10 +154,14 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
             });
         })
 
-        // status_complete ---------------------------------------------------------
-        client.on("exportComplete", manifest => {
+        // status_page_complete ------------------------------------------------
+        client.on("exportPage", manifest => {
+            totalOutputFileCount  += manifest.output.length
+            totalDeletedFileCount += manifest.deleted?.length || 0
+            totalErrorFileCount   += manifest.error.length
+            totalManifests        += 1
             logger.log("info", {
-                eventId: "status_complete",
+                eventId: "status_page_complete",
                 eventDetail: {
                     transactionTime : manifest.transactionTime,
                     outputFileCount : manifest.output.length,
@@ -162,22 +171,46 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
             })
         })
 
-        // download_request --------------------------------------------------------
+        // manifest_complete ---------------------------------------------------
+        client.on("manifestComplete", transactionTime => {
+            logger.log("info", {
+                eventId: "manifest_complete",
+                eventDetail: {
+                    transactionTime,
+                    totalOutputFileCount,
+                    totalDeletedFileCount,
+                    totalErrorFileCount,
+                    totalManifests
+                }
+            })
+        })
+
+        // status_complete -----------------------------------------------------
+        client.on("exportComplete", manifest => {
+            logger.log("info", {
+                eventId: "status_complete",
+                eventDetail: {
+                    transactionTime: manifest.transactionTime
+                }
+            })
+        })
+
+        // download_request ----------------------------------------------------
         client.on("downloadStart", eventDetail => {
             logger.log("info", { eventId: "download_request", eventDetail })
         })
 
-        // download_complete -------------------------------------------------------
+        // download_complete ---------------------------------------------------
         client.on("downloadComplete", eventDetail => {
             logger.log("info", { eventId: "download_complete", eventDetail })
         })
 
-        // download_error ----------------------------------------------------------
+        // download_error ------------------------------------------------------
         client.on("downloadError", eventDetail => {
             logger.log("info", { eventId: "download_error", eventDetail })
         })
 
-        // export_complete ---------------------------------------------------------
+        // export_complete -----------------------------------------------------
         client.on("allDownloadsComplete", downloads => {
             const eventDetail = {
                 files      : 0,
@@ -212,7 +245,14 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
         process.exit(1);
     })
 
-    await client.run(options.status)
+    await client.run(options.status).catch(error => {
+        createLogger(options.log).error("info", {
+            eventId: "client_error",
+            eventDetail: {
+                error: error.stack
+            }
+        })
+    })
     
     if (options.reporter === "cli") {
         const answer = prompt()("Do you want to signal the server that this export can be removed? [Y/n]".cyan);

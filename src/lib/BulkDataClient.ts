@@ -1,3 +1,4 @@
+import { OperationOutcome }             from "fhir/r4"
 import { debuglog }                     from "util"
 import http                             from "http"
 import jwt                              from "jsonwebtoken"
@@ -86,6 +87,13 @@ export interface BulkDataClientEvents {
      * @event
      */
     "exportPage": (this: BulkDataClient, page: Types.ExportManifest, url: string) => void;
+
+    /**
+     * 
+     * Emitted when all manifest pages are downloaded
+     * @event
+     */
+    "manifestComplete": (this: BulkDataClient, transactionTime: string) => void;
 
     /**
      * Emitted when the export is completed
@@ -472,7 +480,7 @@ class BulkDataClient extends EventEmitter
     }: {
         statusEndpoint: string
         onPage?: (response: Response<Types.ExportManifest>) => void
-    }): Promise<Types.ExportManifest>
+    }): Promise<void>
     {
         const status = {
             startedAt       : Date.now(),
@@ -493,7 +501,7 @@ class BulkDataClient extends EventEmitter
         // @ts-ignore
         const checkStatus: (url: string) => Promise<Types.ExportManifest> = async (url: string) => {
             
-            const res = await this.request<Types.ExportManifest>({
+            const res = await this.request<Types.ExportManifest | OperationOutcome>({
                 url,
                 throwHttpErrors: false,
                 responseType: "json",
@@ -508,37 +516,39 @@ class BulkDataClient extends EventEmitter
             status.elapsedTime = elapsedTime
 
             const { statusCode, statusMessage, headers, body } = res
-            const nextUrl        = Array.isArray(body?.link) ?  body.link.find(l => l.relation === "next")?.url : "";
+            const isManifest     = body && typeof body === "object" && !("resourceType" in body);
+            const manifest       = isManifest ? body as Types.ExportManifest : null
+            const nextUrl        = manifest && Array.isArray(manifest.link) ? manifest.link!.find(l => l.relation === "next")?.url || "" : "";
             const shouldContinue = statusCode === 202 || nextUrl;
             const isLastPage     = statusCode === 200 && !nextUrl;
 
-
             // -----------------------------------------------------------------
-            // Received a manifest page
+            // Export is complete on the server
             // -----------------------------------------------------------------
-            if ((nextUrl || isLastPage) && body && !pages.has(url)) {
-                pages.add(url)
-                this.emit("exportPage", body, url)
-                onPage?.(res)
-            }
-            
-            
-            // -----------------------------------------------------------------
-            // Export is complete
-            // -----------------------------------------------------------------
-            if (isLastPage) {
+            if (statusCode === 200 && status.percentComplete < 100) {
                 status.completedAt = now
                 status.percentComplete = 100
                 status.nextCheckAfter = -1
                 status.message = `Bulk Data export completed in ${formatDuration(elapsedTime)}`
-
                 this.emit("exportProgress", { ...status, virtual: true })
+                this.emit("exportComplete", manifest!)
+            }
 
+            // -----------------------------------------------------------------
+            // Received a manifest page
+            // -----------------------------------------------------------------
+            if ((nextUrl || isLastPage) && manifest && !pages.has(url)) {
                 try {
-                    expect(body, "No export manifest returned").to.exist()
-                    expect(body.output, "The export manifest output is not an array").to.be.an.array();
-                    // expect(body.output, "The export manifest output contains no files").to.not.be.empty()
-                    this.emit("exportComplete", body)
+                    expect(manifest, "No export manifest returned").to.exist()
+                    expect(manifest.output, "The export manifest output is not an array").to.be.an.array();
+                    // expect(manifest.output, "The export manifest output contains no files").to.not.be.empty()
+                    pages.add(url)
+                    this.emit("exportPage", manifest, url)
+                    onPage?.(res as Response<Types.ExportManifest>)
+                    if (isLastPage) {
+                        this.emit("manifestComplete", manifest!.transactionTime)
+                        return
+                    }
                 } catch (ex) {
                     this.emit("exportError", {
                         body: body as any || null,
@@ -548,8 +558,6 @@ class BulkDataClient extends EventEmitter
                     });
                     throw ex
                 }
-
-                return body
             }
 
             // -----------------------------------------------------------------
@@ -587,7 +595,7 @@ class BulkDataClient extends EventEmitter
                     ...status,
                     retryAfterHeader: retryAfter,
                     xProgressHeader : progress,
-                    body
+                    body: isManifest ? null : body
                 })
                 // debug("%o", status)
 
@@ -610,7 +618,7 @@ class BulkDataClient extends EventEmitter
             throw error
         };
         
-        return checkStatus(statusEndpoint)
+        await checkStatus(statusEndpoint)
     }
 
     public async downloadAllFiles(manifest: Types.ExportManifest, index = 0): Promise<Types.FileDownload[]>
@@ -1123,7 +1131,7 @@ class BulkDataClient extends EventEmitter
             statusEndpoint = await this.kickOff()
         }
 
-        await new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             this.once("allDownloadsComplete", resolve)
             let page = 0
             this.waitForExport({
