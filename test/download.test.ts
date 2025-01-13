@@ -37,7 +37,11 @@ describe('download', function() {
         });
 
         // @ts-ignore
-        const client = new BulkDataClient({ ...baseSettings, fhirUrl: mockServer.baseUrl })
+        const client = new BulkDataClient({
+            ...baseSettings,
+            fhirUrl: mockServer.baseUrl,
+            destination: "./test/tmp/downloads"
+        })
 
         // @ts-ignore
         await client.downloadFile({
@@ -72,7 +76,11 @@ describe('download', function() {
         });
 
         // @ts-ignore
-        const client = new BulkDataClient({ ...baseSettings, fhirUrl: mockServer.baseUrl })
+        const client = new BulkDataClient({
+            ...baseSettings,
+            fhirUrl: mockServer.baseUrl,
+            destination: "./test/tmp/downloads"
+        })
 
         // @ts-ignore
         await client.downloadFile({
@@ -159,7 +167,8 @@ describe('download', function() {
 
         const result = await invoke({
             options: {
-                fhirUrl: mockServer.baseUrl
+                fhirUrl: mockServer.baseUrl,
+                destination: "./test/tmp/downloads"
             }
         })
 
@@ -242,7 +251,8 @@ describe('download', function() {
 
         const result = await invoke({
             options: {
-                fhirUrl: mockServer.baseUrl
+                fhirUrl: mockServer.baseUrl,
+                destination: "./test/tmp/downloads"
             },
             // stdio: "inherit"
         })
