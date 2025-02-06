@@ -421,8 +421,11 @@ export declare namespace BulkDataClient {
          * DocumentReference resources will not be downloaded. The
          * DocumentReference resources will still be downloaded but no further
          * processing will be done.
+         * If set to "try" the client will try to download the attachments but
+         * it will ignore download errors (although those errors will still be
+         * logged).
          */
-        downloadAttachments: boolean
+        downloadAttachments: boolean | "try"
 
         /**
          * In `DocumentReference` resources, any `attachment` elements having an

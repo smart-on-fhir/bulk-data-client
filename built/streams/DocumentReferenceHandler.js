@@ -85,16 +85,22 @@ class DocumentReferenceHandler extends stream_1.Transform {
             if (!attachment.url) {
                 continue;
             }
-            const response = await this.downloadAttachment(attachment);
-            if (this.canPutAttachmentInline(response.data, response.contentType)) {
-                await this.inlineAttachmentData(attachment, response.data);
+            let job = this.downloadAttachment(attachment);
+            if (this.options.ignoreDownloadErrors) {
+                job = job.catch(this.options.onDownloadError);
             }
-            else {
-                const fileName = Date.now() + "-" + node_jose_1.default.util.randomBytes(6).toString("hex") + (0, path_1.extname)(attachment.url);
-                await this.options.save(fileName, stream_1.Readable.from(response.data), "attachments");
-                attachment.url = `./attachments/${fileName}`;
+            const response = await job;
+            if (response) {
+                if (this.canPutAttachmentInline(response.data, response.contentType)) {
+                    await this.inlineAttachmentData(attachment, response.data);
+                }
+                else {
+                    const fileName = Date.now() + "-" + node_jose_1.default.util.randomBytes(6).toString("hex") + (0, path_1.extname)(attachment.url);
+                    await this.options.save(fileName, stream_1.Readable.from(response.data), "attachments");
+                    attachment.url = `./attachments/${fileName}`;
+                }
+                this.emit("attachment");
             }
-            this.emit("attachment");
         }
         return resource;
     }

@@ -815,9 +815,19 @@ class BulkDataClient extends EventEmitter
                 inlineAttachmentTypes: this.options.inlineDocRefAttachmentTypes,
                 pdfToText            : this.options.pdfToText,
                 baseUrl              : this.options.fhirUrl,
+                ignoreDownloadErrors : this.options.downloadAttachments === "try",
                 save: (name: string, stream: Readable, sub: string) => {
                     return pipeline(stream, this.createDestinationStream(name, subFolder + "/" + sub))
                 },
+                onDownloadError: e => {
+                    this.emit("downloadError", {
+                        body            : null,
+                        code            : e.code || null,
+                        fileUrl         : e.fileUrl,
+                        message         : String(e.message || "Downloading attachment failed"),
+                        responseHeaders : this.formatResponseHeaders(e.responseHeaders),
+                    })
+                }
             })
     
             docRefProcessor.on("attachment", () => _state.attachments! += 1)

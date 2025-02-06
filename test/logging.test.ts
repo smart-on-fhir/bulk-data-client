@@ -802,6 +802,64 @@ describe('Logging', function () {
                 `Downloading the file from ${mockServer.baseUrl}/document.pdf returned HTTP status code 500.`
             )
             expect(entry.eventDetail.responseHeaders).to.include({"x-debugging-header": "someValue"})
-        })  
+        })
+
+        it ("logs download_error events if attachment errors are ignored", async () => {
+            
+            mockServer.mock("/metadata", { status: 200, body: {} });
+
+            mockServer.mock("/Patient/\\$export", {
+                status: 200,
+                headers: {
+                    "content-location": mockServer.baseUrl + "/status"
+                }
+            });
+
+            mockServer.mock("/status", { status: 200, body: {
+                transactionTime: new Date().toISOString(),
+                output: [{
+                    url : mockServer.baseUrl + "/downloads/file1",
+                    type: "DocumentReference",
+                    count: 1
+                }],
+                error: []
+            }})
+
+            mockServer.mock("/downloads/file1", {
+                handler(req, res) {
+                    res.set("content-type", "application/fhir+ndjson")
+                    res.set("Content-Disposition", "attachment")
+                    res.json({
+                        "resourceType": "DocumentReference",
+                        "content": [
+                            {
+                                "attachment": {
+                                    "contentType": "application/pdf",
+                                    "url": mockServer.baseUrl + "/document.pdf",
+                                    "size": 1084656
+                                }
+                            }
+                        ]
+                    })
+                }
+            })
+
+            mockServer.mock("/document.pdf", { status: 500, headers: {'x-debugging-header': "someValue"} })
+
+            // Default limit of 5 attempts will run up against 10sec maximum execution time for test
+            const { log } = await invoke({ options: { fileDownloadRetry: {limit: 2}, downloadAttachments: "try" }})
+            const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
+            // console.log(logs)
+            const entry = logs.find(l => l.eventId === "download_error")
+            expect(entry).to.exist()
+            expect(entry.eventDetail.fileUrl).to.equal(mockServer.baseUrl + "/document.pdf")
+            expect(entry.eventDetail.body).to.equal(null)
+            expect(entry.eventDetail.message).to.equal(
+                `Downloading the file from ${mockServer.baseUrl}/document.pdf returned HTTP status code 500.`
+            )
+            expect(entry.eventDetail.responseHeaders).to.include({"x-debugging-header": "someValue"})
+            
+            expect(logs.find(l => l.eventId === "export_complete")).to.exist()
+        })
     })
 })
