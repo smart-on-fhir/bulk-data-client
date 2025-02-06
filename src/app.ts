@@ -245,23 +245,27 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
         process.exit(1);
     })
 
-    await client.run(options.status).catch(error => {
-        createLogger(options.log).error("info", {
+    await client.run(options.status)
+    .then(() => {
+        if (options.reporter === "cli") {
+            const answer = prompt()("Do you want to signal the server that this export can be removed? [Y/n]".cyan);
+            if (!answer || answer.toLowerCase() === 'y') {
+                client.cancelExport(client.statusEndpoint!).then(
+                    () => console.log("\nThe server was asked to remove this export!".green.bold)
+                )
+            }
+        }
+    })
+    .catch(error => {
+        const logger = createLogger(options.log);
+        logger.once("close", () => exit(error))
+        logger.error("info", {
             eventId: "client_error",
             eventDetail: {
                 error: error.stack
             }
         })
     })
-    
-    if (options.reporter === "cli") {
-        const answer = prompt()("Do you want to signal the server that this export can be removed? [Y/n]".cyan);
-        if (!answer || answer.toLowerCase() === 'y') {
-            client.cancelExport(client.statusEndpoint!).then(
-                () => console.log("\nThe server was asked to remove this export!".green.bold)
-            )
-        }
-    }
 })
 
 async function main() {

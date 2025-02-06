@@ -621,84 +621,80 @@ class BulkDataClient extends EventEmitter
         await checkStatus(statusEndpoint)
     }
 
-    public async downloadAllFiles(manifest: Types.ExportManifest, index = 0): Promise<Types.FileDownload[]>
+    public async downloadAllFiles(manifest: Types.ExportManifest, index = 0)
     {
-        
-        return new Promise((resolve, reject) => {
+        // Count how many files we have gotten for each ResourceType. This
+        // is needed if the forceStandardFileNames option is true
+        const fileCounts: { [key: string]: number } = {}
 
-            // Count how many files we have gotten for each ResourceType. This
-            // is needed if the forceStandardFileNames option is true
-            const fileCounts: { [key: string]: number } = {}
+        const folder = this.options.allowPartialManifests ? index + "" : ""
 
-            const folder = this.options.allowPartialManifests ? index + "" : ""
+        const createDownloadJob = (f: Types.ExportManifestFile, initialState: Partial<Types.FileDownload> = {}) => {
 
-            const createDownloadJob = (f: Types.ExportManifestFile, initialState: Partial<Types.FileDownload> = {}) => {
+            const type = f.type || "output"
 
-                const type = f.type || "output"
-
-                if (!(type in fileCounts)) {
-                    fileCounts[type] = 0;
-                }
-                fileCounts[type]++;
-
-                let fileName = basename(f.url)
-                if (this.options.forceStandardFileNames) {
-                    fileName = `${fileCounts[type]}.${type}.ndjson`
-                }
-
-                const status: Types.FileDownload = {
-                    url              : f.url,
-                    type             : f.type,
-                    name             : fileName,
-                    downloadedChunks : 0,
-                    downloadedBytes  : 0,
-                    uncompressedBytes: 0,
-                    resources        : 0,
-                    attachments      : 0,
-                    completed        : false,
-                    exportType       : "output",
-                    error            : null,
-                    ...initialState
-                }
-
-                return {
-                    status,
-                    descriptor: f,
-                    worker: async () => {
-                        let subFolder = join(folder, status.exportType == "output" ? "" : status.exportType)
-
-                        if (this.options.addDestinationToManifest) {
-                            // @ts-ignore
-                            f.destination = join(this.options.destination, subFolder, fileName)
-                        }
-
-                        await this.downloadFile({
-                            file: f,
-                            fileName,
-                            onProgress: state => Object.assign(status, state),
-                            authorize: manifest.requiresAccessToken,
-                            subFolder,
-                            exportType: status.exportType
-                        })
-                        
-                        status.completed = true
-                    }
-                };
-            };
-
-            this.downloadQueue.addJob(...(manifest.output  || []).map(f => createDownloadJob(f, { exportType: "output"  })))
-            this.downloadQueue.addJob(...(manifest.deleted || []).map(f => createDownloadJob(f, { exportType: "deleted" })))
-            this.downloadQueue.addJob(...(manifest.error   || []).map(f => createDownloadJob(f, { exportType: "error"   })))
-
-            if (this.options.saveManifest) {
-                this.downloadQueue.addJob({
-                    worker: async() => {
-                        const readable = Readable.from(JSON.stringify(manifest, null, 4));
-                        return pipeline(readable, this.createDestinationStream("manifest.json", folder));
-                    }
-                })
+            if (!(type in fileCounts)) {
+                fileCounts[type] = 0;
             }
-        })
+            fileCounts[type]++;
+
+            let fileName = basename(f.url)
+            if (this.options.forceStandardFileNames) {
+                fileName = `${fileCounts[type]}.${type}.ndjson`
+            }
+
+            const status: Types.FileDownload = {
+                url              : f.url,
+                type             : f.type,
+                name             : fileName,
+                downloadedChunks : 0,
+                downloadedBytes  : 0,
+                uncompressedBytes: 0,
+                resources        : 0,
+                attachments      : 0,
+                completed        : false,
+                exportType       : "output",
+                error            : null,
+                ...initialState
+            }
+
+            return {
+                status,
+                descriptor: f,
+                worker: async () => {
+                    let subFolder = join(folder, status.exportType == "output" ? "" : status.exportType)
+
+                    if (this.options.addDestinationToManifest) {
+                        // @ts-ignore
+                        f.destination = join(this.options.destination, subFolder, fileName)
+                    }
+
+                    await this.downloadFile({
+                        file: f,
+                        fileName,
+                        onProgress: state => Object.assign(status, state),
+                        authorize: manifest.requiresAccessToken,
+                        subFolder,
+                        exportType: status.exportType
+                    })
+                    
+                    status.completed = true
+                }
+            };
+        };
+
+        this.downloadQueue.addJob(...(manifest.output  || []).map(f => createDownloadJob(f, { exportType: "output"  })))
+        this.downloadQueue.addJob(...(manifest.deleted || []).map(f => createDownloadJob(f, { exportType: "deleted" })))
+        this.downloadQueue.addJob(...(manifest.error   || []).map(f => createDownloadJob(f, { exportType: "error"   })))
+
+        if (this.options.saveManifest) {
+            this.downloadQueue.addJob({
+                worker: async() => {
+                    const readable = Readable.from(JSON.stringify(manifest, null, 4));
+                    return pipeline(readable, this.createDestinationStream("manifest.json", folder));
+                }
+            })
+        }
     }
 
     private async downloadFile({
