@@ -220,14 +220,20 @@ APP.action(async (args) => {
         }
     })
         .catch(error => {
-        const logger = (0, loggers_1.createLogger)(options.log);
-        logger.once("close", () => (0, utils_1.exit)(error));
-        logger.error("info", {
-            eventId: "client_error",
-            eventDetail: {
-                error: error.stack
-            }
-        });
+        if (options.log.enabled) {
+            const logger = (0, loggers_1.createLogger)(options.log);
+            logger.once("close", () => setTimeout(() => (0, utils_1.exit)(error), 1000));
+            logger.error("info", {
+                eventId: "client_error",
+                eventDetail: {
+                    error: error.stack
+                }
+            });
+            logger.close();
+        }
+        else {
+            (0, utils_1.exit)(error);
+        }
     });
 });
 async function main() {

@@ -257,14 +257,19 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
         }
     })
     .catch(error => {
-        const logger = createLogger(options.log);
-        logger.once("close", () => exit(error))
-        logger.error("info", {
-            eventId: "client_error",
-            eventDetail: {
-                error: error.stack
-            }
-        })
+        if (options.log.enabled) {
+            const logger = createLogger(options.log);
+            logger.once("close", () => setTimeout(() => exit(error), 1000))
+            logger.error("info", {
+                eventId: "client_error",
+                eventDetail: {
+                    error: error.stack
+                }
+            })
+            logger.close()
+        } else {
+            exit(error)
+        }
     })
 })
 
