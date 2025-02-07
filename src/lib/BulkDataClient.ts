@@ -174,15 +174,7 @@ interface BulkDataClient {
  * **Example:**
  * ```ts
  * const client = new Client({ ...options })
- * 
- * // Start an export and get the status location
- * const statusEndpoint = await client.kickOff()
- * 
- * // Wait for the export and get the manifest
- * const manifest = await client.waitForExport(statusEndpoint)
- * 
- * // Download everything in the manifest
- * const downloads = await client.downloadFiles(manifest)
+ * await client.run()
  * ```
  */
 class BulkDataClient extends EventEmitter

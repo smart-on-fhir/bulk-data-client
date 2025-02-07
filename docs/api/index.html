@@ -21,7 +21,22 @@
 Group-level export</p>
 <pre><code class="language-sh"><span class="hl-0">node </span><span class="hl-1">.</span><span class="hl-0"> --_since 2010-03 --_type Patient, Observations</span>
 </code></pre>
+<p>Patient-level export with debugging information printed to the console</p>
+<pre><code class="language-sh"><span class="hl-2">export</span><span class="hl-0"> NODE_DEBUG=app-request</span><span class="hl-3">;</span><span class="hl-0"> node </span><span class="hl-1">.</span><span class="hl-0"> -f https://builk-data.smarthealthit.org/fhir </span>
+</code></pre>
 <p>For more options see the CLI parameters and configuration options below.</p>
+
+<a href="#retrying-previous-exports" id="retrying-previous-exports" style="color: inherit; text-decoration: none;">
+  <h3>Retrying previous exports</h3>
+</a>
+<p>In some cases the export might fail due to network errors or other interruptions.
+If that happens the export might still be running on the server. If you want to
+restart a failed export, make sure you look at the terminal output for a line
+like <code>Status endpoint: {URL}</code>. If that is present, it means the export started
+successfully on the server and we have been given that URL as dedicated status
+location. To save some time and resources, and to avoid starting a new export
+while retrying, you can copy that URL and use it as the value of the <code>---status</code>
+CLI parameter when you re-run the command. </p>
 
 <a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
   <h2>Installation</h2>
@@ -90,6 +105,10 @@ Group-level export</p>
 </li>
 <li><p><em>string</em> <strong><code>_typeFilter</code></strong> - The value of the <code>_typeFilter</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter <code>-q</code> or <code>--_typeFilter</code></p>
 </li>
+<li><p><em>boolean</em> <strong><code>allowPartialManifests</code></strong> - When provided, a server with support for the parameter MAY return a portion of bulk data output files to a client prior to all output files being available and/or MAY distribute bulk data output files among multiple manifests and provide links for clients to page through the manifests.</p>
+</li>
+<li><p><em>string</em> <strong><code>organizeOutputBy</code></strong> - When provided, a server with support for the parameter SHALL organize the resources in output files by instances of the specified resource type, including a header for each resource of the type specified in the parameter, followed by the resource and resources in the output that contain references to that resource. When omitted, servers SHALL organize each output file with resources of only single type. A server unable to structure output by the requested organizeOutputBy resource SHOULD return an error and FHIR OperationOutcome resource. When a Prefer: handling=lenient header is included in the request, the server MAY process the request instead of returning an error.</p>
+</li>
 <li><p><em>boolean</em> <strong><code>global</code></strong> - By default this client will make patient-level exports. If this is set to true, it will make system-level exports instead. Ignored if <code>group</code> is set! Can be overridden from terminal parameter <code>--global</code></p>
 </li>
 <li><p><em>string</em> <strong><code>group</code></strong> - Id of FHIR group to export. If set, the client will make group-level exports. Can be overridden from terminal parameter <code>-g</code> or <code>--group</code></p>
@@ -97,7 +116,7 @@ Group-level export</p>
 <li><p><em>boolean</em> <strong><code>lenient</code></strong> - If <code>true</code>, adds <code>handling=lenient</code> to the <code>prefer</code> request header. This may enable a &quot;retry&quot; option after certain errors. It can also be used to signal the server to silently ignore unsupported parameters. Can be overridden from terminal parameter <code>--lenient</code></p>
 </li>
 <li><p><em>object</em> <strong><code>requests</code></strong> - Custom options for every request, EXCLUDING the authorization request and any upload requests (in case we use remote destination). Many options are available so be careful what you specify here! See <a href="https://github.com/sindresorhus/got/blob/main/documentation/2-options.md">https://github.com/sindresorhus/got/blob/main/documentation/2-options.md</a>. Example:</p>
-<pre><code class="language-js"><span class="hl-2">requests</span><span class="hl-3">:</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-2">https</span><span class="hl-3">:</span><span class="hl-0"> {</span><br/><span class="hl-0">        </span><span class="hl-2">rejectUnauthorized</span><span class="hl-3">:</span><span class="hl-0"> </span><span class="hl-4">true</span><span class="hl-0"> </span><span class="hl-5">// reject self-signed certs</span><br/><span class="hl-0">    }</span><span class="hl-3">,</span><br/><span class="hl-0">    </span><span class="hl-2">timeout</span><span class="hl-3">:</span><span class="hl-0"> </span><span class="hl-6">20000</span><span class="hl-3">,</span><span class="hl-0"> </span><span class="hl-5">// 20 seconds custom timeout</span><br/><span class="hl-0">    </span><span class="hl-2">headers</span><span class="hl-3">:</span><span class="hl-0"> {</span><br/><span class="hl-0">        </span><span class="hl-7">&quot;x-client-id&quot;</span><span class="hl-0">: </span><span class="hl-7">&quot;whatever&quot;</span><span class="hl-0"> </span><span class="hl-5">// pass custom headers</span><br/><span class="hl-0">    }</span><br/><span class="hl-0">}</span>
+<pre><code class="language-js"><span class="hl-4">requests</span><span class="hl-5">:</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-4">https</span><span class="hl-5">:</span><span class="hl-0"> {</span><br/><span class="hl-0">        </span><span class="hl-4">rejectUnauthorized</span><span class="hl-5">:</span><span class="hl-0"> </span><span class="hl-6">true</span><span class="hl-0"> </span><span class="hl-7">// reject self-signed certs</span><br/><span class="hl-0">    }</span><span class="hl-5">,</span><br/><span class="hl-0">    </span><span class="hl-4">timeout</span><span class="hl-5">:</span><span class="hl-0"> </span><span class="hl-8">20000</span><span class="hl-5">,</span><span class="hl-0"> </span><span class="hl-7">// 20 seconds custom timeout</span><br/><span class="hl-0">    </span><span class="hl-4">headers</span><span class="hl-5">:</span><span class="hl-0"> {</span><br/><span class="hl-0">        </span><span class="hl-9">&quot;x-client-id&quot;</span><span class="hl-0">: </span><span class="hl-9">&quot;whatever&quot;</span><span class="hl-0"> </span><span class="hl-7">// pass custom headers</span><br/><span class="hl-0">    }</span><br/><span class="hl-0">}</span>
 </code></pre>
 </li>
 <li><p><em>number</em> <strong><code>parallelDownloads</code></strong> - How many downloads to run in parallel. This will speed up the download but can also overload the server. Don&#39;t be too greedy and don&#39;t set this to more than 10!</p>
@@ -114,7 +133,7 @@ Group-level export</p>
 </li>
 <li><p><em>boolean</em> <strong><code>forceStandardFileNames</code></strong> - Sometimes a server may use weird names for the exported files. For example, a HAPI server will use random numbers as file names. If this is set to <code>true</code> files will be renamed to match the standard naming convention - <code>{fileNumber}.{ResourceType}.ndjson</code>.</p>
 </li>
-<li><p><em>boolean</em> <strong><code>downloadAttachments</code></strong> - If this is set to <code>false</code>, external attachments found in <code>DocumentReference</code> resources will not be downloaded. The <code>DocumentReference</code> resources will still be downloaded but no further processing will be done.</p>
+<li><p><em>boolean | &quot;try&quot;</em> <strong><code>downloadAttachments</code></strong> - If this is set to <code>false</code>, external attachments found in <code>DocumentReference</code> resources will not be downloaded. The <code>DocumentReference</code> resources will still be downloaded but no further processing will be done. If set to &quot;try&quot; the client will try to download the attachments but it will ignore download errors (although those errors will still be logged). Defaults to <code>true</code>.</p>
 </li>
 <li><p><em>number</em> <strong><code>inlineDocRefAttachmentsSmallerThan</code></strong> - In <code>DocumentReference</code> resources, any <code>attachment</code> elements having an <code>url</code> (instead of inline data) and a <code>size</code> below this number will be downloaded and put inline as base64 <code>data</code>. Then the <code>size</code> property will be updated and the <code>url</code> will be removed. <strong>Ignored</strong> if <code>downloadAttachments</code> is set to <code>false</code>!</p>
 <ul>
@@ -156,6 +175,18 @@ Group-level export</p>
 <li><p><em>object</em> <strong><code>log.metadata</code></strong> - Key/value pairs to be added to every log entry. Can be used to add useful information (for example which site imported this data).</p>
 </li>
 <li><p><em>number</em> <strong><code>retryAfterMSec</code></strong> - If the server does not provide <code>Retry-after</code> header use this number of milliseconds before checking the status again.</p>
+</li>
+<li><p><em>complex</em> <strong><code>logResponseHeaders</code></strong> - ResponseHeaders to include in error logs for debugging purposes.     </p>
+<ul>
+<li>As for the complex type, valid values are <code>&quot;all&quot; | &quot;none&quot; | string | RegExp | (string | RegExp)[]</code></li>
+<li>When <code>&quot;all&quot;</code> is specified, all responseHeaders are returned. When <code>&quot;none&quot;</code> is specified, no responseHeaders are returned. Otherwise, log any responseHeaders matches against 1...* strings/regexp</li>
+</ul>
+</li>
+<li><p><em>object</em> <strong><code>fileDownloadRetry</code></strong> - A subset of got retry configuration object, determining retry behavior when downloading files. </p>
+<ul>
+<li>For most scenarios, an object with only a <code>limit</code>: <code>number</code> property will be sufficient. This determines how many times a file download will be retried before failing. Each subsequent attempt will delay using an exponential backoff.</li>
+<li>For more details on options, see <a href="https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md">https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md</a>.</li>
+</ul>
 </li>
 </ul>
 
