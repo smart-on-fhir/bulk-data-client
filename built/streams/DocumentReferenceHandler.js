@@ -85,6 +85,17 @@ class DocumentReferenceHandler extends stream_1.Transform {
             if (!attachment.url) {
                 continue;
             }
+            // if we have a mime type whitelist
+            if (this.options.downloadMimeTypes.length > 0) {
+                // skip attachments with no contentType
+                if (!attachment.contentType) {
+                    continue;
+                }
+                // skip attachments without white-listed contentType
+                if (!this.options.downloadMimeTypes.find(m => attachment.contentType.startsWith(m))) {
+                    continue;
+                }
+            }
             let job = this.downloadAttachment(attachment);
             if (this.options.ignoreDownloadErrors) {
                 job = job.catch(this.options.onDownloadError);

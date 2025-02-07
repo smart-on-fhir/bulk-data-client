@@ -238,11 +238,15 @@
      * If this is set to `false`, external attachments found in
      * DocumentReference resources will not be downloaded. The DocumentReference
      * resources will still be downloaded but no further processing will be done.
-     * Can also be set to "try", in which case the client will try to download
-     * the attachments but will ignore download errors and skip failed files
-     * (although those errors will still be logged).
+     * Can also be an array of white-listed mime types.
      */
     downloadAttachments: true,
+
+    /**
+     * If `true` the client will try to download the attachments but it will
+     * ignore download errors (although those errors will still be logged).
+     */
+    ignoreAttachmentDownloadErrors: false,
 
     /**
      * In `DocumentReference` resources, any `attachment` elements having an

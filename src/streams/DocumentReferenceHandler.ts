@@ -12,7 +12,8 @@ export interface DocumentReferenceHandlerOptions {
     inlineAttachmentTypes: string[]
     pdfToText: boolean
     baseUrl: string
-    ignoreDownloadErrors?: boolean
+    ignoreDownloadErrors: boolean
+    downloadMimeTypes: string[]
     request: <T=unknown>(options: OptionsOfUnknownResponseBody) => Promise<Response<T>>
     save: (fileName: string, stream: Readable, subFolder: string) => Promise<any>
     onDownloadComplete: (url: string, buteSize: number) => void
@@ -113,6 +114,20 @@ export default class DocumentReferenceHandler extends Transform
 
             if (!attachment.url) {
                 continue;
+            }
+
+            // if we have a mime type whitelist
+            if (this.options.downloadMimeTypes.length > 0) {
+
+                // skip attachments with no contentType
+                if (!attachment.contentType) {
+                    continue;
+                }
+        
+                // skip attachments without white-listed contentType
+                if (!this.options.downloadMimeTypes.find(m => attachment.contentType!.startsWith(m))) {
+                    continue;
+                }
             }
 
             let job: any = this.downloadAttachment(attachment)

@@ -148,6 +148,21 @@ export declare namespace BulkDataClient {
         forceStandardFileNames?: boolean
 
         /**
+         * If this is set to `false`, external attachments found in
+         * DocumentReference resources will not be downloaded. The
+         * DocumentReference resources will still be downloaded but no further
+         * processing will be done.
+         * Can also be an array of white-listed mime types.
+         */
+        downloadAttachments: boolean | string[]
+
+        /**
+         * If `true` the client will try to download the attachments but it will
+         * ignore download errors (although those errors will still be logged).
+         */
+        ignoreAttachmentDownloadErrors?: boolean
+
+        /**
          * In `DocumentReference` resources, any `attachment` elements having an
          * `url` (instead of inline data) and a `size` below this number will be
          * downloaded and put inline as base64 `data`. Then the `size` property
@@ -421,11 +436,15 @@ export declare namespace BulkDataClient {
          * DocumentReference resources will not be downloaded. The
          * DocumentReference resources will still be downloaded but no further
          * processing will be done.
-         * If set to "try" the client will try to download the attachments but
-         * it will ignore download errors (although those errors will still be
-         * logged).
+         * Can also be an array of white-listed mime types.
          */
-        downloadAttachments: boolean | "try"
+        downloadAttachments: boolean | string[]
+
+        /**
+         * If `true` the client will try to download the attachments but it will
+         * ignore download errors (although those errors will still be logged).
+         */
+        ignoreAttachmentDownloadErrors?: boolean
 
         /**
          * In `DocumentReference` resources, any `attachment` elements having an

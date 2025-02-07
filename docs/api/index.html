@@ -133,7 +133,9 @@ CLI parameter when you re-run the command. </p>
 </li>
 <li><p><em>boolean</em> <strong><code>forceStandardFileNames</code></strong> - Sometimes a server may use weird names for the exported files. For example, a HAPI server will use random numbers as file names. If this is set to <code>true</code> files will be renamed to match the standard naming convention - <code>{fileNumber}.{ResourceType}.ndjson</code>.</p>
 </li>
-<li><p><em>boolean | &quot;try&quot;</em> <strong><code>downloadAttachments</code></strong> - If this is set to <code>false</code>, external attachments found in <code>DocumentReference</code> resources will not be downloaded. The <code>DocumentReference</code> resources will still be downloaded but no further processing will be done. If set to &quot;try&quot; the client will try to download the attachments but it will ignore download errors (although those errors will still be logged). Defaults to <code>true</code>.</p>
+<li><p><em>boolean | string[]</em> <strong><code>downloadAttachments</code></strong> - If this is set to <code>false</code>, external attachments found in <code>DocumentReference</code> resources will not be downloaded. The <code>DocumentReference</code> resources will still be downloaded but no further processing will be done. Can also be an array of white-listed mime types to filter out which attachments should be downloaded.</p>
+</li>
+<li><p><em>boolean</em> <strong><code>ignoreAttachmentDownloadErrors</code></strong> - If <code>true</code>, the client will try to download the attachments but it will ignore download errors (although those errors will still be logged).</p>
 </li>
 <li><p><em>number</em> <strong><code>inlineDocRefAttachmentsSmallerThan</code></strong> - In <code>DocumentReference</code> resources, any <code>attachment</code> elements having an <code>url</code> (instead of inline data) and a <code>size</code> below this number will be downloaded and put inline as base64 <code>data</code>. Then the <code>size</code> property will be updated and the <code>url</code> will be removed. <strong>Ignored</strong> if <code>downloadAttachments</code> is set to <code>false</code>!</p>
 <ul>

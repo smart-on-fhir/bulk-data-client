@@ -847,7 +847,7 @@ describe('Logging', function () {
             mockServer.mock("/document.pdf", { status: 500, headers: {'x-debugging-header': "someValue"} })
 
             // Default limit of 5 attempts will run up against 10sec maximum execution time for test
-            const { log } = await invoke({ options: { fileDownloadRetry: {limit: 2}, downloadAttachments: "try" }})
+            const { log } = await invoke({ options: { fileDownloadRetry: {limit: 2}, ignoreAttachmentDownloadErrors: true }})
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
             // console.log(logs)
             const entry = logs.find(l => l.eventId === "download_error")
@@ -860,6 +860,86 @@ describe('Logging', function () {
             expect(entry.eventDetail.responseHeaders).to.include({"x-debugging-header": "someValue"})
             
             expect(logs.find(l => l.eventId === "export_complete")).to.exist()
+        })
+
+        it ("downloadAttachments can be a mime type whitelist", async () => {
+            
+            mockServer.mock("/metadata", { status: 200, body: {} });
+
+            mockServer.mock("/Patient/\\$export", {
+                status: 200,
+                headers: {
+                    "content-location": mockServer.baseUrl + "/status"
+                }
+            });
+
+            mockServer.mock("/status", { status: 200, body: {
+                transactionTime: new Date().toISOString(),
+                output: [{
+                    url : mockServer.baseUrl + "/downloads/file1",
+                    type: "DocumentReference",
+                    count: 1
+                }],
+                error: []
+            }})
+
+            mockServer.mock("/downloads/file1", {
+                handler(req, res) {
+                    res.set("content-type", "application/fhir+ndjson")
+                    res.set("Content-Disposition", "attachment")
+                    res.json({
+                        "resourceType": "DocumentReference",
+                        "content": [
+                            {
+                                "attachment": {
+                                    "contentType": "application/pdf",
+                                    "url": mockServer.baseUrl + "/document.pdf",
+                                    "size": 1084656
+                                }
+                            },
+                            {
+                                "attachment": {
+                                    "contentType": "text/plain",
+                                    "url": mockServer.baseUrl + "/test.txt",
+                                    "size": 100
+                                }
+                            }
+                        ]
+                    })
+                }
+            })
+
+            mockServer.mock("/document.pdf", {
+                body: "Some PDF",
+                headers: {
+                    "content-type": "text/plain"
+                }
+            })
+
+            mockServer.mock("/test.txt", {
+                handler(req, res) {
+                    res.status(500).end("This file should not be downloaded")
+                }
+            })
+
+            // Default limit of 5 attempts will run up against 10sec maximum execution time for test
+            const { log } = await invoke({
+                options: {
+                    fileDownloadRetry: {
+                        limit: 2
+                    },
+                    downloadAttachments: ["application/pdf"]
+                },
+                // stdio: "inherit"
+            })
+            const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
+            // console.log(logs)
+
+            const pdfLog = logs.find(l => l.eventId === "download_complete" && l.eventDetail.fileUrl === `${mockServer.baseUrl}/document.pdf`)
+            const txtLog = logs.find(l => l.eventId === "download_complete" && l.eventDetail.fileUrl === `${mockServer.baseUrl}/test.pdf`)
+
+            expect(pdfLog, "PDF should be downloaded").to.exist()
+            expect(txtLog, "PDF should NOT be downloaded").to.not.exist()
         })
     })
 })

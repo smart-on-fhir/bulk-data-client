@@ -807,7 +807,8 @@ class BulkDataClient extends EventEmitter
                 inlineAttachmentTypes: this.options.inlineDocRefAttachmentTypes,
                 pdfToText            : this.options.pdfToText,
                 baseUrl              : this.options.fhirUrl,
-                ignoreDownloadErrors : this.options.downloadAttachments === "try",
+                ignoreDownloadErrors : !!this.options.ignoreAttachmentDownloadErrors,
+                downloadMimeTypes    : this.options.downloadAttachments === true ? [] : this.options.downloadAttachments,
                 save: (name: string, stream: Readable, sub: string) => {
                     return pipeline(stream, this.createDestinationStream(name, subFolder + "/" + sub))
                 },
