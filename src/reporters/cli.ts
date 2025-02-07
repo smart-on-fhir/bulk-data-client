@@ -30,6 +30,7 @@ export default function CLIReporter(client: BulkDataClient)
         if (!downloadStart) {
             print(status.message)
         }
+        print(`Status endpoint: ${status.statusEndpoint}`).commit()
     }
 
     function onExportPage(page: Types.ExportManifest, url: string) {

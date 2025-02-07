@@ -34,6 +34,16 @@ export NODE_DEBUG=app-request; node . -f https://builk-data.smarthealthit.org/fh
 
 For more options see the CLI parameters and configuration options below.
 
+### Retrying previous exports
+In some cases the export might fail due to network errors or other interruptions.
+If that happens the export might still be running on the server. If you want to
+restart a failed export, make sure you look at the terminal output for a line
+like `Status endpoint: {URL}`. If that is present, it means the export started
+successfully on the server and we have been given that URL as dedicated status
+location. To save some time and resources, and to avoid starting a new export
+while retrying, you can copy that URL and use it as the value of the `---status`
+CLI parameter when you re-run the command. 
+
 ## Installation
 
 **Prerequisites**: Git and NodeJS 15+
@@ -110,7 +120,7 @@ The Bulk Data Client uses `js` configuration files, but you can think of them as
 - *boolean* **`ndjsonValidateFHIRResourceCount`** - If the server reports the file `count` in the export manifest, verify that the number of resources found in the file matches the count reported by the server.
 - *boolean* **`addDestinationToManifest`** - The original export manifest will have an `url` property for each file, containing the source location. It his is set to `true`, add a `destination` property to each file containing the path (relative to the manifest file) to the saved file. This is ONLY used if `saveManifest` is set to `true`.
 - *boolean* **`forceStandardFileNames`** - Sometimes a server may use weird names for the exported files. For example, a HAPI server will use random numbers as file names. If this is set to `true` files will be renamed to match the standard naming convention - `{fileNumber}.{ResourceType}.ndjson`.
-- *boolean* **`downloadAttachments`** - If this is set to `false`, external attachments found in `DocumentReference` resources will not be downloaded. The `DocumentReference` resources will still be downloaded but no further processing will be done.
+- *boolean | "try"* **`downloadAttachments`** - If this is set to `false`, external attachments found in `DocumentReference` resources will not be downloaded. The `DocumentReference` resources will still be downloaded but no further processing will be done. If set to "try" the client will try to download the attachments but it will ignore download errors (although those errors will still be logged). Defaults to `true`.
 - *number* **`inlineDocRefAttachmentsSmallerThan`** - In `DocumentReference` resources, any `attachment` elements having an `url` (instead of inline data) and a `size` below this number will be downloaded and put inline as base64 `data`. Then the `size` property will be updated and the `url` will be removed. **Ignored** if `downloadAttachments` is set to `false`!
     - To always disable this, set it to `0`
     - To always enable this, set it to `Infinity` (bad idea!)

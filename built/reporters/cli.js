@@ -18,6 +18,7 @@ function CLIReporter(client) {
         if (!downloadStart) {
             (0, utils_1.print)(status.message);
         }
+        (0, utils_1.print)(`Status endpoint: ${status.statusEndpoint}`).commit();
     }
     function onExportPage(page, url) {
         manifestPages++;
