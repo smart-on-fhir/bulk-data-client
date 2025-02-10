@@ -4,7 +4,7 @@
   "description": "",
   "main": "built/app.js",
   "engines": {
-    "node": ">=15"
+    "node": ">=15 <19"
   },
   "scripts": {
     "clean": "rm -rf ./built",

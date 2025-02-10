@@ -46,7 +46,7 @@ CLI parameter when you re-run the command.
 
 ## Installation
 
-**Prerequisites**: Git and NodeJS 15+
+**Prerequisites**: Git and NodeJS 15 to 18.
 
 1. Clone the repository
    ```sh
@@ -56,7 +56,7 @@ CLI parameter when you re-run the command.
    ```sh
    cd bulk-data-client
    ```
-3. Make sure you are using NodeJS 15+. If you use `nvm` run:
+3. Make sure you are using NodeJS 15, 16, 17, or 18. If you use `nvm` run:
    ```sh
    nvm use
    ```
