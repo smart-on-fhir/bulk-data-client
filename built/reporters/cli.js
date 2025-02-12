@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = CLIReporter;
 const utils_1 = require("../lib/utils");
 require("colors");
 function CLIReporter(client) {
@@ -103,4 +104,3 @@ function CLIReporter(client) {
         }
     };
 }
-exports.default = CLIReporter;

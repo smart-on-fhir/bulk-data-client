@@ -108,6 +108,7 @@ APP.action(async (args) => {
                     fhirVersion: capabilityStatement.fhirVersion || null,
                     requestParameters,
                     responseHeaders,
+                    logVersion: "2"
                 }
             });
         });

@@ -128,6 +128,7 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
                     fhirVersion        : capabilityStatement.fhirVersion                 || null,
                     requestParameters, 
                     responseHeaders,
+                    logVersion: "2"
                 }
             })
         })

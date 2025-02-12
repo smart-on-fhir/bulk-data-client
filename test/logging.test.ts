@@ -57,7 +57,8 @@ describe('Logging', function () {
                 "softwareReleaseDate": "01-02-03",
                 "fhirVersion": 100,
                 "requestParameters": {},
-                "responseHeaders": {}
+                "responseHeaders": {},
+                logVersion: '2'
             })
         })
 
@@ -92,6 +93,7 @@ describe('Logging', function () {
                 "fhirVersion": 100,
                 "requestParameters": {},
                 "responseHeaders": {},
+                logVersion: '2'
             })
         })
 
@@ -115,7 +117,8 @@ describe('Logging', function () {
                 "softwareReleaseDate": null,
                 "fhirVersion": null,
                 "requestParameters": {},
-                "responseHeaders": {}
+                "responseHeaders": {},
+                logVersion: '2'
             })
         })
 
