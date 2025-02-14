@@ -34,9 +34,9 @@
 
     /**
      * The scope to use in the authorization request. If not set, defaults to
-     * "system/*.read"
+     * "system/*.rs"
      */
-    scope: "system/*.read",
+    scope: "system/*.rs",
 
     /**
      * The access token lifetime in seconds. Note that the authentication server
