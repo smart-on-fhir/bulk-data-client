@@ -159,7 +159,7 @@ class BulkDataClient extends events_1.EventEmitter {
             method: "POST",
             responseType: "json",
             form: {
-                scope: this.options.scope || "system/*.read",
+                scope: this.options.scope || "system/*.rs",
                 grant_type: "client_credentials",
                 client_assertion_type: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
                 client_assertion: token
