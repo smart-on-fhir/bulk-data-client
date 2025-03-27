@@ -6,7 +6,7 @@ import jose                             from "node-jose"
 import { URL, fileURLToPath }           from "url"
 import { EventEmitter }                 from "events"
 import aws                              from "aws-sdk"
-import { basename, join, resolve, sep } from "path"
+import { basename, join }               from "path"
 import FS, { mkdirSync }                from "fs"
 import { expect }                       from "@hapi/code"
 import { OptionsOfUnknownResponseBody, Response } from "got/dist/source"
@@ -27,6 +27,7 @@ import {
     formatDuration,
     getAccessTokenExpiration,
     getCapabilityStatement,
+    normalizeDestination,
     wait
 } from "./utils"
 
@@ -879,10 +880,10 @@ class BulkDataClient extends EventEmitter
      * @param subFolder Optional subfolder
      */
     private createDestinationStream(fileName: string, subFolder = ""): Writable {
-        const destination = String(this.options.destination || "none").trim();
+        const destination = normalizeDestination(this.options.destination);
 
         // No destination ------------------------------------------------------
-        if (!destination || destination.toLowerCase() == "none") {
+        if (!destination) {
             return new Writable({ write(chunk, encoding, cb) { cb() } })
         }
 
@@ -936,14 +937,7 @@ class BulkDataClient extends EventEmitter
         }
 
         // local filesystem destinations ---------------------------------------
-        let path = destination.startsWith("file://") ?
-            fileURLToPath(destination) :
-            destination.startsWith(sep) ?
-                destination :
-                resolve(__dirname, "../..", destination);
-
-        assert(FS.existsSync(path), `Destination "${path}" does not exist`)
-        assert(FS.statSync(path).isDirectory, `Destination "${path}" is not a directory`)
+        let path = destination;
 
         if (subFolder) {
             path = join(path, subFolder)

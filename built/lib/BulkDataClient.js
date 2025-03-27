@@ -1,11 +1,7 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -15,23 +11,13 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -69,9 +55,6 @@ const debug = (0, util_1.debuglog)("app-request");
  * ```
  */
 class BulkDataClient extends events_1.EventEmitter {
-    get statusEndpoint() {
-        return this._statusEndpoint;
-    }
     /**
      * Nothing special is done here - just remember the options and create
      * AbortController instance
@@ -102,6 +85,9 @@ class BulkDataClient extends events_1.EventEmitter {
                 this.emit("allDownloadsComplete", jobs.map(j => j.status).filter(Boolean));
             }
         });
+    }
+    get statusEndpoint() {
+        return this._statusEndpoint;
     }
     /**
      * Abort any current asynchronous task. This may include:
@@ -524,7 +510,7 @@ class BulkDataClient extends events_1.EventEmitter {
             .catch(e => {
             if (e instanceof errors_1.FileDownloadError) {
                 this.emit("downloadError", {
-                    body: null, // Buffer
+                    body: null,
                     code: e.code || null,
                     fileUrl: e.fileUrl,
                     message: String(e.message || "File download failed"),
@@ -651,9 +637,9 @@ class BulkDataClient extends events_1.EventEmitter {
      * @param subFolder Optional subfolder
      */
     createDestinationStream(fileName, subFolder = "") {
-        const destination = String(this.options.destination || "none").trim();
+        const destination = (0, utils_1.normalizeDestination)(this.options.destination);
         // No destination ------------------------------------------------------
-        if (!destination || destination.toLowerCase() == "none") {
+        if (!destination) {
             return new stream_1.Writable({ write(chunk, encoding, cb) { cb(); } });
         }
         // S3 ------------------------------------------------------------------
@@ -695,13 +681,7 @@ class BulkDataClient extends events_1.EventEmitter {
             return req;
         }
         // local filesystem destinations ---------------------------------------
-        let path = destination.startsWith("file://") ?
-            (0, url_1.fileURLToPath)(destination) :
-            destination.startsWith(path_1.sep) ?
-                destination :
-                (0, path_1.resolve)(__dirname, "../..", destination);
-        (0, utils_1.assert)(fs_1.default.existsSync(path), `Destination "${path}" does not exist`);
-        (0, utils_1.assert)(fs_1.default.statSync(path).isDirectory, `Destination "${path}" is not a directory`);
+        let path = destination;
         if (subFolder) {
             path = (0, path_1.join)(path, subFolder);
             if (!fs_1.default.existsSync(path)) {

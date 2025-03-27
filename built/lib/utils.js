@@ -3,27 +3,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.print = void 0;
-exports.getWellKnownSmartConfig = getWellKnownSmartConfig;
-exports.getCapabilityStatement = getCapabilityStatement;
-exports.getTokenEndpointFromWellKnownSmartConfig = getTokenEndpointFromWellKnownSmartConfig;
-exports.getTokenEndpointFromCapabilityStatement = getTokenEndpointFromCapabilityStatement;
-exports.detectTokenUrl = detectTokenUrl;
-exports.wait = wait;
-exports.formatDuration = formatDuration;
-exports.getAccessTokenExpiration = getAccessTokenExpiration;
-exports.humanFileSize = humanFileSize;
-exports.assert = assert;
-exports.fhirInstant = fhirInstant;
-exports.generateProgress = generateProgress;
-exports.ask = ask;
-exports.exit = exit;
-exports.createDecompressor = createDecompressor;
-exports.filterResponseHeaders = filterResponseHeaders;
+exports.normalizeDestination = exports.filterResponseHeaders = exports.createDecompressor = exports.exit = exports.ask = exports.generateProgress = exports.fhirInstant = exports.assert = exports.humanFileSize = exports.getAccessTokenExpiration = exports.print = exports.formatDuration = exports.wait = exports.detectTokenUrl = exports.getTokenEndpointFromCapabilityStatement = exports.getTokenEndpointFromWellKnownSmartConfig = exports.getCapabilityStatement = exports.getWellKnownSmartConfig = void 0;
 require("colors");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const url_1 = require("url");
 const moment_1 = __importDefault(require("moment"));
+const path_1 = require("path");
+const fs_1 = __importDefault(require("fs"));
 const prompt_sync_1 = __importDefault(require("prompt-sync"));
 const util_1 = __importDefault(require("util"));
 const source_1 = require("got/dist/source");
@@ -52,6 +38,7 @@ async function getWellKnownSmartConfig(baseUrl, noCache = false) {
         throw e;
     });
 }
+exports.getWellKnownSmartConfig = getWellKnownSmartConfig;
 /**
  * Given a `baseUrl` fetches the `CapabilityStatement`. Note that this request
  * is cached by default!
@@ -71,10 +58,12 @@ async function getCapabilityStatement(baseUrl, noCache = false) {
         throw e;
     });
 }
+exports.getCapabilityStatement = getCapabilityStatement;
 async function getTokenEndpointFromWellKnownSmartConfig(baseUrl) {
     const { body } = await getWellKnownSmartConfig(baseUrl);
     return body.token_endpoint || "";
 }
+exports.getTokenEndpointFromWellKnownSmartConfig = getTokenEndpointFromWellKnownSmartConfig;
 async function getTokenEndpointFromCapabilityStatement(baseUrl) {
     const oauthUrisUrl = "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris";
     const { body } = await getCapabilityStatement(baseUrl);
@@ -92,6 +81,7 @@ async function getTokenEndpointFromCapabilityStatement(baseUrl) {
         return "";
     }
 }
+exports.getTokenEndpointFromCapabilityStatement = getTokenEndpointFromCapabilityStatement;
 /**
  * Given a FHIR server baseURL, looks up it's `.well-known/smart-configuration`
  * and/or it's `CapabilityStatement` (whichever arrives first) and resolves with
@@ -112,6 +102,7 @@ async function detectTokenUrl(baseUrl) {
         return "none";
     }
 }
+exports.detectTokenUrl = detectTokenUrl;
 /**
  * Simple utility for waiting. Returns a promise that will resolve after the
  * given number of milliseconds. The timer can be aborted if an `AbortSignal`
@@ -139,6 +130,7 @@ function wait(ms, signal) {
         }
     });
 }
+exports.wait = wait;
 function formatDuration(ms) {
     let out = [];
     let meta = [
@@ -166,6 +158,7 @@ function formatDuration(ms) {
     }
     return out.join(", ");
 }
+exports.formatDuration = formatDuration;
 exports.print = (() => {
     let lastLinesLength = 0;
     const _print = (lines = "") => {
@@ -208,6 +201,7 @@ function getAccessTokenExpiration(tokenResponse) {
     // Option 3 - if none of the above worked set this to 5 minutes after now
     return now + 300;
 }
+exports.getAccessTokenExpiration = getAccessTokenExpiration;
 /**
  * Returns the byte size with units
  * @param fileSizeInBytes The size to format
@@ -225,6 +219,7 @@ function humanFileSize(fileSizeInBytes = 0, useBits = false) {
     }
     return Math.max(fileSizeInBytes, 0).toFixed(1) + units[i];
 }
+exports.humanFileSize = humanFileSize;
 function assert(condition, error, ctor = Error) {
     if (!(condition)) {
         if (typeof error === "function") {
@@ -235,6 +230,7 @@ function assert(condition, error, ctor = Error) {
         }
     }
 }
+exports.assert = assert;
 function fhirInstant(input) {
     input = String(input || "");
     if (input) {
@@ -248,6 +244,7 @@ function fhirInstant(input) {
     }
     return "";
 }
+exports.fhirInstant = fhirInstant;
 /**
  * Generates a progress indicator
  * @param pct The percentage
@@ -275,6 +272,7 @@ function generateProgress(pct = 0, length = 40) {
     }
     return `${spinner} ${pct}%`;
 }
+exports.generateProgress = generateProgress;
 function ask(question) {
     return new Promise(resolve => {
         exports.print.commit();
@@ -284,6 +282,7 @@ function ask(question) {
         });
     });
 }
+exports.ask = ask;
 function exit(arg, details) {
     if (!arg) {
         process.exit();
@@ -354,6 +353,7 @@ function exit(arg, details) {
     }
     process.exit(exitCode);
 }
+exports.exit = exit;
 function createDecompressor(res) {
     switch (res.headers["content-encoding"]) {
         case "gzip": return zlib_1.default.createGunzip();
@@ -370,6 +370,7 @@ function createDecompressor(res) {
         });
     }
 }
+exports.createDecompressor = createDecompressor;
 /**
  * Filter a Headers object down to a selected series of headers
  * @param headers The object of headers to filter
@@ -394,3 +395,41 @@ function filterResponseHeaders(headers, selectedHeaders) {
         return matchedHeaders;
     }, {});
 }
+exports.filterResponseHeaders = filterResponseHeaders;
+/**
+ * Normalizes the user destination option.
+ * If disabled ("none") or not provided, the result will be the empty string.
+ * If local (even if file://), the result will be a resolved absolute path.
+ *   - If the local location does not exist or is not a dir, an assert is thrown.
+ * If a non-file URL, the destination will be returned as-is.
+ * @param destination The user-provided destination option
+ * @returns {string} The normalized destination
+ */
+function normalizeDestination(originalDestination) {
+    const destination = String(originalDestination || "none").trim();
+    // No destination ------------------------------------------------------
+    if (!destination || destination.toLowerCase() == "none") {
+        return "";
+    }
+    let path = null;
+    try {
+        // URL destinations --------------------------------------------------
+        const url = new url_1.URL(destination);
+        if (url.protocol === "file:") {
+            path = (0, url_1.fileURLToPath)(destination);
+        }
+        else {
+            return destination;
+        }
+    }
+    catch {
+        // local filesystem destinations -----------------------------------
+        path = destination.startsWith(path_1.sep) ?
+            destination :
+            (0, path_1.resolve)(__dirname, "../..", destination);
+    }
+    assert(fs_1.default.existsSync(path), `Destination "${path}" does not exist`);
+    assert(fs_1.default.statSync(path).isDirectory(), `Destination "${path}" is not a directory`);
+    return path;
+}
+exports.normalizeDestination = normalizeDestination;
