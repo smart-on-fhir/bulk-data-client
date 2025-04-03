@@ -1,7 +1,9 @@
 import                                     "colors"
 import jwt                            from "jsonwebtoken"
-import { URL }                        from "url"
+import { URL, fileURLToPath }         from "url"
 import moment                         from "moment"
+import { resolve, sep }               from "path"
+import FS                             from "fs"
 import prompt                         from "prompt-sync"
 import util                           from "util"
 import { HTTPError, Response }        from "got/dist/source"
@@ -445,4 +447,43 @@ export function filterResponseHeaders(headers: Types.ResponseHeaders, selectedHe
             // If we don't find a selectedHeader that matches this header, we move on
             return matchedHeaders
         }, {})
+}
+
+/**
+ * Normalizes the user destination option.
+ * If disabled ("none") or not provided, the result will be the empty string.
+ * If local (even if file://), the result will be a resolved absolute path.
+ *   - If the local location does not exist or is not a dir, an assert is thrown.
+ * If a non-file URL, the destination will be returned as-is.
+ * @param destination The user-provided destination option
+ * @returns {string} The normalized destination
+ */
+export function normalizeDestination(originalDestination: string | undefined): string {
+    const destination = String(originalDestination || "none").trim();
+
+    // No destination ------------------------------------------------------
+    if (!destination || destination.toLowerCase() == "none") {
+        return "";
+    }
+
+    let path = null;
+    try {
+      // URL destinations --------------------------------------------------
+      const url = new URL(destination);
+      if (url.protocol === "file:") {
+        path = fileURLToPath(destination);
+      } else {
+        return destination;
+      }
+    } catch {
+        // local filesystem destinations -----------------------------------
+        path = destination.startsWith(sep) ?
+          destination :
+          resolve(__dirname, "../..", destination);
+    }
+
+    assert(FS.existsSync(path), `Destination "${path}" does not exist`)
+    assert(FS.statSync(path).isDirectory(), `Destination "${path}" is not a directory`)
+
+    return path;
 }

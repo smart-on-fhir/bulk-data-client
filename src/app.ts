@@ -106,7 +106,7 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
     const reporter = reporters[(options as BulkDataClient.NormalizedOptions).reporter](client)
     if (options.log.enabled) {
         
-        const logger = createLogger(options.log)
+        const logger = createLogger(options.destination, options.log)
         const startTime = Date.now()
 
         let totalOutputFileCount  = 0
@@ -259,7 +259,7 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
     })
     .catch(error => {
         if (options.log.enabled) {
-            const logger = createLogger(options.log);
+            const logger = createLogger(options.destination, options.log);
             logger.once("close", () => setTimeout(() => exit(error), 1000))
             logger.error("info", {
                 eventId: "client_error",

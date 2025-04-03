@@ -88,7 +88,7 @@ APP.action(async (args) => {
     const client = new BulkDataClient_1.default(options);
     const reporter = reporters[options.reporter](client);
     if (options.log.enabled) {
-        const logger = (0, loggers_1.createLogger)(options.log);
+        const logger = (0, loggers_1.createLogger)(options.destination, options.log);
         const startTime = Date.now();
         let totalOutputFileCount = 0;
         let totalDeletedFileCount = 0;
@@ -222,7 +222,7 @@ APP.action(async (args) => {
     })
         .catch(error => {
         if (options.log.enabled) {
-            const logger = (0, loggers_1.createLogger)(options.log);
+            const logger = (0, loggers_1.createLogger)(options.destination, options.log);
             logger.once("close", () => setTimeout(() => (0, utils_1.exit)(error), 1000));
             logger.error("info", {
                 eventId: "client_error",
