@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = TextReporter;
 const utils_1 = require("../lib/utils");
 function TextReporter(client) {
     let downloadedPct = 0;
@@ -88,4 +89,3 @@ function TextReporter(client) {
         }
     };
 }
-exports.default = TextReporter;

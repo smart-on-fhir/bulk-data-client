@@ -150,6 +150,7 @@ The Bulk Data Client uses `js` configuration files, but you can think of them as
 - *boolean* **`log.enabled`** - Set this to false to disable logging. Optional (defaults to true).
 - *string* **`log.file`** - Path to the log file. Absolute, or relative to process CWD. If not provided, the file will be called log.ndjson and will be stored in the downloads folder.
 - *object* **`log.metadata`** - Key/value pairs to be added to every log entry. Can be used to add useful information (for example which site imported this data).
+- *boolean* **`log.logStatusProgress`** - By default we don't log status progress events because they fill the logs with useless entries. Set this to true if you want the progress to be included in the logs.
 - *number* **`retryAfterMSec`** - If the server does not provide `Retry-after` header use this number of milliseconds before checking the status again.
 - *complex* **`logResponseHeaders`** - ResponseHeaders to include in error logs for debugging purposes.     
   - As for the complex type, valid values are `"all" | "none" | string | RegExp | (string | RegExp)[]`

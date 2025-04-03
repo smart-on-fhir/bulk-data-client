@@ -275,6 +275,13 @@ export declare namespace BulkDataClient {
          * the downloads folder.
          */
         file?: string
+
+        /**
+         * By default we don't log status progress events because they fill the
+         * logs with useless entries. Set this to true if you want the progress
+         * to be included in the logs.
+         */
+        logStatusProgress?: boolean
     }
 
     interface CLIOptions {

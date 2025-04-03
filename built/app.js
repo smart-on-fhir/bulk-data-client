@@ -113,18 +113,20 @@ APP.action(async (args) => {
             });
         });
         // status_progress -----------------------------------------------------
-        client.on("exportProgress", e => {
-            if (!e.virtual) { // skip the artificially triggered 100% event
-                logger.log("info", {
-                    eventId: "status_progress",
-                    eventDetail: {
-                        body: e.body,
-                        xProgress: e.xProgressHeader,
-                        retryAfter: e.retryAfterHeader
-                    }
-                });
-            }
-        });
+        if (options.log.logStatusProgress) {
+            client.on("exportProgress", e => {
+                if (!e.virtual) { // skip the artificially triggered 100% event
+                    logger.log("info", {
+                        eventId: "status_progress",
+                        eventDetail: {
+                            body: e.body,
+                            xProgress: e.xProgressHeader,
+                            retryAfter: e.retryAfterHeader
+                        }
+                    });
+                }
+            });
+        }
         // status_error --------------------------------------------------------
         client.on("exportError", eventDetail => {
             logger.log("error", {
