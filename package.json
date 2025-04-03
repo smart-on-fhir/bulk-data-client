@@ -1,6 +1,6 @@
 {
   "name": "bulk-data-client",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "",
   "main": "built/app.js",
   "engines": {
