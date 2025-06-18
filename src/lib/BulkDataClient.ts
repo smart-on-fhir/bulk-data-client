@@ -893,7 +893,8 @@ class BulkDataClient extends EventEmitter
             if (this.options.awsAccessKeyId && this.options.awsSecretAccessKey) {
                 aws.config.update({
                     accessKeyId    : this.options.awsAccessKeyId,
-                    secretAccessKey: this.options.awsSecretAccessKey
+                    secretAccessKey: this.options.awsSecretAccessKey,
+                    sessionToken: this.options.awsSessionToken
                 })
             }
 

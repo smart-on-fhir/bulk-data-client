@@ -6,15 +6,15 @@
  * OVERRIDE THE PROPERTIES YOU NEED TO CHANGE. Then use the `--config` parameter
  * in CLI to load your configuration file.
  * 
- * @type {import("..").BulkDataClient.ConfigFileOptions}
+ * @type {import("../built/app").BulkDataClient.ConfigFileOptions}
  */
- module.exports = {
+module.exports = {
 
     /**
      * FHIR server base URL. Can be overridden by the `-f` or `--fhir-url`
      * CLI parameter.
      */
-    fhirUrl: "",
+    fhirUrl: "https://bulk-data.smarthealthit.org/eyJlcnIiOiIiLCJwYWdlIjoxMDAwMCwidGx0IjoxNSwibSI6MSwiZGVsIjowLCJzZWN1cmUiOjB9/fhir",
 
     /**
      * The Bulk Data server token URL ("none" for open servers)
@@ -71,7 +71,7 @@
      * 
      * Can be overridden from terminal parameter `-F` or `--_outputFormat`
      */
-    _since: "",
+    _since: "2024-04-17T10:59:01-04:00",
 
     /**
      * The value of the `_type` parameter for Bulk Data kick-off requests.
@@ -86,6 +86,7 @@
      * Will be ignored if empty or falsy.
      * 
      * Can be overridden from terminal parameter `-e` or `--_elements`
+     * 
      */
     _elements: "",
 
@@ -110,6 +111,7 @@
      * Will be ignored if empty or falsy.
      * 
      * Can be overridden from terminal parameter `-q` or `--_typeFilter`
+     * Capability statement
      */
     _typeFilter: "",
 
@@ -153,7 +155,7 @@
      * a Prefer: handling=lenient header is included in the request, the server
      * MAY process the request instead of returning an error.
      */
-    organizeOutputBy: "",
+    organizeOutputBy: "Organization",
 
     /**
      * If true, adds `handling=lenient` to the `prefer` request header. This may
@@ -176,18 +178,20 @@
         https: {
             rejectUnauthorized: true // reject self-signed certs
         },
-        // timeout: 30000, // 30 seconds
+        timeout: 20000, // 20 seconds custom timeout
         headers: {
-            // pass custom headers
+            "accept": "application/fhir+json",
+            "prefer": "respond-async",
+            "content-type": "application/json",            
+            "x-client-id": "fhir-bulk-client"
         }
     },
-
     /**
      * How many downloads to run in parallel. This will speed up the
      * download but can also overload the server. Don't be too greedy and
      * don't set this to more than 10!
      */
-    parallelDownloads: 5,
+    parallelDownloads: 6                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ,
 
     /**
      * In some cases it might be useful to also save the export manifest
@@ -288,22 +292,27 @@
      * 
      * Can be overridden from terminal parameter `-d` or `--destination`
      */
-    destination: "./downloads",
+    destination: "s3://fhir-bulk-data/dataset-ndjson/", // Location for FHIR datasets
 
     /**
      * **Example: `us-east-1`**
      */
-    awsRegion: "",
+    awsRegion: "us-east-1",
 
     /**
      * Only needed if `destination` points to S3
      */
-    awsAccessKeyId: "",
+    awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID || "<INPUT_ACCESS_KEY_ID>",
     
     /**
      * Only needed if `destination` points to S3
      */
-    awsSecretAccessKey: "",
+    awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "<INPUT_SECRET_ACCESS_KEY>",
+
+    /**
+    * Only needed if `destination` points to S3
+    */
+    awsSessionToken:  process.env.AWS_SESSION_TOKEN || "<INPUT_SESSION_TOKEN>",   
 
     log: {
         enabled: true,
@@ -343,3 +352,4 @@
         limit: 5,
     },
 }
+

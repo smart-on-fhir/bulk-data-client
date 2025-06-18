@@ -524,6 +524,11 @@ export declare namespace BulkDataClient {
          */
         awsSecretAccessKey: string
 
+        /**
+         * Only needed if `destination` points to S3
+         */
+        awsSessionToken: string        
+
         log: LoggingOptions
 
         /**

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createLogger = createLogger;
+exports.createLogger = void 0;
 const winston_1 = require("winston");
 const path_1 = require("path");
 const crypto_1 = __importDefault(require("crypto"));
@@ -47,3 +47,4 @@ function createLogger(destination, options = {}) {
         })))
     });
 }
+exports.createLogger = createLogger;
