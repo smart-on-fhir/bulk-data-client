@@ -246,9 +246,9 @@ describe('Logging', function () {
                 }
             })
 
-            const { log } = await invoke()
+            const { log } = await invoke({ options: { log: { logStatusProgress: true } } })
             const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line)).filter(l => l.eventId === "status_progress");
-            
+
             expect(logs.length, "must have 3 status_progress log entries").to.equal(3)
             expect(logs[0].eventDetail.xProgress).to.equal("30%")
             expect(logs[1].eventDetail.xProgress).to.equal("60%")
