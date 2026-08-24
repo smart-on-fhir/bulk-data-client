@@ -114,6 +114,11 @@ export async function invoke({
             stdio,
             env: {
                 ...process.env,
+                // Prevent ts-mocha's own TS_NODE_PROJECT (pointed at
+                // test/tsconfig.json) from leaking into the spawned CLI
+                // process, which must compile against the project's real
+                // root tsconfig.json.
+                TS_NODE_PROJECT: undefined,
                 SHOW_ERRORS: "false"
             }
         })

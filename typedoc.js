@@ -73,7 +73,7 @@ module.exports = {
 
     // Use the specified remote for linking to GitHub source files.
     // --gitRemote
-    gitRemote: "https://github.com/smart-on-fhir/bulk-data-client",
+    gitRemote: "origin",
 
     //  --gitRevision               Use specified revision instead of the last revision for linking to GitHub source files.
     
@@ -81,11 +81,6 @@ module.exports = {
     //  --hideGenerator             Do not print the TypeDoc link at the end of the page.
     //  --hideLegend                Do not print the Legend for icons at the end of the page.
     
-    // Specifies the location to look for included documents
-    // (use [[include:FILENAME]] in comments).
-    // --includes DIRECTORY
-    includes: "./docs",
-
     //  --includeVersion            Add the package version to the project name.
     //  --intentionallyNotExported  A list of types which should not produce 'referenced but not documented' warnings.
     //  --json                      Specifies the location and filename a JSON file describing the project is written to.
@@ -120,7 +115,7 @@ module.exports = {
     // `none` to disable the index page and start the documentation on the
     // globals page.
     // --readme
-    readme: "../README.md",
+    readme: "./README.md",
 
     //  --showConfig                Print the resolved configuration and exit
     //  --sort                      Specify the sort strategy for documented values

@@ -1,34 +1,40 @@
-<!DOCTYPE html><html class="default"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>Bulk Data Client</title><meta name="description" content="Documentation for Bulk Data Client"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><link rel="stylesheet" href="assets/custom.css"/><script async src="assets/search.js" id="search-script"></script></head><body><script>document.body.classList.add(localStorage.getItem("tsd-theme") || "os")</script><header><div class="tsd-page-toolbar"><div class="container"><div class="table-wrap"><div class="table-cell" id="tsd-search" data-base="."><div class="field"><label for="tsd-search-field" class="tsd-widget search no-caption">Search</label><input type="text" id="tsd-search-field"/></div><ul class="results"><li class="state loading">Preparing search index...</li><li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">Bulk Data Client</a></div><div class="table-cell" id="tsd-widgets"><div id="tsd-filter"><a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a><div class="tsd-filter-group"><div class="tsd-select" id="tsd-filter-visibility"><span class="tsd-select-label">All</span><ul class="tsd-select-list"><li data-value="public">Public</li><li data-value="protected">Public/Protected</li><li data-value="private" class="selected">All</li></ul></div> <input type="checkbox" id="tsd-filter-inherited" checked/><label class="tsd-widget" for="tsd-filter-inherited">Inherited</label><input type="checkbox" id="tsd-filter-externals" checked/><label class="tsd-widget" for="tsd-filter-externals">Externals</label></div></div><a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a></div></div></div></div><div class="tsd-page-title"><div class="container"><h1>Bulk Data Client </h1></div></div></header><div class="container container-main"><div class="row"><div class="col-8 col-content"><div class="tsd-panel tsd-typography">
-<a href="#bulk-data-client" id="bulk-data-client" style="color: inherit; text-decoration: none;">
-  <h1>Bulk Data Client</h1>
-</a>
+<!DOCTYPE html><html class="default" lang="en" data-base="./"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>Bulk Data Client</title><meta name="description" content="Documentation for Bulk Data Client"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><link rel="stylesheet" href="assets/custom.css"/><script defer src="assets/main.js"></script><script async src="assets/icons.js" id="tsd-icons-script"></script><script async src="assets/search.js" id="tsd-search-script"></script><script async src="assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="index.html" class="title">Bulk Data Client</a>
+<div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-menu"></use></svg></a></div></header>
+<div class="container container-main">
+<div class="col-content">
+<div class="tsd-page-title">
+<h1>Bulk Data Client</h1></div>
+<div class="tsd-panel tsd-typography"><h1 id="bulk-data-client" class="tsd-anchor-link">Bulk Data Client<a href="#bulk-data-client" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
 <p>If you want to use this in JS/TS projects, aor if you would like to contribute to this projects see the <strong><a href="https://docs.smarthealthit.org/bulk-data-client/docs/api/">API Docs</a></strong></p>
-
-<a href="#usage-examples" id="usage-examples" style="color: inherit; text-decoration: none;">
-  <h2>Usage examples</h2>
-</a>
+<h2 id="usage-examples" class="tsd-anchor-link">Usage examples<a href="#usage-examples" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>Note: these example are using an open server. Protected server examples would work the same but you need to set your clientId, privateKey and tokenEndpoint in the configuration file. The <code>fhirUrl</code> option can also set in the config file to keep the examples shorter.</p>
 <p>Patient-level export</p>
-<pre><code class="language-sh"><span class="hl-0">node </span><span class="hl-1">.</span><span class="hl-0"> -f https://bulk-data.smarthealthit.org/fhir</span>
-</code></pre>
+<pre><code class="sh"><span class="hl-0">node</span><span class="hl-1"> </span><span class="hl-2">.</span><span class="hl-1"> </span><span class="hl-3">-f</span><span class="hl-1"> </span><span class="hl-2">https://bulk-data.smarthealthit.org/fhir</span>
+</code><button type="button">Copy</button></pre>
+
 <p>System-level export</p>
-<pre><code class="language-sh"><span class="hl-0">node </span><span class="hl-1">.</span><span class="hl-0"> --global</span>
-</code></pre>
+<pre><code class="sh"><span class="hl-0">node</span><span class="hl-1"> </span><span class="hl-2">.</span><span class="hl-1"> </span><span class="hl-3">--global</span>
+</code><button type="button">Copy</button></pre>
+
 <p>Group-level export</p>
-<pre><code class="language-sh"><span class="hl-0">node </span><span class="hl-1">.</span><span class="hl-0"> -g myGroupId</span>
-</code></pre>
+<pre><code class="sh"><span class="hl-0">node</span><span class="hl-1"> </span><span class="hl-2">.</span><span class="hl-1"> </span><span class="hl-3">-g</span><span class="hl-1"> </span><span class="hl-2">myGroupId</span>
+</code><button type="button">Copy</button></pre>
+
 <p>Passing export parameters
 Group-level export</p>
-<pre><code class="language-sh"><span class="hl-0">node </span><span class="hl-1">.</span><span class="hl-0"> --_since 2010-03 --_type Patient, Observations</span>
-</code></pre>
-<p>Patient-level export with debugging information printed to the console</p>
-<pre><code class="language-sh"><span class="hl-2">export</span><span class="hl-0"> NODE_DEBUG=app-request</span><span class="hl-3">;</span><span class="hl-0"> node </span><span class="hl-1">.</span><span class="hl-0"> -f https://builk-data.smarthealthit.org/fhir </span>
-</code></pre>
-<p>For more options see the CLI parameters and configuration options below.</p>
+<pre><code class="sh"><span class="hl-0">node</span><span class="hl-1"> </span><span class="hl-2">.</span><span class="hl-1"> </span><span class="hl-3">--_since</span><span class="hl-1"> </span><span class="hl-2">2010-03</span><span class="hl-1"> </span><span class="hl-3">--_type</span><span class="hl-1"> </span><span class="hl-2">Patient,</span><span class="hl-1"> </span><span class="hl-2">Observations</span>
+</code><button type="button">Copy</button></pre>
 
-<a href="#retrying-previous-exports" id="retrying-previous-exports" style="color: inherit; text-decoration: none;">
-  <h3>Retrying previous exports</h3>
-</a>
+<p>Patient-level export with debugging information printed to the console</p>
+<pre><code class="sh"><span class="hl-4">export</span><span class="hl-1"> </span><span class="hl-5">NODE_DEBUG</span><span class="hl-6">=</span><span class="hl-5">app-request</span><span class="hl-1">; </span><span class="hl-0">node</span><span class="hl-1"> </span><span class="hl-2">.</span><span class="hl-1"> </span><span class="hl-3">-f</span><span class="hl-1"> </span><span class="hl-2">https://builk-data.smarthealthit.org/fhir</span><span class="hl-1"> </span>
+</code><button type="button">Copy</button></pre>
+
+<p>For more options see the CLI parameters and configuration options below.</p>
+<h3 id="retrying-previous-exports" class="tsd-anchor-link">Retrying previous exports<a href="#retrying-previous-exports" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <p>In some cases the export might fail due to network errors or other interruptions.
 If that happens the export might still be running on the server. If you want to
 restart a failed export, make sure you look at the terminal output for a line
@@ -36,119 +42,147 @@ like <code>Status endpoint: {URL}</code>. If that is present, it means the expor
 successfully on the server and we have been given that URL as dedicated status
 location. To save some time and resources, and to avoid starting a new export
 while retrying, you can copy that URL and use it as the value of the <code>---status</code>
-CLI parameter when you re-run the command. </p>
-
-<a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
-  <h2>Installation</h2>
-</a>
-<p><strong>Prerequisites</strong>: Git and NodeJS 15+</p>
+CLI parameter when you re-run the command.</p>
+<h2 id="installation" class="tsd-anchor-link">Installation<a href="#installation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p><strong>Prerequisites</strong>: Git and NodeJS 15 to 18.</p>
 <ol>
-<li>Clone the repository<pre><code class="language-sh"><span class="hl-0">git clone https://github.com/smart-on-fhir/bulk-data-client.git</span>
-</code></pre>
+<li>Clone the repository<pre><code class="sh"><span class="hl-0">git</span><span class="hl-1"> </span><span class="hl-2">clone</span><span class="hl-1"> </span><span class="hl-2">https://github.com/smart-on-fhir/bulk-data-client.git</span>
+</code><button type="button">Copy</button></pre>
+
 </li>
-<li>Go into the project directory<pre><code class="language-sh"><span class="hl-1">cd</span><span class="hl-0"> bulk-data-client</span>
-</code></pre>
+<li>Go into the project directory<pre><code class="sh"><span class="hl-0">cd</span><span class="hl-1"> </span><span class="hl-2">bulk-data-client</span>
+</code><button type="button">Copy</button></pre>
+
 </li>
-<li>Make sure you are using NodeJS 15+. If you use <code>nvm</code> run:<pre><code class="language-sh"><span class="hl-0">nvm use</span>
-</code></pre>
+<li>Make sure you are using NodeJS 15, 16, 17, or 18. If you use <code>nvm</code> run:<pre><code class="sh"><span class="hl-0">nvm</span><span class="hl-1"> </span><span class="hl-2">use</span>
+</code><button type="button">Copy</button></pre>
+
 </li>
-<li>Install dependencies<pre><code class="language-sh"><span class="hl-0">npm i</span>
-</code></pre>
+<li>Install dependencies<pre><code class="sh"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">i</span>
+</code><button type="button">Copy</button></pre>
+
 </li>
 </ol>
-
-<a href="#configuration" id="configuration" style="color: inherit; text-decoration: none;">
-  <h2>Configuration</h2>
-</a>
+<h2 id="configuration" class="tsd-anchor-link">Configuration<a href="#configuration" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>A configuration file will have to be created for every server you want to connect to. The way to do that is:</p>
 <ol>
-<li>Copy the default config file and give it new name:<pre><code class="language-sh"><span class="hl-0">cp config/defaults.js config/my-config-1.js</span>
-</code></pre>
+<li>Copy the default config file and give it new name:<pre><code class="sh"><span class="hl-0">cp</span><span class="hl-1"> </span><span class="hl-2">config/defaults.js</span><span class="hl-1"> </span><span class="hl-2">config/my-config-1.js</span>
+</code><button type="button">Copy</button></pre>
+
 </li>
 <li>Edit your configuration open your newly created configuration file, read the description in the comments for every option and set whatever you need. Feel free to remove unneeded options! See below for details.</li>
 </ol>
 <p>The configuration works by loading the default values from <code>config/defaults.js</code>, then merging that with your custom config (overriding the defaults), and finally merging with any CLI parameters (a subset of the config options can be passed as CLI parameters).</p>
-
-<a href="#configuration-file-options" id="configuration-file-options" style="color: inherit; text-decoration: none;">
-  <h3>Configuration File Options</h3>
-</a>
+<h3 id="configuration-file-options" class="tsd-anchor-link">Configuration File Options<a href="#configuration-file-options" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <p>The Bulk Data Client uses <code>js</code> configuration files, but you can think of them as JSON configuration objects. The only reason to use JS is to allow for comments and type hinting. Below are all the options that can be set in a configuration file.</p>
 <ul>
-<li><p><em>string</em> <strong><code>fhirUrl</code></strong> - FHIR server base URL. Can be overridden by the <code>-f</code> or <code>--fhir-url</code> CLI parameter.</p>
+<li>
+<p><em>string</em> <strong><code>fhirUrl</code></strong> - FHIR server base URL. Can be overridden by the <code>-f</code> or <code>--fhir-url</code> CLI parameter.</p>
 </li>
-<li><p><em>string</em> <strong><code>tokenUrl</code></strong> - The Bulk Data server token URL (use <code>&quot;none&quot;</code> for open servers and <code>&quot;&quot;</code> to try to auto-detect it)</p>
+<li>
+<p><em>string</em> <strong><code>tokenUrl</code></strong> - The Bulk Data server token URL (use <code>&quot;none&quot;</code> for open servers and <code>&quot;&quot;</code> to try to auto-detect it)</p>
 </li>
-<li><p><em>object</em> <strong><code>privateKey</code></strong> - The private key (as <code>JWK</code>) used to sign authentication tokens. This is not needed for open servers</p>
+<li>
+<p><em>object</em> <strong><code>privateKey</code></strong> - The private key (as <code>JWK</code>) used to sign authentication tokens. This is not needed for open servers</p>
 </li>
-<li><p><em>string</em> <strong><code>clientId</code></strong> - This is not needed for open servers</p>
+<li>
+<p><em>string</em> <strong><code>clientId</code></strong> - This is not needed for open servers</p>
 </li>
-<li><p><em>number</em> <strong><code>accessTokenLifetime</code></strong> - The access token lifetime in seconds. Note that the authentication server may ignore or restrict this to its own boundaries</p>
+<li>
+<p><em>number</em> <strong><code>accessTokenLifetime</code></strong> - The access token lifetime in seconds. Note that the authentication server may ignore or restrict this to its own boundaries</p>
 </li>
-<li><p><em>string</em> <strong><code>reporter</code></strong> - The default reporter is &quot;cli&quot;. That works well in terminal and renders some fancy stuff like progress bars. However, this does not look good when your STDOUT ends up in log files. For example, if you are using this tool as part of some kind of pipeline and want to maintain clean logs, then consider changing this to &quot;text&quot;. Can be overridden from terminal parameter <code>--reporter</code>.</p>
-<p>Running an export using the (default) <code>cli</code> reporter produces output looking like this:</p>
-<img alt="bulk-data-client-cli" src="https://user-images.githubusercontent.com/1119082/134519314-01addd27-a086-4227-a5a2-0fc812b91512.png" width="578" />
+<li>
+<p><em>string</em> <strong><code>reporter</code></strong> - The default reporter is &quot;cli&quot;. That works well in terminal and renders some fancy stuff like progress bars. However, this does not look good when your STDOUT ends up in log files. For example, if you are using this tool as part of some kind of pipeline and want to maintain clean logs, then consider changing this to &quot;text&quot;. Can be overridden from terminal parameter <code>--reporter</code>.</p>
+<p>Running an export using the (default) <code>cli</code> reporter produces output looking like this:
+<img alt="bulk-data-client-cli" src="https://user-images.githubusercontent.com/1119082/134519314-01addd27-a086-4227-a5a2-0fc812b91512.png" width="578" /></p>
+<p>Running the same export using the <code>text</code> reporter produces output looking like this:
+<img alt="bulk-data-client-text" src="https://user-images.githubusercontent.com/1119082/134519352-7cfd2894-ad73-4fb7-ae2c-44bdbdc36236.png" width="713" /></p>
+</li>
+<li>
+<p><em>string</em> <strong><code>_outputFormat</code></strong> - The value of the <code>_outputFormat</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter <code>-F</code> or <code>--_outputFormat</code></p>
+</li>
+<li>
+<p><em>string</em> <strong><code>_since</code></strong> - The value of the <code>_since</code> parameter for Bulk Data kick-off requests. Can also be partial date like &quot;2002&quot;, &quot;2020-03&quot; etc. Can be anything that Moment can parse. Will be ignored if empty or falsy. See <a href="https://momentjs.com/docs/#/parsing/">https://momentjs.com/docs/#/parsing/</a>. Can be overridden from terminal parameter <code>-F</code> or <code>--_outputFormat</code></p>
+</li>
+<li>
+<p><em>string</em> <strong><code>_type</code></strong> -  The value of the <code>_type</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter <code>-t</code> or <code>--_type</code></p>
+</li>
+<li>
+<p><em>string</em> <strong><code>_elements</code></strong> - The value of the <code>_elements</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter <code>-e</code> or <code>--_elements</code></p>
+</li>
+<li>
+<p><em>string</em> <strong><code>patient</code></strong> -  The value of the <code>patient</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter <code>-p</code> or <code>--patient</code></p>
+</li>
+<li>
+<p><em>string</em> <strong><code>includeAssociatedData</code></strong> - The value of the <code>includeAssociatedData</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter <code>-i</code> or <code>--includeAssociatedData</code></p>
+</li>
+<li>
+<p><em>string</em> <strong><code>_typeFilter</code></strong> - The value of the <code>_typeFilter</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter <code>-q</code> or <code>--_typeFilter</code></p>
+</li>
+<li>
+<p><em>boolean</em> <strong><code>allowPartialManifests</code></strong> - When provided, a server with support for the parameter MAY return a portion of bulk data output files to a client prior to all output files being available and/or MAY distribute bulk data output files among multiple manifests and provide links for clients to page through the manifests.</p>
+</li>
+<li>
+<p><em>string</em> <strong><code>organizeOutputBy</code></strong> - When provided, a server with support for the parameter SHALL organize the resources in output files by instances of the specified resource type, including a header for each resource of the type specified in the parameter, followed by the resource and resources in the output that contain references to that resource. When omitted, servers SHALL organize each output file with resources of only single type. A server unable to structure output by the requested organizeOutputBy resource SHOULD return an error and FHIR OperationOutcome resource. When a Prefer: handling=lenient header is included in the request, the server MAY process the request instead of returning an error.</p>
+</li>
+<li>
+<p><em>boolean</em> <strong><code>global</code></strong> - By default this client will make patient-level exports. If this is set to true, it will make system-level exports instead. Ignored if <code>group</code> is set! Can be overridden from terminal parameter <code>--global</code></p>
+</li>
+<li>
+<p><em>string</em> <strong><code>group</code></strong> - Id of FHIR group to export. If set, the client will make group-level exports. Can be overridden from terminal parameter <code>-g</code> or <code>--group</code></p>
+</li>
+<li>
+<p><em>boolean</em> <strong><code>lenient</code></strong> - If <code>true</code>, adds <code>handling=lenient</code> to the <code>prefer</code> request header. This may enable a &quot;retry&quot; option after certain errors. It can also be used to signal the server to silently ignore unsupported parameters. Can be overridden from terminal parameter <code>--lenient</code></p>
+</li>
+<li>
+<p><em>object</em> <strong><code>requests</code></strong> - Custom options for every request, EXCLUDING the authorization request and any upload requests (in case we use remote destination). Many options are available so be careful what you specify here! See <a href="https://github.com/sindresorhus/got/blob/main/documentation/2-options.md">https://github.com/sindresorhus/got/blob/main/documentation/2-options.md</a>. Example:</p>
+<pre><code class="js"><span class="hl-7">requests</span><span class="hl-8">:</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-7">https</span><span class="hl-8">:</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-7">rejectUnauthorized</span><span class="hl-8">:</span><span class="hl-1"> </span><span class="hl-9">true</span><span class="hl-1"> </span><span class="hl-10">// reject self-signed certs</span><br/><span class="hl-1">    }</span><span class="hl-8">,</span><br/><span class="hl-1">    </span><span class="hl-7">timeout</span><span class="hl-8">:</span><span class="hl-1"> </span><span class="hl-11">20000</span><span class="hl-8">,</span><span class="hl-1"> </span><span class="hl-10">// 20 seconds custom timeout</span><br/><span class="hl-1">    </span><span class="hl-7">headers</span><span class="hl-8">:</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-12">&quot;x-client-id&quot;</span><span class="hl-1">: </span><span class="hl-12">&quot;whatever&quot;</span><span class="hl-1"> </span><span class="hl-10">// pass custom headers</span><br/><span class="hl-1">    }</span><br/><span class="hl-1">}</span>
+</code><button type="button">Copy</button></pre>
 
-<p>Running the same export using the <code>text</code> reporter produces output looking like this:</p>
-<img alt="bulk-data-client-text" src="https://user-images.githubusercontent.com/1119082/134519352-7cfd2894-ad73-4fb7-ae2c-44bdbdc36236.png" width="713" />
 </li>
-<li><p><em>string</em> <strong><code>_outputFormat</code></strong> - The value of the <code>_outputFormat</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter <code>-F</code> or <code>--_outputFormat</code></p>
+<li>
+<p><em>number</em> <strong><code>parallelDownloads</code></strong> - How many downloads to run in parallel. This will speed up the download but can also overload the server. Don't be too greedy and don't set this to more than 10!</p>
 </li>
-<li><p><em>string</em> <strong><code>_since</code></strong> - The value of the <code>_since</code> parameter for Bulk Data kick-off requests. Can also be partial date like &quot;2002&quot;, &quot;2020-03&quot; etc. Can be anything that Moment can parse. Will be ignored if empty or falsy. See <a href="https://momentjs.com/docs/#/parsing/">https://momentjs.com/docs/#/parsing/</a>. Can be overridden from terminal parameter <code>-F</code> or <code>--_outputFormat</code></p>
+<li>
+<p><em>boolean</em> <strong><code>saveManifest</code></strong> - In some cases it might be useful to also save the export manifest file along with the downloaded NDJSON files.</p>
 </li>
-<li><p><em>string</em> <strong><code>_type</code></strong> -  The value of the <code>_type</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter <code>-t</code> or <code>--_type</code></p>
+<li>
+<p><em>number</em> <strong><code>ndjsonMaxLineLength</code></strong> - While parsing NDJSON files every single (non-empty) line is parsed as JSON. It is recommended to set a reasonable limit for the line length so that a huge line does not consume the entire memory. This is the maximal acceptable line length expressed as number characters.</p>
 </li>
-<li><p><em>string</em> <strong><code>_elements</code></strong> - The value of the <code>_elements</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter <code>-e</code> or <code>--_elements</code></p>
+<li>
+<p><em>boolean</em> <strong><code>ndjsonValidateFHIRResourceType</code></strong> - If <code>true</code>, verifies that every single JSON object extracted for the NDJSON file has a <code>resourceType</code> property, and that this property equals the expected <code>type</code> reported in the export manifest.</p>
 </li>
-<li><p><em>string</em> <strong><code>patient</code></strong> -  The value of the <code>patient</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter <code>-p</code> or <code>--patient</code></p>
+<li>
+<p><em>boolean</em> <strong><code>ndjsonValidateFHIRResourceCount</code></strong> - If the server reports the file <code>count</code> in the export manifest, verify that the number of resources found in the file matches the count reported by the server.</p>
 </li>
-<li><p><em>string</em> <strong><code>includeAssociatedData</code></strong> - The value of the <code>includeAssociatedData</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter <code>-i</code> or <code>--includeAssociatedData</code></p>
+<li>
+<p><em>boolean</em> <strong><code>addDestinationToManifest</code></strong> - The original export manifest will have an <code>url</code> property for each file, containing the source location. It his is set to <code>true</code>, add a <code>destination</code> property to each file containing the path (relative to the manifest file) to the saved file. This is ONLY used if <code>saveManifest</code> is set to <code>true</code>.</p>
 </li>
-<li><p><em>string</em> <strong><code>_typeFilter</code></strong> - The value of the <code>_typeFilter</code> parameter for Bulk Data kick-off requests. Will be ignored if empty or falsy. Can be overridden from terminal parameter <code>-q</code> or <code>--_typeFilter</code></p>
+<li>
+<p><em>boolean</em> <strong><code>forceStandardFileNames</code></strong> - Sometimes a server may use weird names for the exported files. For example, a HAPI server will use random numbers as file names. If this is set to <code>true</code> files will be renamed to match the standard naming convention - <code>{fileNumber}.{ResourceType}.ndjson</code>.</p>
 </li>
-<li><p><em>boolean</em> <strong><code>allowPartialManifests</code></strong> - When provided, a server with support for the parameter MAY return a portion of bulk data output files to a client prior to all output files being available and/or MAY distribute bulk data output files among multiple manifests and provide links for clients to page through the manifests.</p>
+<li>
+<p><em>boolean | string[]</em> <strong><code>downloadAttachments</code></strong> - If this is set to <code>false</code>, external attachments found in <code>DocumentReference</code> resources will not be downloaded. The <code>DocumentReference</code> resources will still be downloaded but no further processing will be done. Can also be an array of white-listed mime types to filter out which attachments should be downloaded.</p>
 </li>
-<li><p><em>string</em> <strong><code>organizeOutputBy</code></strong> - When provided, a server with support for the parameter SHALL organize the resources in output files by instances of the specified resource type, including a header for each resource of the type specified in the parameter, followed by the resource and resources in the output that contain references to that resource. When omitted, servers SHALL organize each output file with resources of only single type. A server unable to structure output by the requested organizeOutputBy resource SHOULD return an error and FHIR OperationOutcome resource. When a Prefer: handling=lenient header is included in the request, the server MAY process the request instead of returning an error.</p>
+<li>
+<p><em>boolean</em> <strong><code>ignoreAttachmentDownloadErrors</code></strong> - If <code>true</code>, the client will try to download the attachments but it will ignore download errors (although those errors will still be logged).</p>
 </li>
-<li><p><em>boolean</em> <strong><code>global</code></strong> - By default this client will make patient-level exports. If this is set to true, it will make system-level exports instead. Ignored if <code>group</code> is set! Can be overridden from terminal parameter <code>--global</code></p>
-</li>
-<li><p><em>string</em> <strong><code>group</code></strong> - Id of FHIR group to export. If set, the client will make group-level exports. Can be overridden from terminal parameter <code>-g</code> or <code>--group</code></p>
-</li>
-<li><p><em>boolean</em> <strong><code>lenient</code></strong> - If <code>true</code>, adds <code>handling=lenient</code> to the <code>prefer</code> request header. This may enable a &quot;retry&quot; option after certain errors. It can also be used to signal the server to silently ignore unsupported parameters. Can be overridden from terminal parameter <code>--lenient</code></p>
-</li>
-<li><p><em>object</em> <strong><code>requests</code></strong> - Custom options for every request, EXCLUDING the authorization request and any upload requests (in case we use remote destination). Many options are available so be careful what you specify here! See <a href="https://github.com/sindresorhus/got/blob/main/documentation/2-options.md">https://github.com/sindresorhus/got/blob/main/documentation/2-options.md</a>. Example:</p>
-<pre><code class="language-js"><span class="hl-4">requests</span><span class="hl-5">:</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-4">https</span><span class="hl-5">:</span><span class="hl-0"> {</span><br/><span class="hl-0">        </span><span class="hl-4">rejectUnauthorized</span><span class="hl-5">:</span><span class="hl-0"> </span><span class="hl-6">true</span><span class="hl-0"> </span><span class="hl-7">// reject self-signed certs</span><br/><span class="hl-0">    }</span><span class="hl-5">,</span><br/><span class="hl-0">    </span><span class="hl-4">timeout</span><span class="hl-5">:</span><span class="hl-0"> </span><span class="hl-8">20000</span><span class="hl-5">,</span><span class="hl-0"> </span><span class="hl-7">// 20 seconds custom timeout</span><br/><span class="hl-0">    </span><span class="hl-4">headers</span><span class="hl-5">:</span><span class="hl-0"> {</span><br/><span class="hl-0">        </span><span class="hl-9">&quot;x-client-id&quot;</span><span class="hl-0">: </span><span class="hl-9">&quot;whatever&quot;</span><span class="hl-0"> </span><span class="hl-7">// pass custom headers</span><br/><span class="hl-0">    }</span><br/><span class="hl-0">}</span>
-</code></pre>
-</li>
-<li><p><em>number</em> <strong><code>parallelDownloads</code></strong> - How many downloads to run in parallel. This will speed up the download but can also overload the server. Don&#39;t be too greedy and don&#39;t set this to more than 10!</p>
-</li>
-<li><p><em>boolean</em> <strong><code>saveManifest</code></strong> - In some cases it might be useful to also save the export manifest file along with the downloaded NDJSON files.</p>
-</li>
-<li><p><em>number</em> <strong><code>ndjsonMaxLineLength</code></strong> - While parsing NDJSON files every single (non-empty) line is parsed as JSON. It is recommended to set a reasonable limit for the line length so that a huge line does not consume the entire memory. This is the maximal acceptable line length expressed as number characters.</p>
-</li>
-<li><p><em>boolean</em> <strong><code>ndjsonValidateFHIRResourceType</code></strong> - If <code>true</code>, verifies that every single JSON object extracted for the NDJSON file has a <code>resourceType</code> property, and that this property equals the expected <code>type</code> reported in the export manifest.</p>
-</li>
-<li><p><em>boolean</em> <strong><code>ndjsonValidateFHIRResourceCount</code></strong> - If the server reports the file <code>count</code> in the export manifest, verify that the number of resources found in the file matches the count reported by the server.</p>
-</li>
-<li><p><em>boolean</em> <strong><code>addDestinationToManifest</code></strong> - The original export manifest will have an <code>url</code> property for each file, containing the source location. It his is set to <code>true</code>, add a <code>destination</code> property to each file containing the path (relative to the manifest file) to the saved file. This is ONLY used if <code>saveManifest</code> is set to <code>true</code>.</p>
-</li>
-<li><p><em>boolean</em> <strong><code>forceStandardFileNames</code></strong> - Sometimes a server may use weird names for the exported files. For example, a HAPI server will use random numbers as file names. If this is set to <code>true</code> files will be renamed to match the standard naming convention - <code>{fileNumber}.{ResourceType}.ndjson</code>.</p>
-</li>
-<li><p><em>boolean | string[]</em> <strong><code>downloadAttachments</code></strong> - If this is set to <code>false</code>, external attachments found in <code>DocumentReference</code> resources will not be downloaded. The <code>DocumentReference</code> resources will still be downloaded but no further processing will be done. Can also be an array of white-listed mime types to filter out which attachments should be downloaded.</p>
-</li>
-<li><p><em>boolean</em> <strong><code>ignoreAttachmentDownloadErrors</code></strong> - If <code>true</code>, the client will try to download the attachments but it will ignore download errors (although those errors will still be logged).</p>
-</li>
-<li><p><em>number</em> <strong><code>inlineDocRefAttachmentsSmallerThan</code></strong> - In <code>DocumentReference</code> resources, any <code>attachment</code> elements having an <code>url</code> (instead of inline data) and a <code>size</code> below this number will be downloaded and put inline as base64 <code>data</code>. Then the <code>size</code> property will be updated and the <code>url</code> will be removed. <strong>Ignored</strong> if <code>downloadAttachments</code> is set to <code>false</code>!</p>
+<li>
+<p><em>number</em> <strong><code>inlineDocRefAttachmentsSmallerThan</code></strong> - In <code>DocumentReference</code> resources, any <code>attachment</code> elements having an <code>url</code> (instead of inline data) and a <code>size</code> below this number will be downloaded and put inline as base64 <code>data</code>. Then the <code>size</code> property will be updated and the <code>url</code> will be removed. <strong>Ignored</strong> if <code>downloadAttachments</code> is set to <code>false</code>!</p>
 <ul>
 <li>To always disable this, set it to <code>0</code></li>
 <li>To always enable this, set it to <code>Infinity</code> (bad idea!)</li>
 <li>To inline files smaller than 5 MB set it to <code>5 * 1024 * 1024</code></li>
 </ul>
 </li>
-<li><p><em>string[]</em> <strong><code>inlineDocRefAttachmentTypes</code></strong> - If an attachment can be inlined (based on its size and the value of the <code>inlineDocRefAttachmentsSmallerThan</code> option), then its mime type will be compared with this list. Only files of listed types will be inlined and the rest will be downloaded into &quot;attachment&quot; subfolder. Example: <code>[&quot;text/plain&quot;, &quot;application/pdf&quot;]</code>. <strong>Ignored</strong> if <code>downloadAttachments</code> is set to <code>false</code>!</p>
+<li>
+<p><em>string[]</em> <strong><code>inlineDocRefAttachmentTypes</code></strong> - If an attachment can be inlined (based on its size and the value of the <code>inlineDocRefAttachmentsSmallerThan</code> option), then its mime type will be compared with this list. Only files of listed types will be inlined and the rest will be downloaded into &quot;attachment&quot; subfolder. Example: <code>[&quot;text/plain&quot;, &quot;application/pdf&quot;]</code>. <strong>Ignored</strong> if <code>downloadAttachments</code> is set to <code>false</code>!</p>
 </li>
-<li><p><em>boolean</em> <strong><code>pdfToText</code></strong> - If this is <code>true</code>, attachments of type PDF that are being inlined will first be converted to text and then inlined as base64. <strong>Ignored</strong> if <code>downloadAttachments</code> is set to <code>false</code>!</p>
+<li>
+<p><em>boolean</em> <strong><code>pdfToText</code></strong> - If this is <code>true</code>, attachments of type PDF that are being inlined will first be converted to text and then inlined as base64. <strong>Ignored</strong> if <code>downloadAttachments</code> is set to <code>false</code>!</p>
 </li>
-<li><p><em>string</em> <strong><code>destination</code></strong> - Examples:</p>
+<li>
+<p><em>string</em> <strong><code>destination</code></strong> - Examples:</p>
 <ul>
 <li><code>s3://bucket-name/optional-subfolder/</code> - Upload to S3</li>
 <li><code>./downloads</code> - Save to local folder (relative to the config file)</li>
@@ -160,47 +194,57 @@ CLI parameter when you re-run the command. </p>
 <li><code>&quot;&quot;</code> - do nothing</li>
 <li><code>&quot;none&quot;</code> - do nothing</li>
 </ul>
-<p>   Can be overridden from terminal parameter <code>-d</code> or <code>--destination</code></p>
+<p>Can be overridden from terminal parameter <code>-d</code> or <code>--destination</code></p>
 </li>
-<li><p><em>string</em> <strong><code>awsRegion</code></strong> - Example: <code>us-east-1</code>. Only used if <code>destination</code> points to S3. The AWS SDK will first look for this in the shared config file (<code>~/.aws/config</code>). Then the SDK will look for an <code>AWS_REGION</code> environment variable. Finally, you can override both of these if you set the <code>awsRegion</code> variable in your bulk-data client config file. </p>
+<li>
+<p><em>string</em> <strong><code>awsRegion</code></strong> - Example: <code>us-east-1</code>. Only used if <code>destination</code> points to S3. The AWS SDK will first look for this in the shared config file (<code>~/.aws/config</code>). Then the SDK will look for an <code>AWS_REGION</code> environment variable. Finally, you can override both of these if you set the <code>awsRegion</code> variable in your bulk-data client config file.</p>
 </li>
-<li><p><em>string</em> <strong><code>awsAccessKeyId</code></strong> - Only used if <code>destination</code> points to S3. The AWS SDK will first look for this in the shared credentials file (<code>~/.aws/credentials</code>). You can override this if you set the <code>awsAccessKeyId</code> variable in your bulk-data client config file, but only if you also set the <code>awsSecretAccessKey</code>. </p>
+<li>
+<p><em>string</em> <strong><code>awsAccessKeyId</code></strong> - Only used if <code>destination</code> points to S3. The AWS SDK will first look for this in the shared credentials file (<code>~/.aws/credentials</code>). You can override this if you set the <code>awsAccessKeyId</code> variable in your bulk-data client config file, but only if you also set the <code>awsSecretAccessKey</code>.</p>
 </li>
-<li><p><em>string</em> <strong><code>awsSecretAccessKey</code></strong> - Only needed if <code>destination</code> points to S3. The AWS SDK will first look for this in the shared credentials file (<code>~/.aws/credentials</code>). You can override this if you set the <code>awsSecretAccessKey</code> variable in your bulk-data client config file, but only if you also set the <code>awsAccessKeyId</code>.</p>
+<li>
+<p><em>string</em> <strong><code>awsSecretAccessKey</code></strong> - Only needed if <code>destination</code> points to S3. The AWS SDK will first look for this in the shared credentials file (<code>~/.aws/credentials</code>). You can override this if you set the <code>awsSecretAccessKey</code> variable in your bulk-data client config file, but only if you also set the <code>awsAccessKeyId</code>.</p>
 </li>
-<li><p><em>object</em> <strong><code>log</code></strong> - Optional logging options (see below)</p>
+<li>
+<p><em>object</em> <strong><code>log</code></strong> - Optional logging options (see below)</p>
 </li>
-<li><p><em>boolean</em> <strong><code>log.enabled</code></strong> - Set this to false to disable logging. Optional (defaults to true).</p>
+<li>
+<p><em>boolean</em> <strong><code>log.enabled</code></strong> - Set this to false to disable logging. Optional (defaults to true).</p>
 </li>
-<li><p><em>string</em> <strong><code>log.file</code></strong> - Path to the log file. Absolute, or relative to process CWD. If not provided, the file will be called log.ndjson and will be stored in the downloads folder.</p>
+<li>
+<p><em>string</em> <strong><code>log.file</code></strong> - Path to the log file. Absolute, or relative to process CWD. If not provided, the file will be called log.ndjson and will be stored in the downloads folder.</p>
 </li>
-<li><p><em>object</em> <strong><code>log.metadata</code></strong> - Key/value pairs to be added to every log entry. Can be used to add useful information (for example which site imported this data).</p>
+<li>
+<p><em>object</em> <strong><code>log.metadata</code></strong> - Key/value pairs to be added to every log entry. Can be used to add useful information (for example which site imported this data).</p>
 </li>
-<li><p><em>number</em> <strong><code>retryAfterMSec</code></strong> - If the server does not provide <code>Retry-after</code> header use this number of milliseconds before checking the status again.</p>
+<li>
+<p><em>boolean</em> <strong><code>log.logStatusProgress</code></strong> - By default we don't log status progress events because they fill the logs with useless entries. Set this to true if you want the progress to be included in the logs.</p>
 </li>
-<li><p><em>complex</em> <strong><code>logResponseHeaders</code></strong> - ResponseHeaders to include in error logs for debugging purposes.     </p>
+<li>
+<p><em>number</em> <strong><code>retryAfterMSec</code></strong> - If the server does not provide <code>Retry-after</code> header use this number of milliseconds before checking the status again.</p>
+</li>
+<li>
+<p><em>complex</em> <strong><code>logResponseHeaders</code></strong> - ResponseHeaders to include in error logs for debugging purposes.</p>
 <ul>
 <li>As for the complex type, valid values are <code>&quot;all&quot; | &quot;none&quot; | string | RegExp | (string | RegExp)[]</code></li>
 <li>When <code>&quot;all&quot;</code> is specified, all responseHeaders are returned. When <code>&quot;none&quot;</code> is specified, no responseHeaders are returned. Otherwise, log any responseHeaders matches against 1...* strings/regexp</li>
 </ul>
 </li>
-<li><p><em>object</em> <strong><code>fileDownloadRetry</code></strong> - A subset of got retry configuration object, determining retry behavior when downloading files. </p>
+<li>
+<p><em>object</em> <strong><code>fileDownloadRetry</code></strong> - A subset of got retry configuration object, determining retry behavior when downloading files.</p>
 <ul>
 <li>For most scenarios, an object with only a <code>limit</code>: <code>number</code> property will be sufficient. This determines how many times a file download will be retried before failing. Each subsequent attempt will delay using an exponential backoff.</li>
 <li>For more details on options, see <a href="https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md">https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md</a>.</li>
 </ul>
 </li>
 </ul>
-
-<a href="#environment-variables" id="environment-variables" style="color: inherit; text-decoration: none;">
-  <h3>Environment Variables</h3>
-</a>
-<p>There are two environment that can be passed to the client to modify it&#39;s behavior.</p>
+<h3 id="environment-variables" class="tsd-anchor-link">Environment Variables<a href="#environment-variables" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>There are two environment that can be passed to the client to modify it's behavior.</p>
 <ul>
 <li><code>AUTO_RETRY_TRANSIENT_ERRORS</code> - Typically, if the server replies with an error as
 OperationOutcome having a <strong>transient</strong> code, the user is asked if (s)he wants to
 retry. However, if the client runs as part of some kind of automated pipeline (with
-no human interaction), the we don&#39;t want to ask question which no one could answer.
+no human interaction), the we don't want to ask question which no one could answer.
 <code>AUTO_RETRY_TRANSIENT_ERRORS</code> can be set to truthy or falsy value to pre-answer
 questions like these.</li>
 <li><code>SHOW_ERRORS</code> - When an error is thrown, if it contains additional details the
@@ -209,12 +253,10 @@ setting <code>SHOW_ERRORS</code> to boolean-like value will make it so that thos
 details are always shown or hidden and will avoid having to show question prompts.</li>
 </ul>
 <p>Example of running in non-interactive mode:</p>
-<pre><code class="language-sh"><span class="hl-0">AUTO_RETRY_TRANSIENT_ERRORS=1 SHOW_ERRORS=1 node </span><span class="hl-1">.</span><span class="hl-0"> --config myConfigFile.js --reporter text</span>
-</code></pre>
+<pre><code class="sh"><span class="hl-5">AUTO_RETRY_TRANSIENT_ERRORS</span><span class="hl-6">=</span><span class="hl-2">1</span><span class="hl-1"> </span><span class="hl-5">SHOW_ERRORS</span><span class="hl-6">=</span><span class="hl-2">1</span><span class="hl-1"> </span><span class="hl-0">node</span><span class="hl-1"> </span><span class="hl-2">.</span><span class="hl-1"> </span><span class="hl-3">--config</span><span class="hl-1"> </span><span class="hl-2">myConfigFile.js</span><span class="hl-1"> </span><span class="hl-3">--reporter</span><span class="hl-1"> </span><span class="hl-2">text</span>
+</code><button type="button">Copy</button></pre>
 
-<a href="#cli-parameters" id="cli-parameters" style="color: inherit; text-decoration: none;">
-  <h3>CLI Parameters</h3>
-</a>
+<h3 id="cli-parameters" class="tsd-anchor-link">CLI Parameters<a href="#cli-parameters" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <p>Note that you can pass a <code>--help</code> parameter to see this listed in your terminal</p>
 <table>
 <thead>
@@ -224,7 +266,8 @@ details are always shown or hidden and will avoid having to show question prompt
 <th>description</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td><code>-f</code></td>
 <td><code>--fhir-url</code></td>
 <td>FHIR server base URL. Must be set either as parameter or in the configuration file.</td>
@@ -309,35 +352,67 @@ details are always shown or hidden and will avoid having to show question prompt
 <td><code>--status</code></td>
 <td>If a status request fails for some reason the client will exit. However, if the status endpoint is printed in the output, you can retry by passing it as <code>--status</code> option here</td>
 </tr>
-</tbody></table>
-
-<a href="#features" id="features" style="color: inherit; text-decoration: none;">
-  <h2>Features</h2>
-</a>
+</tbody>
+</table>
+<h2 id="features" class="tsd-anchor-link">Features<a href="#features" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <ul>
-<li><input checked="" disabled="" type="checkbox"> Patient-level export</li>
-<li><input checked="" disabled="" type="checkbox"> System-level export</li>
-<li><input checked="" disabled="" type="checkbox"> Group-level export</li>
-<li><input checked="" disabled="" type="checkbox"> All Bulk Data v2 parameters</li>
-<li><input checked="" disabled="" type="checkbox"> Token endpoint auto detection</li>
-<li><input checked="" disabled="" type="checkbox"> Support multiple reporters</li>
-<li><input checked="" disabled="" type="checkbox"> Parallel downloads</li>
-<li><input checked="" disabled="" type="checkbox"> Save manifest</li>
-<li><input checked="" disabled="" type="checkbox"> NDJSON line limit</li>
-<li><input checked="" disabled="" type="checkbox"> NDJSON ResourceType validation</li>
-<li><input checked="" disabled="" type="checkbox"> NDJSON count validation</li>
-<li><input checked="" disabled="" type="checkbox"> Add destination to manifest</li>
-<li><input checked="" disabled="" type="checkbox"> Force standard file names</li>
-<li><input checked="" disabled="" type="checkbox"> Inline DocumentReference attachments</li>
-<li><input checked="" disabled="" type="checkbox"> PDF to Text</li>
-<li><input checked="" disabled="" type="checkbox"> Destination none</li>
-<li><input checked="" disabled="" type="checkbox"> Destination S3</li>
-<li><input checked="" disabled="" type="checkbox"> Destination file://</li>
-<li><input checked="" disabled="" type="checkbox"> Destination directory path</li>
-<li><input checked="" disabled="" type="checkbox"> Destination http</li>
-<li><input checked="" disabled="" type="checkbox"> multiple config files</li>
-<li><input disabled="" type="checkbox"> tests (~64% coverage)</li>
-<li><input checked="" disabled="" type="checkbox"> Custom kick-off params</li>
-<li><input checked="" disabled="" type="checkbox"> Logging</li>
+<li>[x] Patient-level export</li>
+<li>[x] System-level export</li>
+<li>[x] Group-level export</li>
+<li>[x] All Bulk Data v2 parameters</li>
+<li>[x] Token endpoint auto detection</li>
+<li>[x] Support multiple reporters</li>
+<li>[x] Parallel downloads</li>
+<li>[x] Save manifest</li>
+<li>[x] NDJSON line limit</li>
+<li>[x] NDJSON ResourceType validation</li>
+<li>[x] NDJSON count validation</li>
+<li>[x] Add destination to manifest</li>
+<li>[x] Force standard file names</li>
+<li>[x] Inline DocumentReference attachments</li>
+<li>[x] PDF to Text</li>
+<li>[x] Destination none</li>
+<li>[x] Destination S3</li>
+<li>[x] Destination file://</li>
+<li>[x] Destination directory path</li>
+<li>[x] Destination http</li>
+<li>[x] multiple config files</li>
+<li>[ ] tests (~64% coverage)</li>
+<li>[x] Custom kick-off params</li>
+<li>[x] Logging</li>
 </ul>
-</div></div><div class="col-4 col-menu menu-sticky-wrap menu-highlight"><nav class="tsd-navigation primary"><ul><li class="current"><a href="modules.html">Exports</a></li><li class=" tsd-kind-namespace"><a href="modules/Reporters.html">Reporters</a></li><li class=" tsd-kind-namespace"><a href="modules/Streams.html">Streams</a></li><li class=" tsd-kind-namespace"><a href="modules/Types.html">Types</a></li><li class=" tsd-kind-namespace"><a href="modules/Utils.html">Utils</a></li></ul></nav><nav class="tsd-navigation secondary menu-sticky"><ul><li class="tsd-kind-class"><a href="classes/BulkDataClient.html" class="tsd-kind-icon">Bulk<wbr/>Data<wbr/>Client</a></li><li class="tsd-kind-class"><a href="classes/FileDownload.html" class="tsd-kind-icon">File<wbr/>Download</a></li><li class="tsd-kind-class"><a href="classes/PDF.html" class="tsd-kind-icon">PDF</a></li><li class="tsd-kind-interface"><a href="interfaces/BulkDataClientEvents.html" class="tsd-kind-icon">Bulk<wbr/>Data<wbr/>Client<wbr/>Events</a></li><li class="tsd-kind-interface"><a href="interfaces/FileDownloadOptions.html" class="tsd-kind-icon">File<wbr/>Download<wbr/>Options</a></li><li class="tsd-kind-interface"><a href="interfaces/FileDownloadState.html" class="tsd-kind-icon">File<wbr/>Download<wbr/>State</a></li><li class="tsd-kind-variable"><a href="modules.html#request" class="tsd-kind-icon">request</a></li></ul></nav></div></div></div><footer class="with-border-bottom"><div class="container"><h2>Legend</h2><div class="tsd-legend-group"><ul class="tsd-legend"><li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li><li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li><li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li><li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li><li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li></ul></div><h2>Settings</h2><p>Theme <select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></p></div></footer><div class="container tsd-generator"><p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div><div class="overlay"></div><script src="assets/main.js"></script></body></html>
+</div></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-private" name="private"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Private</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details"><a href="#bulk-data-client"><span>Bulk <wbr/>Data <wbr/>Client</span></a>
+<ul>
+<li><a href="#usage-examples"><span>Usage examples</span></a></li>
+<li>
+<ul>
+<li><a href="#retrying-previous-exports"><span>Retrying previous exports</span></a></li></ul></li>
+<li><a href="#installation"><span>Installation</span></a></li>
+<li><a href="#configuration"><span>Configuration</span></a></li>
+<li>
+<ul>
+<li><a href="#configuration-file-options"><span>Configuration <wbr/>File <wbr/>Options</span></a></li>
+<li><a href="#environment-variables"><span>Environment <wbr/>Variables</span></a></li>
+<li><a href="#cli-parameters"><span>CLI <wbr/>Parameters</span></a></li></ul></li></ul><a href="#features"><span>Features</span></a></div></details></div>
+<div class="site-menu">
+<nav class="tsd-navigation"><a href="modules.html">Bulk Data Client</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer>
+<p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
+<div class="overlay"></div></body></html>

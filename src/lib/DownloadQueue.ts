@@ -1,11 +1,11 @@
-interface DownloadQueueJob {
+export interface DownloadQueueJob {
     worker       : () => Promise<void>
     completed   ?: boolean
     running     ?: boolean
     [key: string]: any
 }
 
-interface DownloadQueueOptions {
+export interface DownloadQueueOptions {
     parallelJobs: number
     onComplete  : (jobs: DownloadQueueJob[]) => void
     onProgress  : (jobs: DownloadQueueJob[]) => void

@@ -12,6 +12,7 @@ import request                        from "./request"
 import { Transform }                  from "stream"
 import { BulkDataClient as Types, JsonObject } from "../.."
 import { isRegExp } from "util/types"
+import type { CapabilityStatement, OperationOutcome } from "fhir/r4"
 
 
 const debug = util.debuglog("app")
@@ -53,9 +54,9 @@ export async function getWellKnownSmartConfig(baseUrl: string, noCache = false):
  * @param baseUrl The server base url
  * @param noCache Pass true to disable caching
  */
-export async function getCapabilityStatement(baseUrl: string, noCache = false): Promise<Response<fhir4.CapabilityStatement>> {
+export async function getCapabilityStatement(baseUrl: string, noCache = false): Promise<Response<CapabilityStatement>> {
     const url = new URL("metadata", baseUrl.replace(/\/*$/, "/"));
-    return request<fhir4.CapabilityStatement>(url, {
+    return request<CapabilityStatement>(url, {
         responseType: "json",
         cache: noCache ? false : HTTP_CACHE
     }).then(
@@ -365,7 +366,7 @@ export function exit(arg: any, details?: Record<string, any>) {
                     
                     // @ts-ignore OperationOutcome errors
                     if (response.body.resourceType === "OperationOutcome") {
-                        const oo = response.body as fhir4.OperationOutcome
+                        const oo = response.body as OperationOutcome
                         props.type = "OperationOutcome"
                         props.severity = oo.issue[0].severity
                         props.code = oo.issue[0].code
@@ -455,7 +456,7 @@ export function filterResponseHeaders(headers: Types.ResponseHeaders, selectedHe
  * If local (even if file://), the result will be a resolved absolute path.
  *   - If the local location does not exist or is not a dir, an assert is thrown.
  * If a non-file URL, the destination will be returned as-is.
- * @param destination The user-provided destination option
+ * @param originalDestination The user-provided destination option
  * @returns {string} The normalized destination
  */
 export function normalizeDestination(originalDestination: string | undefined): string {
