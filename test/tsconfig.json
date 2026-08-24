@@ -17,7 +17,8 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": false,
-    "noEmit": true
+    "noEmit": true,
+    "types": ["node", "mocha"]
   },
   "include": [
     ".",
