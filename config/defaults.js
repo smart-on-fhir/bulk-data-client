@@ -305,6 +305,13 @@
      */
     awsSecretAccessKey: "",
 
+    /**
+     * A URL, example: `http://localhost:9000`. Custom S3-compatible endpoint
+     * storage providers). Only used if `destination` points to S3. If not
+     * set, the real AWS S3 endpoint is used.
+     */
+    awsEndpoint: "",
+
     log: {
         enabled: true,
 

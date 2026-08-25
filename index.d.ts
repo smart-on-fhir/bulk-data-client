@@ -227,6 +227,13 @@ export declare namespace BulkDataClient {
          */
         awsSecretAccessKey?: string
 
+        /**
+         * A URL, example: `http://localhost:9000`. Custom S3-compatible endpoint
+         * storage providers). Only used if `destination` points to S3. If not
+         * set, the real AWS S3 endpoint is used.
+         */
+        awsEndpoint?: string
+
         log?: LoggingOptions
 
         /**
@@ -523,6 +530,13 @@ export declare namespace BulkDataClient {
          * Only needed if `destination` points to S3
          */
         awsSecretAccessKey: string
+
+        /**
+         * A URL, example: `http://localhost:9000`. Custom S3-compatible endpoint
+         * storage providers). Only used if `destination` points to S3. If not
+         * set, the real AWS S3 endpoint is used.
+         */
+        awsEndpoint: string
 
         log: LoggingOptions
 

@@ -40,9 +40,9 @@ const util_1 = require("util");
 const http_1 = __importDefault(require("http"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const node_jose_1 = __importDefault(require("node-jose"));
-const url_1 = require("url");
 const events_1 = require("events");
-const aws_sdk_1 = __importDefault(require("aws-sdk"));
+const client_s3_1 = require("@aws-sdk/client-s3");
+const lib_storage_1 = require("@aws-sdk/lib-storage");
 const path_1 = require("path");
 const fs_1 = __importStar(require("fs"));
 const code_1 = require("@hapi/code");
@@ -226,13 +226,13 @@ class BulkDataClient extends events_1.EventEmitter {
     async kickOff() {
         const { fhirUrl, global, group, lenient, patient, post } = this.options;
         if (global) {
-            var url = new url_1.URL("$export", fhirUrl);
+            var url = new URL("$export", fhirUrl);
         }
         else if (group) {
-            var url = new url_1.URL(`Group/${group}/$export`, fhirUrl);
+            var url = new URL(`Group/${group}/$export`, fhirUrl);
         }
         else {
-            var url = new url_1.URL("Patient/$export", fhirUrl);
+            var url = new URL("Patient/$export", fhirUrl);
         }
         let capabilityStatement;
         try {
@@ -658,33 +658,58 @@ class BulkDataClient extends events_1.EventEmitter {
         }
         // S3 ------------------------------------------------------------------
         if (destination.startsWith("s3://")) {
+            // forcePathStyle also allows this to work against S3-compatible
+            // endpoints (e.g. MinIO) that don't support virtual-hosted-style
+            // (bucket-as-subdomain) requests. Real AWS S3 still accepts
+            // path-style requests, so this is a superset of the old behavior.
+            const clientConfig = { forcePathStyle: true };
+            if (this.options.awsEndpoint) {
+                clientConfig.endpoint = this.options.awsEndpoint;
+            }
             if (this.options.awsAccessKeyId && this.options.awsSecretAccessKey) {
-                aws_sdk_1.default.config.update({
+                clientConfig.credentials = {
                     accessKeyId: this.options.awsAccessKeyId,
                     secretAccessKey: this.options.awsSecretAccessKey
-                });
+                };
             }
             if (this.options.awsRegion) {
-                aws_sdk_1.default.config.update({ region: this.options.awsRegion });
+                clientConfig.region = this.options.awsRegion;
             }
-            let bucket = destination.substring(5);
-            if (subFolder) {
-                bucket = (0, path_1.join)(bucket, subFolder);
-            }
+            // The destination has the form "s3://bucket-name/optional-key-prefix".
+            // Only the first path segment is the bucket name - anything after
+            // it is a key prefix, not part of the bucket name. S3 keys always
+            // use forward slashes regardless of host OS, so join manually
+            // instead of using the (OS-dependent) path.join.
+            const [bucket, ...prefixParts] = destination.substring(5).replace(/^\/+|\/+$/g, "").split("/");
+            const key = [...prefixParts, subFolder, fileName].filter(Boolean).join("/");
             const stream = new stream_1.PassThrough();
-            const upload = new aws_sdk_1.default.S3.ManagedUpload({
+            const upload = new lib_storage_1.Upload({
+                client: new client_s3_1.S3Client(clientConfig),
                 params: {
                     Bucket: bucket,
-                    Key: fileName,
+                    Key: key,
                     Body: stream
                 }
             });
-            upload.promise().catch(console.error);
-            return stream;
+            // Upload runs in the background as data is piped into `stream`.
+            // Defer the returned stream's "finish" event (and therefore the
+            // outer pipeline's completion in downloadFile()) until the
+            // upload itself confirms success, so that upload failures
+            // propagate as real pipeline errors instead of only being
+            // logged to the console after the fact.
+            return new stream_1.Writable({
+                write(chunk, encoding, callback) {
+                    stream.write(chunk, encoding, callback);
+                },
+                final(callback) {
+                    stream.end();
+                    upload.done().then(() => callback(), callback);
+                }
+            });
         }
         // HTTP ----------------------------------------------------------------
         if (destination.match(/^https?\:\/\//)) {
-            const url = new url_1.URL((0, path_1.join)(destination, fileName));
+            const url = new URL((0, path_1.join)(destination, fileName));
             if (subFolder) {
                 url.searchParams.set("folder", subFolder);
             }

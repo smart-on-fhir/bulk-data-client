@@ -309,4 +309,58 @@ describe('download', function() {
             onProgress: state => {}
         })
     })
+
+    it ("using s3 destination", async () => {
+
+        let uploadRequest: { method?: string, url?: string, body: string } | null = null
+
+        mockServer.mock("/download", {
+            status : 200,
+            body   : '{"resourceType":"Patient"}\n{"resourceType":"Patient"}',
+            headers: { "content-type": "application/ndjson" }
+        });
+
+        mockServer.mock({ method: "put", path: "/test-bucket/optional-subfolder/1.Patient.ndjson" }, {
+            handler(req, res) {
+                let body = ""
+                req.on("data", chunk => body += chunk)
+                req.on("end", () => {
+                    uploadRequest = { method: req.method, url: req.url, body }
+                    res.setHeader("ETag", '"mock-etag"')
+                    res.status(200).end()
+                })
+            }
+        })
+
+        const options = {
+            ...baseSettings,
+            fhirUrl           : mockServer.baseUrl,
+            destination       : "s3://test-bucket/optional-subfolder",
+            awsAccessKeyId    : "test-access-key-id",
+            awsSecretAccessKey: "test-secret-access-key",
+            awsRegion         : "us-east-1",
+            // Route the S3 client at our own mock server instead of real AWS.
+            // BulkDataClient always sets forcePathStyle, so path-style URLs
+            // (endpoint/bucket/key) work against a plain HTTP server like
+            // this one, without needing subdomain-based DNS routing.
+            awsEndpoint       : mockServer.baseUrl
+        }
+
+        const client = new BulkDataClient(options as any)
+
+        // @ts-ignore
+        await client.downloadFile({
+            file: {
+                type: "Patient",
+                url: mockServer.baseUrl + "/download",
+                count: 2
+            },
+            fileName: "1.Patient.ndjson",
+            onProgress: state => {}
+        })
+
+        expect(uploadRequest, "the S3 upload request should have reached the mock server").to.exist()
+        expect(uploadRequest!.method).to.equal("PUT")
+        expect(uploadRequest!.body).to.include('"resourceType":"Patient"')
+    })
 })

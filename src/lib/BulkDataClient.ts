@@ -3,9 +3,9 @@ import { debuglog }                     from "util"
 import http                             from "http"
 import jwt                              from "jsonwebtoken"
 import jose                             from "node-jose"
-import { URL, fileURLToPath }           from "url"
 import { EventEmitter }                 from "events"
-import aws                              from "aws-sdk"
+import { S3Client }                     from "@aws-sdk/client-s3"
+import { Upload }                       from "@aws-sdk/lib-storage"
 import { basename, join }               from "path"
 import FS, { mkdirSync }                from "fs"
 import { expect }                       from "@hapi/code"
@@ -890,35 +890,61 @@ class BulkDataClient extends EventEmitter
         // S3 ------------------------------------------------------------------
         if (destination.startsWith("s3://")) {
 
+            // forcePathStyle also allows this to work against S3-compatible
+            // endpoints (e.g. MinIO) that don't support virtual-hosted-style
+            // (bucket-as-subdomain) requests. Real AWS S3 still accepts
+            // path-style requests, so this is a superset of the old behavior.
+            const clientConfig: ConstructorParameters<typeof S3Client>[0] = { forcePathStyle: true }
+
+            if (this.options.awsEndpoint) {
+                clientConfig.endpoint = this.options.awsEndpoint
+            }
+
             if (this.options.awsAccessKeyId && this.options.awsSecretAccessKey) {
-                aws.config.update({
+                clientConfig.credentials = {
                     accessKeyId    : this.options.awsAccessKeyId,
                     secretAccessKey: this.options.awsSecretAccessKey
-                })
+                }
             }
 
             if (this.options.awsRegion) {
-                aws.config.update({ region: this.options.awsRegion })
+                clientConfig.region = this.options.awsRegion
             }
 
-            let bucket = destination.substring(5);
-            if (subFolder) {
-                bucket = join(bucket, subFolder)
-            }
+            // The destination has the form "s3://bucket-name/optional-key-prefix".
+            // Only the first path segment is the bucket name - anything after
+            // it is a key prefix, not part of the bucket name. S3 keys always
+            // use forward slashes regardless of host OS, so join manually
+            // instead of using the (OS-dependent) path.join.
+            const [bucket, ...prefixParts] = destination.substring(5).replace(/^\/+|\/+$/g, "").split("/")
+            const key = [...prefixParts, subFolder, fileName].filter(Boolean).join("/")
 
             const stream = new PassThrough()
 
-            const upload = new aws.S3.ManagedUpload({
+            const upload = new Upload({
+                client: new S3Client(clientConfig),
                 params: {
                     Bucket: bucket,
-                    Key   : fileName,
+                    Key   : key,
                     Body  : stream
                 }
             });
 
-            upload.promise().catch(console.error)
-            
-            return stream;
+            // Upload runs in the background as data is piped into `stream`.
+            // Defer the returned stream's "finish" event (and therefore the
+            // outer pipeline's completion in downloadFile()) until the
+            // upload itself confirms success, so that upload failures
+            // propagate as real pipeline errors instead of only being
+            // logged to the console after the fact.
+            return new Writable({
+                write(chunk, encoding, callback) {
+                    stream.write(chunk, encoding, callback)
+                },
+                final(callback) {
+                    stream.end()
+                    upload.done().then(() => callback(), callback)
+                }
+            });
         }
 
         // HTTP ----------------------------------------------------------------

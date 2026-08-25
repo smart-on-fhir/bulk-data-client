@@ -206,6 +206,9 @@ CLI parameter when you re-run the command.</p>
 <p><em>string</em> <strong><code>awsSecretAccessKey</code></strong> - Only needed if <code>destination</code> points to S3. The AWS SDK will first look for this in the shared credentials file (<code>~/.aws/credentials</code>). You can override this if you set the <code>awsSecretAccessKey</code> variable in your bulk-data client config file, but only if you also set the <code>awsAccessKeyId</code>.</p>
 </li>
 <li>
+<p><em>string</em> <strong><code>awsEndpoint</code></strong> - A URL, example: <code>http://localhost:9000</code>. Only used if <code>destination</code> points to S3. Set this to point at a custom S3-compatible endpoint (e.g. a local MinIO instance or another S3-compatible storage provider) instead of the real AWS S3 endpoint.</p>
+</li>
+<li>
 <p><em>object</em> <strong><code>log</code></strong> - Optional logging options (see below)</p>
 </li>
 <li>
@@ -377,7 +380,7 @@ details are always shown or hidden and will avoid having to show question prompt
 <li>[x] Destination directory path</li>
 <li>[x] Destination http</li>
 <li>[x] multiple config files</li>
-<li>[ ] tests (~64% coverage)</li>
+<li>[ ] tests (~74% coverage)</li>
 <li>[x] Custom kick-off params</li>
 <li>[x] Logging</li>
 </ul>
