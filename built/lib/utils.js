@@ -403,7 +403,7 @@ function filterResponseHeaders(headers, selectedHeaders) {
  * If local (even if file://), the result will be a resolved absolute path.
  *   - If the local location does not exist or is not a dir, an assert is thrown.
  * If a non-file URL, the destination will be returned as-is.
- * @param destination The user-provided destination option
+ * @param originalDestination The user-provided destination option
  * @returns {string} The normalized destination
  */
 function normalizeDestination(originalDestination) {

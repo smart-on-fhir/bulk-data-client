@@ -36,11 +36,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Utils = exports.request = exports.PDF = exports.FileDownload = exports.BulkDataClient = void 0;
+exports.Utils = exports.request = exports.PDF = exports.FileDownloadError = exports.DownloadQueue = exports.FileDownload = exports.BulkDataClient = void 0;
 var BulkDataClient_1 = require("./BulkDataClient");
 Object.defineProperty(exports, "BulkDataClient", { enumerable: true, get: function () { return __importDefault(BulkDataClient_1).default; } });
 var FileDownload_1 = require("./FileDownload");
 Object.defineProperty(exports, "FileDownload", { enumerable: true, get: function () { return __importDefault(FileDownload_1).default; } });
+var DownloadQueue_1 = require("./DownloadQueue");
+Object.defineProperty(exports, "DownloadQueue", { enumerable: true, get: function () { return __importDefault(DownloadQueue_1).default; } });
+var errors_1 = require("./errors");
+Object.defineProperty(exports, "FileDownloadError", { enumerable: true, get: function () { return errors_1.FileDownloadError; } });
 var PDF_1 = require("./PDF");
 Object.defineProperty(exports, "PDF", { enumerable: true, get: function () { return __importDefault(PDF_1).default; } });
 var request_1 = require("./request");
