@@ -49,7 +49,7 @@
     "@types/mocha": "^9.1.1",
     "@types/node": "^18.19.130",
     "@types/node-jose": "^1.1.13",
-    "@types/pdfjs-dist": "^2.7.4",
+    "@types/pdfjs-dist": "^2.10.377",
     "@types/prompt-sync": "^4.2.3",
     "cors": "^2.8.6",
     "express": "^4.22.2",
