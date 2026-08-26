@@ -225,6 +225,6 @@ Features
 - [x] Destination directory path
 - [x] Destination http
 - [x] multiple config files
-- [ ] tests (~74% coverage)
+- [x] tests (~74% coverage)
 - [x] Custom kick-off params
 - [x] Logging
