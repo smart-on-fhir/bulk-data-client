@@ -132,7 +132,7 @@ CLI parameter when you re-run the command.</p>
 <p><em>string</em> <strong><code>group</code></strong> - Id of FHIR group to export. If set, the client will make group-level exports. Can be overridden from terminal parameter <code>-g</code> or <code>--group</code></p>
 </li>
 <li>
-<p><em>boolean</em> <strong><code>lenient</code></strong> - If <code>true</code>, adds <code>handling=lenient</code> to the <code>prefer</code> request header. This may enable a &quot;retry&quot; option after certain errors. It can also be used to signal the server to silently ignore unsupported parameters. Can be overridden from terminal parameter <code>--lenient</code></p>
+<p><em>boolean</em> <strong><code>lenient</code></strong> - If <code>true</code>, adds <code>handling=lenient</code> to the <code>prefer</code> request header. This may enable a &quot;retry&quot; option after certain errors. It can also be used to signal the server to silently ignore unsupported parameters. Can be overridden from terminal parameter <code>--lenient</code>. <strong>Note for Epic servers:</strong> Epic's bulk-data endpoint does a strict string check on the <code>Prefer</code> header and rejects anything other than exactly <code>respond-async</code> - it does not accept the standards-compliant <code>respond-async, handling=lenient</code> this client sends when <code>lenient</code> is <code>true</code> (the default). Set <code>lenient: false</code> when exporting from Epic, or you'll get <code>A Prefer header is required and must be set to respond-async</code>.</p>
 </li>
 <li>
 <p><em>object</em> <strong><code>requests</code></strong> - Custom options for every request, EXCLUDING the authorization request and any upload requests (in case we use remote destination). Many options are available so be careful what you specify here! See <a href="https://github.com/sindresorhus/got/blob/main/documentation/2-options.md">https://github.com/sindresorhus/got/blob/main/documentation/2-options.md</a>. Example:</p>
@@ -380,7 +380,7 @@ details are always shown or hidden and will avoid having to show question prompt
 <li>[x] Destination directory path</li>
 <li>[x] Destination http</li>
 <li>[x] multiple config files</li>
-<li>[ ] tests (~74% coverage)</li>
+<li>[x] tests (~74% coverage)</li>
 <li>[x] Custom kick-off params</li>
 <li>[x] Logging</li>
 </ul>
