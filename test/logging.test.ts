@@ -256,7 +256,6 @@ describe('Logging', function () {
         })
 
         it ("logs status_error events", async () => {
-            this.timeout(10000);
 
             mockServer.mock("/metadata", { status: 200, body: {} });
 
@@ -285,7 +284,6 @@ describe('Logging', function () {
         })
 
         it ("can filter responseHeaders of status_error events with client's logResponseHeaders option", async () => {
-            this.timeout(10000);
 
             mockServer.mock("/metadata", { status: 200, body: {} });
 
@@ -343,7 +341,6 @@ describe('Logging', function () {
         })
 
         it ("logs status_error on invalid manifest", async () => {
-            this.timeout(10000);
 
             mockServer.mock("/metadata", { status: 200, body: {} });
 

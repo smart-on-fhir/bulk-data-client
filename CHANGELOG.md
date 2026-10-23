@@ -4,6 +4,21 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Security
+- PDF attachments are now parsed with `isEvalSupported: false`, which mitigates CVE-2024-4367 / GHSA-wgrm-67xf-hhpq (arbitrary JavaScript execution from a malicious PDF) in the `pdfjs-dist` 2.x version we use
+- `npm audit fix` (non-breaking): runtime `moment` `2.30.1` → `2.31.0` and `http-cache-semantics` `4.2.0` → `4.3.0` (via `got`), plus several dev dependencies
+
+### Changed
+- Upgraded the test toolchain: `mocha` `9` → `11`, `ts-mocha` `10` → `11`, `nyc` `15` → `18`, `@types/mocha` `9` → `10`, and added `ts-node` `10` as an explicit dev dependency (it was previously only pulled in by `ts-mocha` 10, as `ts-node` 7)
+- TypeScript `target` raised from `ES2021` to `ES2023`. `useDefineForClassFields` is explicitly set to `false` to keep the existing class field semantics, so the emitted code in `built/` is unchanged
+- Added a GitHub Actions workflow that builds, checks that `built/` is up to date, and runs the tests on Node `22.23.4` and `24.22.1`
+
+### Fixed
+- Removed `this.timeout()` calls from inside arrow-function tests in `test/logging.test.ts`. They targeted the parent suite, and since mocha 11 that re-arms the timeouts of tests that have already finished, failing them with "done() called multiple times"
+- Spawned CLI processes in tests now run `ts-node` in transpile-only mode (type checking is covered by `npm run build`), keeping the test run fast without ts-node 7's compile cache
+
 ## [1.3.1] - 2026-10-23
 
 ### Security

@@ -27,7 +27,9 @@ export default class PDF {
     }
   
     public static async getPDFText(source: any): Promise<string> {
-        const pdf = await pdfJsLib.getDocument(source).promise;
+        // isEvalSupported: false mitigates CVE-2024-4367 (arbitrary JS
+        // execution from a malicious PDF) in this older pdfjs-dist version
+        const pdf = await pdfJsLib.getDocument({ ...source, isEvalSupported: false }).promise;
         const maxPages = pdf.numPages;
         const pageTextPromises = [];
         for (let pageNo = 1; pageNo <= maxPages; pageNo += 1) {
