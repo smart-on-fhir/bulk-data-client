@@ -4,7 +4,6 @@ import jose                   from "node-jose"
 import { expect }             from "@hapi/code"
 import BulkDataClient         from "../src/lib/BulkDataClient"
 import baseSettings           from "../config/defaults.js"
-import testSettings           from "../config/test.js"
 import { mockServer }         from "./lib"
 
 
@@ -32,6 +31,13 @@ function mockTokenEndpoint(overrides: { expires_in?: number } = {})
     })
 
     return requests
+}
+
+async function generateECKey(): Promise<jose.JWK.Key>
+{
+    const keystore  = jose.JWK.createKeyStore()
+    const generated = await keystore.generate("EC", "P-384", { alg: "ES384", use: "sig" })
+    return jose.JWK.asKey(generated.toJSON(true), "json")
 }
 
 async function createAuthorizedClient(privateKey: jose.JWK.Key, overrides: Record<string, any> = {})
@@ -65,7 +71,7 @@ describe("Authorization", () => {
                 }
             })
 
-            const privateKey = await jose.JWK.asKey(testSettings.privateKey as object, "json")
+            const privateKey = await generateECKey()
             const client = await createAuthorizedClient(privateKey)
 
             let emittedToken = ""
@@ -135,7 +141,7 @@ describe("Authorization", () => {
             })
             mockServer.mock("/status", { status: 200, body: { output: [] } })
 
-            const privateKey = await jose.JWK.asKey(testSettings.privateKey as object, "json")
+            const privateKey = await generateECKey()
             const client = await createAuthorizedClient(privateKey)
 
             // kickOff() + the status check below both make authorized requests
@@ -154,7 +160,7 @@ describe("Authorization", () => {
             mockServer.mock("/metadata", { status: 200, body: {} })
             mockServer.mock("/Patient/\\$export", { status: 202, body: "", headers: { "content-location": "x" } })
 
-            const privateKey = await jose.JWK.asKey(testSettings.privateKey as object, "json")
+            const privateKey = await generateECKey()
             const client = await createAuthorizedClient(privateKey)
 
             await client.kickOff()

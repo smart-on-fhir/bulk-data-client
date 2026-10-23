@@ -1,0 +1,32 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Exact versions on purpose: .npmrc has engine-strict=true, and a range
+        # like "24.x" may resolve to an older, cached runner version that does
+        # not satisfy package.json "engines" (npm ci then fails with EBADENGINE).
+        # Bump these together with "engines" and .nvmrc.
+        node-version: ["22.23.4", "24.22.1"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Check that built/ is up to date
+        run: git diff --exit-code -- built
+      - run: npm test

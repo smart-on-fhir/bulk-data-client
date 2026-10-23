@@ -119,6 +119,9 @@ export async function invoke({
                 // process, which must compile against the project's real
                 // root tsconfig.json.
                 TS_NODE_PROJECT: undefined,
+                // Skip type-checking in every spawned CLI process (ts-node 10
+                // has no compile cache). Type errors are caught by `npm run build`.
+                TS_NODE_TRANSPILE_ONLY: "true",
                 SHOW_ERRORS: "false"
             }
         })
