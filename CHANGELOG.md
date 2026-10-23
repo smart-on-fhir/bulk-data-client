@@ -4,7 +4,17 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.3.0] - 2026-08-26
+## [1.3.1] - 2026-10-23
+
+### Security
+- Require a Node.js version that includes the [October 2026 security releases](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases): `^22.23.4 || ^24.22.1 || >=26.12.1`. Node 18 and 20 are end-of-life and no longer supported. With `engine-strict=true` in `.npmrc`, `npm i` / `npm ci` now fails with `EBADENGINE` on older Node versions
+- Stop requesting Brotli (`br`) compressed responses, both for file downloads and for all other requests (kick-off, status, auth, etc.), and refuse to decode Brotli encoded file downloads. Defense in depth against CVE-2026-111497 (Brotli decoder out-of-bounds write) for library users still on unpatched Node versions
+
+### Changed
+- `.nvmrc` now points to Node `24.22.1` (was `18`)
+- Upgraded `@types/node` `18` → `24`
+- `content-encoding` response headers are now matched case-insensitively
+
 
 ### Added
 - Test coverage for the JWT authorization flow (EC and RSA key signing, access token caching and renewal) - previously untested

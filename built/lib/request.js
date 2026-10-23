@@ -12,6 +12,11 @@ const package_json_1 = __importDefault(require("../../package.json"));
 require("colors");
 const debug = util_1.default.debuglog("app-request");
 exports.default = source_1.default.extend({
+    // Got advertises Brotli ("br") by default. Ask for gzip/deflate only, to
+    // stay away from Node's Brotli decoder (CVE-2026-111497)
+    headers: {
+        "accept-encoding": "gzip, deflate"
+    },
     retry: {
         errorCodes: [
             'ETIMEDOUT',

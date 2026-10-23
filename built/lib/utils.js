@@ -358,10 +358,14 @@ function exit(arg, details) {
     process.exit(exitCode);
 }
 function createDecompressor(res) {
-    switch (res.headers["content-encoding"]) {
+    const encoding = String(res.headers["content-encoding"] || "").trim().toLowerCase();
+    switch (encoding) {
         case "gzip": return zlib_1.default.createGunzip();
         case "deflate": return zlib_1.default.createInflate();
-        case "br": return zlib_1.default.createBrotliDecompress();
+        // We never ask for Brotli, so refuse to decode it if a server sends it
+        // anyway. Node's Brotli decoder had an RCE bug (CVE-2026-111497) and
+        // this client may still run on unpatched Node versions as a library.
+        case "br": throw new Error('Refusing to decode a Brotli ("br") encoded response that was not requested');
         // Even if there is no compression we need to convert from stream of
         // bytes to stream of string objects
         default: return new stream_1.Transform({

@@ -85,7 +85,7 @@ class FileDownload extends events_1.default {
                 throwHttpErrors: false,
                 headers: {
                     ...requestOptions.headers,
-                    "accept-encoding": "gzip, deflate, br, identity"
+                    "accept-encoding": "gzip, deflate, identity"
                 }
             };
             if (accessToken) {
@@ -140,7 +140,15 @@ class FileDownload extends events_1.default {
                     }));
                 }
                 // Un-compress the response if needed --------------------------
-                let decompress = (0, utils_1.createDecompressor)(res);
+                let decompress;
+                try {
+                    decompress = (0, utils_1.createDecompressor)(res);
+                }
+                catch (error) {
+                    downloadRequest.destroy();
+                    this.state.error = error;
+                    return reject(error);
+                }
                 res.pipe(decompress);
                 // Count uncompressed bytes ------------------------------------
                 decompress.on("data", (data) => {

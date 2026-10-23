@@ -46,7 +46,15 @@ CLI parameter when you re-run the command.
 
 ## Installation
 
-**Prerequisites**: Git and NodeJS 15 to 18.
+**Prerequisites**: Git and NodeJS 22.23.4+, 24.22.1+ or 26.12.1+.
+
+> [!IMPORTANT]
+> Older Node versions, including Node 18 and 20 and the 22.x/24.x/26.x releases
+> before the October 2026 security releases, are not supported. They are
+> affected by several vulnerabilities, including a Brotli decoder RCE
+> (CVE-2026-111497). This repository's `.npmrc` sets `engine-strict=true`, so
+> `npm i` / `npm ci` fails with `EBADENGINE` on an unsupported Node version.
+> If you see that error, upgrade Node (with `nvm`: `nvm install`) and try again.
 
 1. Clone the repository
    ```sh
@@ -56,9 +64,9 @@ CLI parameter when you re-run the command.
    ```sh
    cd bulk-data-client
    ```
-3. Make sure you are using NodeJS 15, 16, 17, or 18. If you use `nvm` run:
+3. Make sure you are using a supported NodeJS version (see above). If you use `nvm` run:
    ```sh
-   nvm use
+   nvm install
    ```
 4. Install dependencies
    ```sh
