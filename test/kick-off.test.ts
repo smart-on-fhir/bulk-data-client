@@ -50,7 +50,7 @@ describe('status', () => {
     describe("complete", () => {
         
         it("returns the manifest", async() => {
-            mockServer.mock("/status", { status: 200, body: { output: [{}] }});
+            mockServer.mock("/status", { status: 200, body: { output: [] }});
             // @ts-ignore
             const client = new BulkDataClient({ ...baseSettings, fhirUrl: mockServer.baseUrl })
             await client.run(mockServer.baseUrl + "/status")
@@ -58,6 +58,13 @@ describe('status', () => {
     })
 
     describe("error", () => {
+        it("rejects if a manifest entry has no url", async () => {
+            mockServer.mock("/status", { status: 200, body: { output: [{ type: "Patient" }] }});
+            // @ts-ignore
+            const client = new BulkDataClient({ ...baseSettings, fhirUrl: mockServer.baseUrl })
+            await expect(client.run(mockServer.baseUrl + "/status")).to.reject(/output\[0\] has no url/)
+        })
+
         it("throws the error", async () => {
             mockServer.mock("/status", { status: 400 });
 

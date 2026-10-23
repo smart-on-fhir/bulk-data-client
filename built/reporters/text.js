@@ -57,7 +57,12 @@ function TextReporter(client) {
         }
     }
     function onDownloadComplete() {
-        console.log(`Download completed in ${(0, utils_1.formatDuration)(Date.now() - downloadStart)}`);
+        if (downloadStart) {
+            console.log(`Download completed in ${(0, utils_1.formatDuration)(Date.now() - downloadStart)}`);
+        }
+        else {
+            console.log("Download completed. No files were downloaded");
+        }
     }
     function onError(error) {
         console.error(error);

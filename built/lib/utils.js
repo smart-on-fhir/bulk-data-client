@@ -350,7 +350,16 @@ function exit(arg, details) {
         }
     }
     if (details) {
-        const answer = process.env.SHOW_ERRORS || (0, prompt_sync_1.default)()("Would you like to see error details [y/N]? ".cyan);
+        let answer = process.env.SHOW_ERRORS || "";
+        if (!answer) {
+            try {
+                answer = (0, prompt_sync_1.default)()("Would you like to see error details [y/N]? ".cyan) || "";
+            }
+            catch {
+                // No terminal to ask in (e.g. CI or cron). prompt-sync throws
+                // then, which used to end failed runs with exit code 0
+            }
+        }
         if (answer.toLowerCase() == "y") {
             for (const prop in details) {
                 console.log(prop.bold + ":", details[prop]);

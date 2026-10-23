@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.2] - 2026-10-23
+
+### Fixed
+- Failed exports exited with code `0` when there was no terminal (e.g. in CI or cron) and `SHOW_ERRORS` was not set, because the "Would you like to see error details" prompt threw. They now exit with code `1`
+- A manifest entry without a `url` crashed the client outside of `run()` (as an unhandled rejection), so `run()` did not reject. Manifest entries in `output`, `deleted` and `error` must now have a `url`, and invalid ones are reported like other invalid manifests (`status_error`, then `client_error`)
+- `run()` now also rejects if queuing the downloads for a manifest page fails, instead of the error becoming an unhandled rejection
+- The CLI crashed while logging `status_page_complete` for manifests without an `error` array
+- `node . --version` printed a hard-coded `2.0.0` instead of the version from `package.json`
+- The reporters printed nonsense durations ("Download completed in 2964 weeks…" or `NaN`) when no file download had started, e.g. for an empty manifest. They now print "Download completed. No files were downloaded"
+
 ## [1.3.1] - 2026-10-23
 
 ### Security
