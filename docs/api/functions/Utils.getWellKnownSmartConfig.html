@@ -17,7 +17,10 @@
 <div class="tsd-signature tsd-anchor-link" id="getwellknownsmartconfig"><span class="tsd-kind-call-signature">getWellKnownSmartConfig</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">baseUrl</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">noCache</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Types.JsonObject.html" class="tsd-signature-type tsd-kind-interface">JsonObject</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><a href="#getwellknownsmartconfig" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Given a <code>baseUrl</code> fetches a <code>/.well-known/smart-configuration</code> statement
-from the root of the baseUrl. Note that this request is cached by default!</p>
+from the root of the baseUrl.</p>
+<p>Note that this request is NOT cached. We used to pass got's <code>cache</code> option
+here, but with got 11 on Node 20+ such requests can silently never settle,
+which made the CLI exit with code 0 without doing anything (#26).</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -26,11 +29,11 @@ from the root of the baseUrl. Note that this request is cached by default!</p>
 <div class="tsd-comment tsd-typography"><p>The server base url</p>
 </div></li>
 <li><span><span class="tsd-kind-parameter">noCache</span>: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></span>
-<div class="tsd-comment tsd-typography"><p>Pass true to disable caching</p>
+<div class="tsd-comment tsd-typography"><p>Ignored. Kept for backwards compatibility</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Response</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Types.JsonObject.html" class="tsd-signature-type tsd-kind-interface">JsonObject</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/smart-on-fhir/bulk-data-client/blob/07db16f02874ed69a12b41ecb22b61297603b293/src/lib/utils.ts#L29">src/lib/utils.ts:29</a></li></ul></aside></div></li></ul></section></div>
+<li>Defined in <a href="https://github.com/smart-on-fhir/bulk-data-client/blob/a966c0011cf629162d6d60e9293be90b61719868/src/lib/utils.ts#L31">src/lib/utils.ts:31</a></li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

@@ -1,5 +1,6 @@
 import { expect }                 from "@hapi/code"
-import { filterResponseHeaders }  from "../src/lib/utils"
+import { filterResponseHeaders, detectTokenUrl, getCapabilityStatement, getWellKnownSmartConfig } from "../src/lib/utils"
+import { mockServer }             from "./lib"
 
 describe('Utils Library', function () { 
   describe('filterExportHeaders', () => { 
@@ -71,5 +72,40 @@ describe('Utils Library', function () {
       // source responseHeader is also case-insensitive in check; preserves case in result
       expect(filterResponseHeaders(headers, ['new'])).to.equal({'NEW': 'string'})
     })
+  })
+
+  // The mock server normally sends "cache-control: no-store". These responses
+  // are cacheable instead, like many real servers' responses. Requests made with
+  // got 11's `cache` option never settled for responses like these on Node 20+,
+  // making the CLI exit silently with code 0 (#26)
+  describe('cacheable metadata responses', () => {
+
+    function mockCacheable(path: string, status: number, body: object) {
+      mockServer.mock(path, {
+        handler(req, res) {
+          res.removeHeader("cache-control")
+          res.removeHeader("pragma")
+          res.removeHeader("expires")
+          res.status(status).json(body)
+        }
+      })
+    }
+
+    it ("getCapabilityStatement settles", async () => {
+      mockCacheable("/metadata", 200, { resourceType: "CapabilityStatement" })
+      const { body } = await getCapabilityStatement(mockServer.baseUrl)
+      expect(body.resourceType).to.equal("CapabilityStatement")
+    }).timeout(5000)
+
+    it ("getWellKnownSmartConfig rejects on 404", async () => {
+      mockCacheable("/.well-known/smart-configuration", 404, {})
+      await expect(getWellKnownSmartConfig(mockServer.baseUrl)).to.reject(/404/)
+    }).timeout(5000)
+
+    it ("detectTokenUrl settles", async () => {
+      mockCacheable("/metadata", 200, { resourceType: "CapabilityStatement" })
+      mockCacheable("/.well-known/smart-configuration", 404, {})
+      expect(await detectTokenUrl(mockServer.baseUrl)).to.equal("")
+    }).timeout(5000)
   })
 })

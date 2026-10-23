@@ -18,19 +18,20 @@ import type { CapabilityStatement, OperationOutcome } from "fhir/r4"
 const debug = util.debuglog("app")
 
 
-const HTTP_CACHE = new Map();
-
 /**
  * Given a `baseUrl` fetches a `/.well-known/smart-configuration` statement
- * from the root of the baseUrl. Note that this request is cached by default!
+ * from the root of the baseUrl.
+ *
+ * Note that this request is NOT cached. We used to pass got's `cache` option
+ * here, but with got 11 on Node 20+ such requests can silently never settle,
+ * which made the CLI exit with code 0 without doing anything (#26).
  * @param baseUrl The server base url
- * @param noCache Pass true to disable caching
+ * @param noCache Ignored. Kept for backwards compatibility
  */
 export async function getWellKnownSmartConfig(baseUrl: string, noCache = false): Promise<Response<JsonObject>> {
     const url = new URL("/.well-known/smart-configuration", baseUrl);
     return request<JsonObject>(url, {
-        responseType: "json",
-        cache: noCache ? false : HTTP_CACHE
+        responseType: "json"
     }).then(
         x => {
             debug("Fetched .well-known/smart-configuration from %s", url)
@@ -49,16 +50,16 @@ export async function getWellKnownSmartConfig(baseUrl: string, noCache = false):
 }
 
 /**
- * Given a `baseUrl` fetches the `CapabilityStatement`. Note that this request
- * is cached by default!
+ * Given a `baseUrl` fetches the `CapabilityStatement`.
+ *
+ * Note that this request is NOT cached (see `getWellKnownSmartConfig`).
  * @param baseUrl The server base url
- * @param noCache Pass true to disable caching
+ * @param noCache Ignored. Kept for backwards compatibility
  */
 export async function getCapabilityStatement(baseUrl: string, noCache = false): Promise<Response<CapabilityStatement>> {
     const url = new URL("metadata", baseUrl.replace(/\/*$/, "/"));
     return request<CapabilityStatement>(url, {
-        responseType: "json",
-        cache: noCache ? false : HTTP_CACHE
+        responseType: "json"
     }).then(
         x => {
             debug("Fetched CapabilityStatement from %s", url)

@@ -104,9 +104,9 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
 
     const client = new Client(options)
     const reporter = reporters[(options as BulkDataClient.NormalizedOptions).reporter](client)
-    if (options.log.enabled) {
-        
-        const logger = createLogger(options.destination, options.log)
+    const logger = options.log.enabled ? createLogger(options.destination, options.log) : null
+    if (logger) {
+
         const startTime = Date.now()
 
         let totalOutputFileCount  = 0
@@ -241,11 +241,33 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
         process.exit(0);
     });
 
-    process.on("uncaughtException", e => exit(e));
+    // Logs a client_error entry and only exits once everything logged so far
+    // has been flushed to the log file. Calling process.exit() while winston
+    // is still writing loses log entries.
+    let failing = false
+    const fail = (error: any) => {
+        if (failing) {
+            return
+        }
+        failing = true
+        if (!logger) {
+            return exit(error)
+        }
+        logger.once("finish", () => exit(error))
+        logger.error("info", {
+            eventId: "client_error",
+            eventDetail: {
+                error: error?.stack ?? String(error)
+            }
+        })
+        logger.end()
+    }
+
+    process.on("uncaughtException", fail);
 
     client.on("error", error => {
         console.error(error)
-        process.exit(1);
+        fail(error)
     })
 
     await client.run(options.status)
@@ -259,21 +281,7 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
             }
         }
     })
-    .catch(error => {
-        if (options.log.enabled) {
-            const logger = createLogger(options.destination, options.log);
-            logger.once("close", () => setTimeout(() => exit(error), 1000))
-            logger.error("info", {
-                eventId: "client_error",
-                eventDetail: {
-                    error: error.stack
-                }
-            })
-            logger.close()
-        } else {
-            exit(error)
-        }
-    })
+    .catch(fail)
 })
 
 async function main() {

@@ -340,6 +340,48 @@ describe('Logging', function () {
             // expect(entry.eventDetail.errorFileCount).to.equal(1)
         })
 
+        // A manifest entry without "url" makes the client fail (depending on
+        // timing, either through run() or as an uncaught exception). The CLI
+        // used to exit without waiting for the log to be flushed, losing the
+        // client_error entry and sometimes earlier ones like status_complete
+        it ("logs client_error after all earlier entries when the client fails", async () => {
+
+            mockServer.mock("/metadata", { status: 200, body: {} });
+
+            mockServer.mock("/Patient/\\$export", {
+                status: 200,
+                headers: {
+                    "content-location": mockServer.baseUrl + "/status"
+                },
+                body: ""
+            });
+
+            mockServer.mock("/status", { status: 200, body: {
+                transactionTime: new Date().toISOString(),
+                output: [{}]
+            }})
+
+            const { log, exitCode } = await invoke()
+            const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
+            const ids = logs.map(l => l.eventId)
+            expect(exitCode).to.equal(1)
+            expect(ids).to.include(["kickoff", "status_complete", "client_error"])
+            expect(ids[ids.length - 1]).to.equal("client_error")
+        })
+
+        it ("logs client_error when the export fails", async () => {
+
+            mockServer.mock("/metadata", { status: 200, body: {} });
+            mockServer.mock("/Patient/\\$export", { status: 404, body: "" });
+
+            const { log, exitCode } = await invoke()
+            const logs = log.split("\n").filter(Boolean).map(line => JSON.parse(line));
+            const entry = logs.find(l => l.eventId === "client_error")
+            expect(exitCode).to.equal(1)
+            expect(entry, "client_error log entry not found").to.exist()
+            expect(entry.eventDetail.error).to.include("404")
+        })
+
         it ("logs status_error on invalid manifest", async () => {
 
             mockServer.mock("/metadata", { status: 200, body: {} });

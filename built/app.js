@@ -87,8 +87,8 @@ APP.action(async (args) => {
     };
     const client = new BulkDataClient_1.default(options);
     const reporter = reporters[options.reporter](client);
-    if (options.log.enabled) {
-        const logger = (0, loggers_1.createLogger)(options.destination, options.log);
+    const logger = options.log.enabled ? (0, loggers_1.createLogger)(options.destination, options.log) : null;
+    if (logger) {
         const startTime = Date.now();
         let totalOutputFileCount = 0;
         let totalDeletedFileCount = 0;
@@ -208,10 +208,31 @@ APP.action(async (args) => {
         client.abort();
         process.exit(0);
     });
-    process.on("uncaughtException", e => (0, utils_1.exit)(e));
+    // Logs a client_error entry and only exits once everything logged so far
+    // has been flushed to the log file. Calling process.exit() while winston
+    // is still writing loses log entries.
+    let failing = false;
+    const fail = (error) => {
+        if (failing) {
+            return;
+        }
+        failing = true;
+        if (!logger) {
+            return (0, utils_1.exit)(error);
+        }
+        logger.once("finish", () => (0, utils_1.exit)(error));
+        logger.error("info", {
+            eventId: "client_error",
+            eventDetail: {
+                error: error?.stack ?? String(error)
+            }
+        });
+        logger.end();
+    };
+    process.on("uncaughtException", fail);
     client.on("error", error => {
         console.error(error);
-        process.exit(1);
+        fail(error);
     });
     await client.run(options.status)
         .then(() => {
@@ -222,22 +243,7 @@ APP.action(async (args) => {
             }
         }
     })
-        .catch(error => {
-        if (options.log.enabled) {
-            const logger = (0, loggers_1.createLogger)(options.destination, options.log);
-            logger.once("close", () => setTimeout(() => (0, utils_1.exit)(error), 1000));
-            logger.error("info", {
-                eventId: "client_error",
-                eventDetail: {
-                    error: error.stack
-                }
-            });
-            logger.close();
-        }
-        else {
-            (0, utils_1.exit)(error);
-        }
-    });
+        .catch(fail);
 });
 async function main() {
     await APP.parseAsync(process.argv);
