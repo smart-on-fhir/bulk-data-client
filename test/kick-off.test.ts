@@ -1,3 +1,4 @@
+import { expect }     from "@hapi/code"
 import BulkDataClient from "../src/lib/BulkDataClient"
 import baseSettings   from "../config/defaults.js"
 import { mockServer } from "./lib"
@@ -26,6 +27,21 @@ describe('kick-off', () => {
         // @ts-ignore
         const client = new BulkDataClient({ ...baseSettings, fhirUrl: mockServer.baseUrl, group: "abc" })
         await client.kickOff()
+    })
+
+    it("does not request Brotli encoding", async () => {
+        let acceptEncoding: string | undefined
+        mockServer.mock("/metadata", { status: 200, body: {} });
+        mockServer.mock("/Patient/\\$export", {
+            handler(req, res) {
+                acceptEncoding = req.headers["accept-encoding"]
+                res.status(202).set("content-location", "x").end()
+            }
+        });
+        // @ts-ignore
+        const client = new BulkDataClient({ ...baseSettings, fhirUrl: mockServer.baseUrl })
+        await client.kickOff()
+        expect(acceptEncoding).to.equal("gzip, deflate")
     })
 })
 

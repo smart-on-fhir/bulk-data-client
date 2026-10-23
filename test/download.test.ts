@@ -4,6 +4,7 @@ import baseSettings   from "../config/defaults.js"
 import { emptyFolder, invoke, isFile, mockServer } from "./lib"
 import { existsSync, readFileSync, rmSync } from "fs"
 import { join } from "path"
+import { brotliCompressSync } from "zlib"
 
 
 describe('download', function() {
@@ -53,6 +54,67 @@ describe('download', function() {
             fileName: "1.Patient.ndjson",
             onProgress: state => {}
         })
+    })
+
+    it("does not request Brotli encoding", async () => {
+
+        let acceptEncoding: string | undefined
+
+        mockServer.mock("/download", {
+            handler(req, res) {
+                acceptEncoding = req.headers["accept-encoding"]
+                res.type("application/ndjson")
+                res.end('{"resourceType":"Patient"}')
+            }
+        });
+
+        // @ts-ignore
+        const client = new BulkDataClient({
+            ...baseSettings,
+            fhirUrl: mockServer.baseUrl,
+            destination: "./test/tmp/downloads"
+        })
+
+        // @ts-ignore
+        await client.downloadFile({
+            file: {
+                type: "Patient",
+                url: mockServer.baseUrl + "/download",
+                count: 1
+            },
+            fileName: "1.Patient.ndjson",
+            onProgress: state => {}
+        })
+
+        expect(acceptEncoding).to.equal("gzip, deflate, identity")
+    })
+
+    it("refuses Brotli encoded downloads", async () => {
+
+        mockServer.mock("/download", {
+            handler(req, res) {
+                res.set({ "content-type": "application/ndjson", "content-encoding": "br" })
+                res.end(brotliCompressSync('{"resourceType":"Patient"}'))
+            }
+        });
+
+        // @ts-ignore
+        const client = new BulkDataClient({
+            ...baseSettings,
+            fhirUrl: mockServer.baseUrl,
+            destination: "./test/tmp/downloads"
+        })
+
+        // @ts-ignore
+        await expect(client.downloadFile({
+            file: {
+                type: "Patient",
+                url: mockServer.baseUrl + "/download",
+                count: 1
+            },
+            fileName: "1.Patient.ndjson",
+            onProgress: state => {}
+        })).to.reject(/Brotli/)
     })
 
     it("can skip attachments", async () => {

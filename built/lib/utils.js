@@ -35,18 +35,20 @@ const request_1 = __importDefault(require("./request"));
 const stream_1 = require("stream");
 const types_1 = require("util/types");
 const debug = util_1.default.debuglog("app");
-const HTTP_CACHE = new Map();
 /**
  * Given a `baseUrl` fetches a `/.well-known/smart-configuration` statement
- * from the root of the baseUrl. Note that this request is cached by default!
+ * from the root of the baseUrl.
+ *
+ * Note that this request is NOT cached. We used to pass got's `cache` option
+ * here, but with got 11 on Node 20+ such requests can silently never settle,
+ * which made the CLI exit with code 0 without doing anything (#26).
  * @param baseUrl The server base url
- * @param noCache Pass true to disable caching
+ * @param noCache Ignored. Kept for backwards compatibility
  */
 async function getWellKnownSmartConfig(baseUrl, noCache = false) {
     const url = new url_1.URL("/.well-known/smart-configuration", baseUrl);
     return (0, request_1.default)(url, {
-        responseType: "json",
-        cache: noCache ? false : HTTP_CACHE
+        responseType: "json"
     }).then(x => {
         debug("Fetched .well-known/smart-configuration from %s", url);
         return x;
@@ -56,16 +58,16 @@ async function getWellKnownSmartConfig(baseUrl, noCache = false) {
     });
 }
 /**
- * Given a `baseUrl` fetches the `CapabilityStatement`. Note that this request
- * is cached by default!
+ * Given a `baseUrl` fetches the `CapabilityStatement`.
+ *
+ * Note that this request is NOT cached (see `getWellKnownSmartConfig`).
  * @param baseUrl The server base url
- * @param noCache Pass true to disable caching
+ * @param noCache Ignored. Kept for backwards compatibility
  */
 async function getCapabilityStatement(baseUrl, noCache = false) {
     const url = new url_1.URL("metadata", baseUrl.replace(/\/*$/, "/"));
     return (0, request_1.default)(url, {
-        responseType: "json",
-        cache: noCache ? false : HTTP_CACHE
+        responseType: "json"
     }).then(x => {
         debug("Fetched CapabilityStatement from %s", url);
         return x;
@@ -358,10 +360,14 @@ function exit(arg, details) {
     process.exit(exitCode);
 }
 function createDecompressor(res) {
-    switch (res.headers["content-encoding"]) {
+    const encoding = String(res.headers["content-encoding"] || "").trim().toLowerCase();
+    switch (encoding) {
         case "gzip": return zlib_1.default.createGunzip();
         case "deflate": return zlib_1.default.createInflate();
-        case "br": return zlib_1.default.createBrotliDecompress();
+        // We never ask for Brotli, so refuse to decode it if a server sends it
+        // anyway. Node's Brotli decoder had an RCE bug (CVE-2026-111497) and
+        // this client may still run on unpatched Node versions as a library.
+        case "br": throw new Error('Refusing to decode a Brotli ("br") encoded response that was not requested');
         // Even if there is no compression we need to convert from stream of
         // bytes to stream of string objects
         default: return new stream_1.Transform({

@@ -139,7 +139,7 @@ class FileDownload extends EventEmitter
                 throwHttpErrors: false,
                 headers: {
                     ...requestOptions.headers,
-                    "accept-encoding": "gzip, deflate, br, identity"
+                    "accept-encoding": "gzip, deflate, identity"
                 }
             }
 
@@ -206,7 +206,14 @@ class FileDownload extends EventEmitter
                 }
 
                 // Un-compress the response if needed --------------------------
-                let decompress = createDecompressor(res);
+                let decompress: ReturnType<typeof createDecompressor>
+                try {
+                    decompress = createDecompressor(res);
+                } catch (error) {
+                    downloadRequest.destroy()
+                    this.state.error = error as Error
+                    return reject(error)
+                }
                 res.pipe(decompress)
                 
                 // Count uncompressed bytes ------------------------------------
