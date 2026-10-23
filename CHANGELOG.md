@@ -15,12 +15,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Upgraded `@types/node` `18` → `24`
 - `content-encoding` response headers are now matched case-insensitively
 
+### Fixed
+- The CLI could exit silently with code 0, without doing anything, on Node 20+ (#26). The `.well-known/smart-configuration` and `CapabilityStatement` requests used got 11's `cache` option, and on Node 20+ such requests can never settle (e.g. for small or 404 responses that the server does not mark `no-store`). These requests are no longer cached. The `noCache` parameter of `getWellKnownSmartConfig()` and `getCapabilityStatement()` is now ignored
+- On errors the CLI called `process.exit()` without waiting for the log file to be written, so the `client_error` entry, and sometimes earlier entries, could be missing from the log. It now flushes the log first, and no longer opens a second logger on the same file
+
+## [1.3.0] - 2026-08-26
 
 ### Added
 - Test coverage for the JWT authorization flow (EC and RSA key signing, access token caching and renewal) - previously untested
 - Test coverage for the S3 destination path - previously untested
 - New `awsEndpoint` config option, for pointing the S3 client at custom S3-compatible endpoints (e.g. MinIO) instead of real AWS S3
-- `config/epic-sandbox.js` - example config for connecting to Epic's sandbox
 
 ### Changed
 - Upgraded TypeScript `4.4.2` → `5.9.3` and typedoc `0.22.3` → `0.28.20`
