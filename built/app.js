@@ -13,13 +13,15 @@ const BulkDataClient_1 = __importDefault(require("./lib/BulkDataClient"));
 const cli_1 = __importDefault(require("./reporters/cli"));
 const text_1 = __importDefault(require("./reporters/text"));
 const loggers_1 = require("./loggers");
+// @ts-ignore
+const package_json_1 = __importDefault(require("../package.json"));
 const reporters = {
     cli: cli_1.default,
     text: text_1.default
 };
 const APP = new commander_1.Command();
 APP.name("node .");
-APP.version("2.0.0");
+APP.version(package_json_1.default.version);
 // Bulk Data Server base URL
 APP.option("-f, --fhir-url [url]", "FHIR server base URL. Must be set either as parameter or in the configuration file.");
 APP.option('-F, --_outputFormat [string]', `The output format you expect.`);
@@ -138,7 +140,7 @@ APP.action(async (args) => {
         client.on("exportPage", manifest => {
             totalOutputFileCount += manifest.output.length;
             totalDeletedFileCount += manifest.deleted?.length || 0;
-            totalErrorFileCount += manifest.error.length;
+            totalErrorFileCount += manifest.error?.length || 0;
             totalManifests += 1;
             logger.log("info", {
                 eventId: "status_page_complete",
@@ -146,7 +148,7 @@ APP.action(async (args) => {
                     transactionTime: manifest.transactionTime,
                     outputFileCount: manifest.output.length,
                     deletedFileCount: manifest.deleted?.length || 0,
-                    errorFileCount: manifest.error.length
+                    errorFileCount: manifest.error?.length || 0
                 }
             });
         });
@@ -217,6 +219,8 @@ APP.action(async (args) => {
             return;
         }
         failing = true;
+        // In case anything else goes wrong before exit() is reached
+        process.exitCode = 1;
         if (!logger) {
             return (0, utils_1.exit)(error);
         }

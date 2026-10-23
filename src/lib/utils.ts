@@ -398,7 +398,15 @@ export function exit(arg: any, details?: Record<string, any>) {
     }
 
     if (details) {
-        const answer = process.env.SHOW_ERRORS || prompt()("Would you like to see error details [y/N]? ".cyan)
+        let answer = process.env.SHOW_ERRORS || ""
+        if (!answer) {
+            try {
+                answer = prompt()("Would you like to see error details [y/N]? ".cyan) || ""
+            } catch {
+                // No terminal to ask in (e.g. CI or cron). prompt-sync throws
+                // then, which used to end failed runs with exit code 0
+            }
+        }
         if (answer.toLowerCase() == "y") {
             for (const prop in details) {
                 console.log(prop.bold + ":", details[prop])

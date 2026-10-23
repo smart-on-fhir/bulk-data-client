@@ -97,7 +97,11 @@ export default function CLIReporter(client: BulkDataClient)
     }
 
     function onDownloadComplete() {
-        console.log(`Download completed in ${formatDuration(Date.now() - downloadStart)}`)
+        if (downloadStart) {
+            console.log(`Download completed in ${formatDuration(Date.now() - downloadStart)}`)
+        } else {
+            console.log("Download completed. No files were downloaded")
+        }
     }
 
     function onError(error: Error) {

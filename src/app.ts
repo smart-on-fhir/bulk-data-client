@@ -9,6 +9,8 @@ import Client                   from "./lib/BulkDataClient"
 import CLIReporter              from "./reporters/cli"
 import TextReporter             from "./reporters/text"
 import { createLogger }         from "./loggers"
+// @ts-ignore
+import pkg                      from "../package.json"
 
 const reporters = {
     cli : CLIReporter,
@@ -19,7 +21,7 @@ const APP = new Command()
 
 APP.name("node .")
 
-APP.version("2.0.0")
+APP.version(pkg.version)
 
 // Bulk Data Server base URL
 APP.option("-f, --fhir-url [url]"              , "FHIR server base URL. Must be set either as parameter or in the configuration file.")
@@ -161,7 +163,7 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
         client.on("exportPage", manifest => {
             totalOutputFileCount  += manifest.output.length
             totalDeletedFileCount += manifest.deleted?.length || 0
-            totalErrorFileCount   += manifest.error.length
+            totalErrorFileCount   += manifest.error?.length || 0
             totalManifests        += 1
             logger.log("info", {
                 eventId: "status_page_complete",
@@ -169,7 +171,7 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
                     transactionTime : manifest.transactionTime,
                     outputFileCount : manifest.output.length,
                     deletedFileCount: manifest.deleted?.length || 0,
-                    errorFileCount  : manifest.error.length
+                    errorFileCount  : manifest.error?.length || 0
                 }
             })
         })
@@ -250,6 +252,8 @@ APP.action(async (args: BulkDataClient.CLIOptions) => {
             return
         }
         failing = true
+        // In case anything else goes wrong before exit() is reached
+        process.exitCode = 1
         if (!logger) {
             return exit(error)
         }

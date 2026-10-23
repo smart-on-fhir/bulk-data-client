@@ -50,7 +50,8 @@ export async function invoke({
     options = {},
     args = [],
     timeout = 30000,
-    stdio = "ignore"
+    stdio = "ignore",
+    env = {}
 }: {
     /**
      * Any custom options to pass
@@ -71,6 +72,12 @@ export async function invoke({
      * Stdio option for the process
      */
     stdio?: StdioOptions
+
+    /**
+     * Environment variables for the process, overriding the defaults below.
+     * Set one to `undefined` to remove it.
+     */
+    env?: Record<string, string | undefined>
 } = {}): Promise<{
     config: types.NormalizedOptions
     log: string,
@@ -122,7 +129,8 @@ export async function invoke({
                 // Skip type-checking in every spawned CLI process (ts-node 10
                 // has no compile cache). Type errors are caught by `npm run build`.
                 TS_NODE_TRANSPILE_ONLY: "true",
-                SHOW_ERRORS: "false"
+                SHOW_ERRORS: "false",
+                ...env
             }
         })
 

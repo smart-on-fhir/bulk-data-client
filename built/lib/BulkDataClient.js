@@ -359,6 +359,11 @@ class BulkDataClient extends events_1.EventEmitter {
                     (0, code_1.expect)(manifest, "No export manifest returned").to.exist();
                     (0, code_1.expect)(manifest.output, "The export manifest output is not an array").to.be.an.array();
                     // expect(manifest.output, "The export manifest output contains no files").to.not.be.empty()
+                    for (const key of ["output", "deleted", "error"]) {
+                        const files = manifest[key] || [];
+                        (0, code_1.expect)(files, `The export manifest ${key} is not an array`).to.be.an.array();
+                        files.forEach((f, i) => (0, code_1.expect)(f?.url, `The export manifest ${key}[${i}] has no url`).to.be.a.string());
+                    }
                     pages.add(url);
                     this.emit("exportPage", manifest, url);
                     onPage?.(res);
@@ -883,7 +888,9 @@ class BulkDataClient extends events_1.EventEmitter {
             this.waitForExport({
                 statusEndpoint: statusEndpoint,
                 onPage: (res) => {
-                    this.downloadAllFiles(res.body, page++);
+                    // Not awaited, but errors must still reject run() instead
+                    // of becoming unhandled rejections
+                    this.downloadAllFiles(res.body, page++).catch(reject);
                 }
             })
                 .then(() => this.downloadQueue.finalize())
